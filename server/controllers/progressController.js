@@ -58,7 +58,7 @@ exports.startTopic = async (req, res) => {
 // @route   POST /api/progress/complete-topic
 exports.completeTopic = async (req, res) => {
   try {
-    const { topicId, studyTimeMinutes, notes } = req.body;
+    const { topicId, studyTimeMinutes, notes, difficultyFeedback, confidenceLevel, revisionNeeded } = req.body;
     const user = await User.findById(req.user._id);
 
     const alreadyCompleted = user.completedTopics.find(t => t.topicId.toString() === topicId);
@@ -70,12 +70,36 @@ exports.completeTopic = async (req, res) => {
       topicId,
       completedAt: new Date(),
       studyTimeMinutes: studyTimeMinutes || 0,
-      notes: notes || ''
+      notes: notes || '',
+      difficultyFeedback,
+      confidenceLevel,
+      revisionNeeded: !!revisionNeeded
     });
 
-    // Update total study minutes and XP
+    // Update DSA Stats if applicable
+    if (difficultyFeedback && difficultyFeedback !== 'unsolved') {
+      user.dsaStats.totalProblemsSolved += 1;
+      user.dsaStats.lastSolvedAt = new Date();
+      
+      // Update streak if it's a new day
+      const today = new Date().toISOString().split('T')[0];
+      const lastSolved = user.dsaStats.lastSolvedAt ? user.dsaStats.lastSolvedAt.toISOString().split('T')[0] : null;
+      
+      if (lastSolved !== today) {
+        // Streak logic is already handled globally, but we can add DSA specific streak if needed
+      }
+    }
+
+    // Update total study minutes and XP with Streak Multiplier
+    let xpGain = 50;
+    if (user.dailyStreak >= 30) {
+      xpGain = 100; // Master Multiplier
+    } else if (user.dailyStreak >= 7) {
+      xpGain = 75; // Dedicated Multiplier
+    }
+    
     user.totalStudyMinutes += (studyTimeMinutes || 0);
-    user.xp = (user.xp || 0) + 50;
+    user.xp = (user.xp || 0) + xpGain;
 
     // Update activity log
     const today = new Date().toISOString().split('T')[0];
@@ -115,6 +139,12 @@ exports.completeTopic = async (req, res) => {
           topicsInPhase.some(tp => tp._id.toString() === ct.topicId.toString())
         );
 
+        // AI ADAPTATION: If user is doing exceptionally well, they can skip or advance faster
+        // If they have high confidence in all topics of current phase, they advance.
+        const averageConfidence = completedInPhase.length > 0 
+          ? completedInPhase.reduce((acc, curr) => acc + (curr.confidenceLevel || 3), 0) / completedInPhase.length 
+          : 0;
+
         if (completedInPhase.length === topicsInPhase.length && topicsInPhase.length > 0) {
           // Phase complete! Advance to next phase
           user.currentPhase += 1;
@@ -128,8 +158,19 @@ exports.completeTopic = async (req, res) => {
               user.earnedBadges.push({ badgeId: badge._id, earnedAt: new Date() });
             }
           }
+        } else if (averageConfidence >= 4.5 && completedInPhase.length >= topicsInPhase.length * 0.7) {
+          // AI FAST-TRACK: If confidence is very high and 70% topics done, unlock next level
+          // But don't increment phase yet, just allow access? 
+          // Actually, let's keep it simple: if they are doing great, give more XP.
+          user.xp = (user.xp || 0) + 100; // Fast-track bonus
         }
       }
+    }
+
+    // Domain specific logic
+    const populatedUser = await User.findById(user._id).populate('selectedDomain');
+    if (populatedUser.selectedDomain && populatedUser.selectedDomain.slug === 'dsa') {
+      updateDSAStats(user);
     }
 
     await user.save();
@@ -139,7 +180,8 @@ exports.completeTopic = async (req, res) => {
       message: 'Topic completed', 
       data: { 
         overallProgress: user.overallProgress, 
-        dailyStreak: user.dailyStreak 
+        dailyStreak: user.dailyStreak,
+        xp: user.xp
       }
     });
   } catch (error) {
@@ -191,6 +233,11 @@ exports.getDashboard = async (req, res) => {
       .populate('earnedBadges.badgeId')
       .populate('completedTopics.topicId')
       .populate('startedTopics.topicId');
+    
+    if (user.selectedDomain && user.selectedDomain.slug === 'dsa') {
+      updateDSAStats(user);
+      await user.save();
+    }
 
     let currentPhaseData = null;
     let upcomingAssessment = null;
@@ -236,6 +283,47 @@ exports.getDashboard = async (req, res) => {
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
+};
+
+// Helper function to update DSA stats (internal)
+const updateDSAStats = (user) => {
+  if (!user.completedTopics || user.completedTopics.length === 0) return;
+  
+  const dsaTopics = user.completedTopics.filter(ct => ct.difficultyFeedback);
+  if (dsaTopics.length === 0) return;
+
+  // Track counts for strongest/weakest calculation
+  const performanceMap = {};
+  
+  dsaTopics.forEach(ct => {
+    // This assumes topicId is populated or we have a way to get the category
+    // For now, we'll use a placeholder or check if topicId.title exists
+    const category = ct.topicId?.title ? ct.topicId.title.split(' ')[0] : 'General';
+    
+    if (!performanceMap[category]) {
+      performanceMap[category] = { totalConfidence: 0, count: 0, hardCount: 0 };
+    }
+    
+    performanceMap[category].totalConfidence += (ct.confidenceLevel || 3);
+    performanceMap[category].count += 1;
+    if (ct.difficultyFeedback === 'hard') performanceMap[category].hardCount += 1;
+  });
+
+  let strongest = { name: '', score: -1 };
+  let weakest = { name: '', score: 100 };
+
+  Object.keys(performanceMap).forEach(cat => {
+    const avgConfidence = performanceMap[cat].totalConfidence / performanceMap[cat].count;
+    const hardRatio = performanceMap[cat].hardCount / performanceMap[cat].count;
+    const score = avgConfidence - (hardRatio * 2);
+
+    if (score > strongest.score) strongest = { name: cat, score };
+    if (score < weakest.score) weakest = { name: cat, score };
+  });
+
+  user.dsaStats.strongestTopic = strongest.name || 'Foundations';
+  user.dsaStats.weakestTopic = weakest.name || 'Recursion';
+  user.dsaStats.totalProblemsSolved = dsaTopics.length;
 };
 
 // @desc    Get heatmap data

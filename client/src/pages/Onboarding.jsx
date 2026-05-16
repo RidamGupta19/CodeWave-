@@ -5,7 +5,7 @@ import api from '../api/axios';
 import toast from 'react-hot-toast';
 import { motion, AnimatePresence } from 'framer-motion';
 
-const questions = [
+const generalQuestions = [
   {
     id: 'coding_experience',
     question: "Have you done coding before?",
@@ -17,6 +17,60 @@ const questions = [
       { label: "Intermediate developer", value: "intermediate", description: "I've worked with frameworks like React." }
     ]
   },
+  {
+    id: 'goal',
+    question: "What is your main goal?",
+    options: [
+      { label: "Internship", value: "internship" },
+      { label: "Job", value: "job" },
+      { label: "Freelancing", value: "freelancing" },
+      { label: "Startup", value: "startup" },
+      { label: "Exploration", value: "exploration" }
+    ]
+  },
+  {
+    id: 'daily_time',
+    question: "How much time can you give daily?",
+    options: [
+      { label: "30 mins", value: 30 },
+      { label: "1 hour", value: 60 },
+      { label: "2+ hours", value: 120 }
+    ]
+  }
+];
+
+const dsaQuestions = [
+  {
+    id: 'dsa_language',
+    question: "Preferred language for DSA?",
+    options: [
+      { label: "C++", value: "cpp", description: "Standard for competitive programming." },
+      { label: "Java", value: "java", description: "Great for big-tech interviews." },
+      { label: "Python", value: "python", description: "Fastest to write and learn." },
+      { label: "JavaScript", value: "js", description: "Best if you're targeting web roles." }
+    ]
+  },
+  {
+    id: 'dsa_complexity',
+    question: "Understanding of Big O Complexity?",
+    options: [
+      { label: "Absolute Beginner", value: "none", description: "I don't know what O(n) means." },
+      { label: "Basic", value: "basic", description: "I know O(1), O(n), and O(n²)." },
+      { label: "Comfortable", value: "advanced", description: "I can analyze nested loops and recursion." }
+    ]
+  },
+  {
+    id: 'dsa_recursion',
+    question: "Comfort with Recursion?",
+    options: [
+      { label: "Scared of it", value: "none", description: "What is a base case?" },
+      { label: "Know the basics", value: "basic", description: "I can do factorial and fibonacci." },
+      { label: "Backtracking Ninja", value: "advanced", description: "I can solve N-Queens and Sudoku." }
+    ]
+  }
+];
+
+const webQuestions = [
   {
     id: 'technologies',
     question: "Which technologies do you know?",
@@ -40,48 +94,29 @@ const questions = [
       { label: "Somewhat", value: "somewhat" },
       { label: "Yes confidently", value: "yes" }
     ]
-  },
-  {
-    id: 'goal',
-    question: "What is your main goal?",
-    options: [
-      { label: "Internship", value: "internship" },
-      { label: "Job", value: "job" },
-      { label: "Freelancing", value: "freelancing" },
-      { label: "Startup", value: "startup" },
-      { label: "Exploration", value: "exploration" }
-    ]
-  },
-  {
-    id: 'daily_time',
-    question: "How much time can you give daily?",
-    options: [
-      { label: "30 mins", value: 30 },
-      { label: "1 hour", value: 60 },
-      { label: "2+ hours", value: 120 }
-    ]
-  },
-  {
-    id: 'learner_type',
-    question: "What type of learner are you?",
-    options: [
-      { label: "Video learner", value: "video" },
-      { label: "Practice-first", value: "practice" },
-      { label: "Project-based", value: "project" },
-      { label: "Mixed", value: "mixed" }
-    ]
   }
 ];
 
 const Onboarding = () => {
+  const navigate = useNavigate();
+  const { user, refreshUser } = useAuth();
+  
+  // Compute activeQuestions based on domain
+  const getQuestions = () => {
+    const domainSlug = user?.selectedDomain?.slug || 'web-development';
+    if (domainSlug === 'dsa') {
+      return [...generalQuestions, ...dsaQuestions];
+    }
+    return [...generalQuestions, ...webQuestions];
+  };
+
+  const activeQuestions = getQuestions();
   const [currentStep, setCurrentStep] = useState(0);
   const [answers, setAnswers] = useState({});
   const [loading, setLoading] = useState(false);
-  const { user, refreshUser } = useAuth();
-  const navigate = useNavigate();
 
   const handleOptionSelect = (value) => {
-    const q = questions[currentStep];
+    const q = activeQuestions[currentStep];
     if (q.multiple) {
       const currentAnswers = answers[q.id] || [];
       const newAnswers = currentAnswers.includes(value)
@@ -91,14 +126,14 @@ const Onboarding = () => {
     } else {
       setAnswers({ ...answers, [q.id]: value });
       // Auto advance for single choice if not last
-      if (currentStep < questions.length - 1) {
+      if (currentStep < activeQuestions.length - 1) {
         setTimeout(() => setCurrentStep(currentStep + 1), 300);
       }
     }
   };
 
   const handleNext = async () => {
-    if (currentStep < questions.length - 1) {
+    if (currentStep < activeQuestions.length - 1) {
       setCurrentStep(currentStep + 1);
     } else {
       // Final submit
@@ -132,13 +167,13 @@ const Onboarding = () => {
     }
   };
 
-  const progress = ((currentStep + 1) / questions.length) * 100;
+  const progress = ((currentStep + 1) / activeQuestions.length) * 100;
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-6 bg-[#fdfcfb]">
       <div className="w-full max-w-xl mb-12">
         <div className="flex justify-between items-center mb-4">
-          <span className="text-sm font-semibold text-gray-500 uppercase tracking-wider">Step {currentStep + 1} of {questions.length}</span>
+          <span className="text-sm font-semibold text-gray-500 uppercase tracking-wider">Step {currentStep + 1} of {activeQuestions.length}</span>
           <span className="text-sm font-bold text-primary">{Math.round(progress)}% Complete</span>
         </div>
         <div className="progress-container">
@@ -159,14 +194,14 @@ const Onboarding = () => {
           transition={{ duration: 0.4, ease: "easeOut" }}
           className="onboarding-card"
         >
-          <h2 className="text-2xl font-extrabold mb-2 text-[#1a1a1a]">{questions[currentStep].question}</h2>
+          <h2 className="text-2xl font-extrabold mb-2 text-[#1a1a1a]">{activeQuestions[currentStep].question}</h2>
           <p className="text-gray-500 mb-8">Tell us a bit about yourself so we can tailor your experience.</p>
 
           <div className="space-y-3">
-            {questions[currentStep].options.map((opt) => {
-              const isSelected = questions[currentStep].multiple 
-                ? (answers[questions[currentStep].id] || []).includes(opt.value)
-                : answers[questions[currentStep].id] === opt.value;
+            {activeQuestions[currentStep].options.map((opt) => {
+              const isSelected = activeQuestions[currentStep].multiple 
+                ? (answers[activeQuestions[currentStep].id] || []).includes(opt.value)
+                : answers[activeQuestions[currentStep].id] === opt.value;
 
               return (
                 <button
@@ -206,10 +241,10 @@ const Onboarding = () => {
             </button>
             <button 
               onClick={handleNext}
-              disabled={!answers[questions[currentStep].id] || (questions[currentStep].multiple && answers[questions[currentStep].id].length === 0)}
+              disabled={!answers[activeQuestions[currentStep].id] || (activeQuestions[currentStep].multiple && answers[activeQuestions[currentStep].id].length === 0)}
               className="btn-primary"
             >
-              {loading ? 'Generating Journey...' : (currentStep === questions.length - 1 ? 'Start My Journey' : 'Continue')}
+              {loading ? 'Generating Journey...' : (currentStep === activeQuestions.length - 1 ? 'Start My Journey' : 'Continue')}
             </button>
           </div>
         </motion.div>

@@ -159,6 +159,77 @@ const Dashboard = () => {
               </div>
             </div>
           )}
+
+          {/* DSA Specific Stats - Placement Readiness */}
+          {user.selectedDomain?.slug === 'dsa' && (
+            <div className="mt-10 p-8 bg-gradient-to-br from-indigo-50 to-amber-50 rounded-[2.5rem] border-2 border-primary/5 shadow-sm relative overflow-hidden">
+              <div className="absolute top-0 right-0 p-6 opacity-10">
+                <FiZap className="text-8xl text-primary" />
+              </div>
+              
+              <div className="flex flex-col md:flex-row items-center justify-between mb-8 gap-6">
+                <div>
+                   <h3 className="text-2xl font-black text-[#1a1a1a] flex items-center gap-3">
+                     <FiAward className="text-amber-500" /> Placement Readiness Rank
+                   </h3>
+                   <p className="text-xs font-bold text-gray-400 mt-1 uppercase tracking-widest">
+                     Current Standing: <span className="text-primary font-black">Level {user.currentPhase} {user.currentPhase >= 8 ? 'Beast' : user.currentPhase >= 4 ? 'Warrior' : 'Rookie'}</span>
+                   </p>
+                </div>
+                <div className="flex items-center gap-4">
+                  <div className="text-right hidden sm:block">
+                    <div className="text-[10px] font-black text-gray-400 uppercase">Global percentile</div>
+                    <div className="text-lg font-black text-primary">Top 12%</div>
+                  </div>
+                  <div className="w-20 h-20 rounded-[2rem] bg-white border-4 border-primary/10 flex flex-col items-center justify-center shadow-xl">
+                    <div className="text-2xl font-black text-[#1a1a1a]">{Math.min(Math.round((user.dsaStats?.totalProblemsSolved || 0) / 450 * 100), 100)}%</div>
+                    <div className="text-[8px] font-black text-gray-400 uppercase tracking-tighter">Ready</div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+                <div className="p-6 bg-white/60 backdrop-blur-md rounded-3xl border border-white/50 shadow-sm hover:shadow-md transition-all group">
+                  <div className="text-[10px] text-gray-400 font-black uppercase tracking-widest mb-2 group-hover:text-primary transition-colors">Solved</div>
+                  <div className="text-3xl font-black text-[#1a1a1a]">{user.dsaStats?.totalProblemsSolved || 0}</div>
+                  <div className="text-[8px] font-bold text-gray-400 mt-1 uppercase">A2Z Problems</div>
+                </div>
+                <div className="p-6 bg-white/60 backdrop-blur-md rounded-3xl border border-white/50 shadow-sm hover:shadow-md transition-all group">
+                  <div className="text-[10px] text-gray-400 font-black uppercase tracking-widest mb-2 group-hover:text-emerald-500 transition-colors">Mastered</div>
+                  <div className="text-sm font-black text-emerald-600 truncate">{user.dsaStats?.strongestTopic || 'Foundations'}</div>
+                  <div className="text-[8px] font-bold text-gray-400 mt-1 uppercase">High Precision</div>
+                </div>
+                <div className="p-6 bg-white/60 backdrop-blur-md rounded-3xl border border-white/50 shadow-sm hover:shadow-md transition-all group">
+                  <div className="text-[10px] text-gray-400 font-black uppercase tracking-widest mb-2 group-hover:text-rose-500 transition-colors">Vulnerable</div>
+                  <div className="text-sm font-black text-rose-600 truncate">{user.dsaStats?.weakestTopic || 'Recursion'}</div>
+                  <div className="text-[8px] font-bold text-gray-400 mt-1 uppercase">Needs Review</div>
+                </div>
+                <div className="p-6 bg-white/60 backdrop-blur-md rounded-3xl border border-white/50 shadow-sm hover:shadow-md transition-all group">
+                  <div className="text-[10px] text-gray-400 font-black uppercase tracking-widest mb-2 group-hover:text-amber-500 transition-colors">Next Badge</div>
+                  <div className="text-sm font-black text-amber-600 truncate">{user.currentPhase >= 4 ? 'Graph Hero' : 'Recursion Surivor'}</div>
+                  <div className="text-[8px] font-bold text-gray-400 mt-1 uppercase">Earned at Lvl {user.currentPhase + 1}</div>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <div className="flex justify-between items-end">
+                  <div className="flex items-center gap-2">
+                    <FiStar className="text-amber-500" />
+                    <span className="text-xs font-black text-gray-700">STRIKE MISSION PROGRESS</span>
+                  </div>
+                  <span className="text-xs font-black text-primary">{user.dsaStats?.totalProblemsSolved || 0} / 450 PROBLEMS</span>
+                </div>
+                <div className="h-4 bg-white/50 rounded-full overflow-hidden p-1 shadow-inner">
+                  <motion.div 
+                    initial={{ width: 0 }}
+                    animate={{ width: `${Math.min((user.dsaStats?.totalProblemsSolved || 0) / 450 * 100, 100)}%` }}
+                    className="h-full bg-gradient-to-r from-primary to-indigo-400 rounded-full shadow-lg"
+                  ></motion.div>
+                </div>
+              </div>
+            </div>
+          )}
+
         </div>
 
         {/* Level Stats Area */}

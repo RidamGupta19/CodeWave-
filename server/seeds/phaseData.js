@@ -158,21 +158,18 @@ const phaseData = {
     { phaseNumber: 10, name: 'Performance Testing Basics', description: 'JMeter, load testing', estimatedDuration: '1 week' },
     { phaseNumber: 11, name: 'Final QA Project', description: 'Complete test suite for a web app', estimatedDuration: '2 weeks' }
   ],
-  'competitive-programming-dsa': [
-    { phaseNumber: 1, name: 'Programming Basics', description: 'Language syntax, I/O, basics', estimatedDuration: '1 week' },
-    { phaseNumber: 2, name: 'Time & Space Complexity', description: 'Big O, analysis', estimatedDuration: '3 days' },
-    { phaseNumber: 3, name: 'Arrays', description: 'Array operations, two pointers, sliding window', estimatedDuration: '1 week' },
-    { phaseNumber: 4, name: 'Strings', description: 'String manipulation, pattern matching', estimatedDuration: '1 week' },
-    { phaseNumber: 5, name: 'Recursion', description: 'Recursion, backtracking', estimatedDuration: '1 week' },
-    { phaseNumber: 6, name: 'Sorting', description: 'Merge sort, quick sort, heap sort', estimatedDuration: '1 week' },
-    { phaseNumber: 7, name: 'Searching', description: 'Binary search, variations', estimatedDuration: '3 days' },
-    { phaseNumber: 8, name: 'Hashing', description: 'Hash maps, sets, frequency counting', estimatedDuration: '3 days' },
-    { phaseNumber: 9, name: 'Stack & Queue', description: 'Stack, queue, deque applications', estimatedDuration: '1 week' },
-    { phaseNumber: 10, name: 'Linked List', description: 'Singly, doubly, circular lists', estimatedDuration: '1 week' },
-    { phaseNumber: 11, name: 'Trees', description: 'BST, AVL, heaps, traversals', estimatedDuration: '2 weeks' },
-    { phaseNumber: 12, name: 'Graphs', description: 'BFS, DFS, shortest paths', estimatedDuration: '2 weeks' },
-    { phaseNumber: 13, name: 'Dynamic Programming', description: 'Memoization, tabulation, classic DP', estimatedDuration: '2 weeks' },
-    { phaseNumber: 14, name: 'Greedy & Final Challenge', description: 'Greedy algorithms and contest', estimatedDuration: '1 week' }
+  'dsa': [
+    { phaseNumber: 0, name: 'Programming Foundations', description: 'Language basics, Math for DSA, and Logic building.', estimatedDuration: '1 week' },
+    { phaseNumber: 1, name: 'Arrays Explorer', description: 'Master 1D and 2D arrays with Easy, Medium, and Hard problems.', estimatedDuration: '2 weeks' },
+    { phaseNumber: 2, name: 'Hashing Hunter', description: 'Frequency counting, Hash Maps, and Set operations.', estimatedDuration: '3 days' },
+    { phaseNumber: 3, name: 'Recursion Survivor', description: 'Recursion patterns, Backtracking, and classic recursive problems.', estimatedDuration: '1 week' },
+    { phaseNumber: 4, name: 'Linked List Warrior', description: 'Singly, Doubly, and Circular Linked Lists with complex operations.', estimatedDuration: '1 week' },
+    { phaseNumber: 5, name: 'Stack & Queue Master', description: 'Implementation, Monotonic Stack, and Queue conversions.', estimatedDuration: '1 week' },
+    { phaseNumber: 6, name: 'Tree Master', description: 'Binary Trees, BSTs, Traversals, and complex tree algorithms.', estimatedDuration: '2 weeks' },
+    { phaseNumber: 7, name: 'Graph Adventurer', description: 'BFS/DFS, Topo Sort, Shortest Path, MST, and Disjoint Set.', estimatedDuration: '2 weeks' },
+    { phaseNumber: 8, name: 'Dynamic Programming Beast', description: '1D/2D/3D DP, Grids, Subsequences, Strings, Stocks, and LIS.', estimatedDuration: '3 weeks' },
+    { phaseNumber: 9, name: 'Greedy Strategist', description: 'Master Greedy algorithms with real-world problem scenarios.', estimatedDuration: '1 week' },
+    { phaseNumber: 10, name: 'Placement Challenger', description: 'Bit Manipulation, Heaps, and high-frequency placement problems.', estimatedDuration: '2 weeks' }
   ],
   'open-source-contribution': [
     { phaseNumber: 1, name: 'Git Basics', description: 'Init, commit, push, pull', estimatedDuration: '3 days' },

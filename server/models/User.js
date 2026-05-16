@@ -47,8 +47,24 @@ const userSchema = new mongoose.Schema({
     topicId: { type: mongoose.Schema.Types.ObjectId, ref: 'Topic' },
     completedAt: { type: Date, default: Date.now },
     studyTimeMinutes: { type: Number, default: 0 },
-    notes: { type: String, default: '' }
+    notes: { type: String, default: '' },
+    
+    // DSA specific feedback
+    difficultyFeedback: { type: String, enum: ['easy', 'medium', 'hard', 'unsolved', ''] },
+    confidenceLevel: { type: Number, min: 1, max: 5 }, // 1-5 scale
+    revisionNeeded: { type: Boolean, default: false },
+    revisionStatus: { type: String, enum: ['none', 'scheduled', 'completed'], default: 'none' }
   }],
+
+  // DSA specific progress
+  dsaStats: {
+    totalProblemsSolved: { type: Number, default: 0 },
+    currentStreak: { type: Number, default: 0 },
+    bestStreak: { type: Number, default: 0 },
+    strongestTopic: { type: String, default: '' },
+    weakestTopic: { type: String, default: '' },
+    lastSolvedAt: { type: Date }
+  },
 
   // Started topics
   startedTopics: [{

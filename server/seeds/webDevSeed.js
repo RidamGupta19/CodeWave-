@@ -150,46 +150,54 @@ if (webDevIdx !== -1) {
   ];
 }
 
+const phaseData = require('./phaseData');
+const topicData = require('./topicData');
+
 async function seedAllDomains() {
   try {
     for (const d of domainsToSeed) {
-      const { phases: phaseList, ...domainInfo } = d;
       const domain = await Domain.findOneAndUpdate(
         { slug: d.slug },
-        domainInfo,
+        { ...d },
         { upsert: true, new: true }
       );
       console.log(`✅ Domain set: ${domain.name}`);
 
-      // Clear existing for this domain
+      // Clear existing for this domain to avoid duplicates during re-seeding
       await Phase.deleteMany({ domainId: domain._id });
       await Topic.deleteMany({ domainId: domain._id });
 
-      for (const phaseInfo of phaseList) {
+      const phases = phaseData[domain.slug] || [];
+      for (const phaseInfo of phases) {
         const phase = await Phase.create({
           ...phaseInfo,
           domainId: domain._id,
           order: phaseInfo.phaseNumber
         });
         
-        // Add specific topics for Web Dev, otherwise default
-        const topicsToAdd = (domain.slug === 'web-development') 
-          ? webDevTopics[phase.phaseNumber] 
-          : [{ title: `Intro to ${phase.name}`, description: `Fundamentals of ${phase.name}.`, time: '1h' }];
-
-        for (const t of topicsToAdd) {
+        const topicKey = `${domain.slug}:${phase.phaseNumber}`;
+        const topics = topicData[topicKey] || [];
+        
+        if (topics.length > 0) {
+          for (const t of topics) {
+            await Topic.create({
+              ...t,
+              phaseId: phase._id,
+              domainId: domain._id,
+              isActive: true
+            });
+          }
+        } else {
+          // Default topic if none specified
           await Topic.create({
-            title: t.title,
-            description: t.description,
-            youtubeLink: t.youtube || 'https://www.youtube.com/watch?v=hcMzwfj824A',
-            instructor: t.instructor || '',
-            challenge: t.challenge || '',
-            theoryNotes: t.notes || '',
-            estimatedTime: t.time || '1 hour',
+            title: `Intro to ${phase.name}`,
+            description: `Core concepts and foundations of ${phase.name}.`,
+            youtubeLink: 'https://www.youtube.com/watch?v=hcMzwfj824A',
+            estimatedTime: '1 hour',
             phaseId: phase._id,
             domainId: domain._id,
             isActive: true,
-            order: topicsToAdd.indexOf(t)
+            order: 0
           });
         }
       }

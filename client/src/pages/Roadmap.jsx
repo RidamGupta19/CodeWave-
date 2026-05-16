@@ -7,7 +7,11 @@ import toast from 'react-hot-toast';
 import { motion } from 'framer-motion';
 
 // Levels will be derived dynamically from the phases data
-const getLevelIcon = (index) => {
+const getLevelIcon = (index, domainSlug) => {
+  if (domainSlug === 'dsa') {
+    const dsaIcons = ["🌱", "🧱", "🗺️", "🥷", "⚔️", "🛡️", "🌳", "⛰️", "👹", "🏹", "🏆"];
+    return dsaIcons[index] || "🔥";
+  }
   const icons = ["🌐", "🧱", "🎨", "🧟", "🐙", "⚛️", "⚙️", "🗄️", "🏗️"];
   return icons[index] || "⭐️";
 };
@@ -33,7 +37,8 @@ const Roadmap = () => {
 
   const fetchRoadmap = async () => {
     try {
-      const res = await api.get(`/domains/${user.selectedDomain._id || user.selectedDomain}`);
+      const domainId = user.selectedDomain._id || user.selectedDomain;
+      const res = await api.get(`/domains/${domainId}`);
       setDomainData(res.data.data);
       // Set active level based on current phase
       setActiveLevel(user.currentPhase || 0);
@@ -54,12 +59,13 @@ const Roadmap = () => {
   const { domain, phases } = domainData;
   const currentXP = user.xp || 0;
   const currentStreak = user.dailyStreak || 0;
+  const isDSA = domain.slug === 'dsa';
 
   return (
-    <div className="pb-20 max-w-6xl mx-auto px-6 pt-10">
+    <div className={`pb-20 max-w-6xl mx-auto px-6 pt-10 ${isDSA ? 'dsa-theme' : ''}`}>
       {/* Premium Gamification Header */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
-        <div className="card p-6 bg-white flex items-center gap-5">
+        <div className="card p-6 bg-white flex items-center gap-5 border-b-4 border-amber-400">
           <div className="w-14 h-14 bg-amber-50 rounded-2xl flex items-center justify-center text-2xl text-amber-500 shadow-inner">
             <FiZap />
           </div>
@@ -68,39 +74,41 @@ const Roadmap = () => {
             <div className="text-2xl font-black text-[#1a1a1a]">{currentXP} XP</div>
           </div>
         </div>
-        <div className="card p-6 bg-white flex items-center gap-5">
+        <div className="card p-6 bg-white flex items-center gap-5 border-b-4 border-emerald-400">
           <div className="w-14 h-14 bg-emerald-50 rounded-2xl flex items-center justify-center text-2xl text-emerald-500 shadow-inner">
             <FiTrendingUp />
           </div>
           <div>
-            <div className="text-sm font-bold text-gray-400 uppercase tracking-wider">Current Streak</div>
-            <div className="text-2xl font-black text-[#1a1a1a]">{currentStreak} Days</div>
+            <div className="text-sm font-bold text-gray-400 uppercase tracking-wider">Daily Streak</div>
+            <div className="text-2xl font-black text-[#1a1a1a]">{currentStreak} 🔥</div>
           </div>
         </div>
-        <div className="card p-6 bg-white flex items-center gap-5">
+        <div className="card p-6 bg-white flex items-center gap-5 border-b-4 border-indigo-400">
           <div className="w-14 h-14 bg-indigo-50 rounded-2xl flex items-center justify-center text-2xl text-indigo-500 shadow-inner">
             <FiStar />
           </div>
           <div>
             <div className="text-sm font-bold text-gray-400 uppercase tracking-wider">Current Rank</div>
-            <div className="text-2xl font-black text-[#1a1a1a]">{phases[activeLevel]?.name || 'Explorer'}</div>
+            <div className="text-2xl font-black text-[#1a1a1a]">{phases[user.currentPhase]?.name || 'Apprentice'}</div>
           </div>
         </div>
       </div>
 
       <div className="text-center mb-16">
-        <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 text-primary rounded-full text-[10px] font-black uppercase tracking-widest mb-6">
-          <FiTrendingUp /> {user.profile?.roadmapType || 'Steady Pace'} Path • {user.profile?.estimatedTimeline || '6 Months'}
+        <div className={`inline-flex items-center gap-2 px-4 py-2 ${isDSA ? 'bg-amber-100 text-amber-700' : 'bg-primary/10 text-primary'} rounded-full text-[10px] font-black uppercase tracking-widest mb-6`}>
+          <FiZap /> {isDSA ? 'Striver\'s A2Z Roadmap' : (user.profile?.roadmapType || 'Steady Pace')} • {isDSA ? 'Placement Focused' : (user.profile?.estimatedTimeline || '6 Months')}
         </div>
-        <h1 className="text-5xl font-black mb-6 text-gradient tracking-tight">Your {user.profile?.roadmapType || 'Developer'} Adventure</h1>
+        <h1 className="text-5xl font-black mb-6 text-gradient tracking-tight">
+          {isDSA ? 'The Ultimate DSA Journey' : `Your ${domain.name} Adventure`}
+        </h1>
         <p className="text-gray-500 max-w-2xl mx-auto text-lg font-medium leading-relaxed">
-          {user.profile?.aiSummary || "Master each level to unlock the next chapter of your coding journey. Every lesson brings you closer to becoming an Architect."}
+          {isDSA ? "Master the art of problem solving with our gamified roadmap based on Striver's A2Z sheet. Level up your skills and crush your placement goals." : (user.profile?.aiSummary || "Master each level to unlock the next chapter of your coding journey.")}
         </p>
       </div>
 
       {/* Gamified Level Path */}
-      <div className="relative py-10 overflow-x-auto">
-        <div className="flex items-start gap-12 min-w-max px-10">
+      <div className="relative py-10 overflow-x-auto no-scrollbar">
+        <div className="flex items-start gap-12 min-w-max px-10 pb-10">
           {phases.map((phase, index) => {
             const isUnlocked = index <= (user.currentPhase || 0);
             const isCompleted = index < (user.currentPhase || 0);
@@ -110,24 +118,29 @@ const Roadmap = () => {
               <div key={phase._id} className="flex flex-col items-center relative">
                 {/* Level Node */}
                 <motion.div
-                  whileHover={isUnlocked ? { scale: 1.05 } : {}}
+                  whileHover={isUnlocked ? { scale: 1.1, rotate: isCurrent ? [0, -5, 5, 0] : 0 } : {}}
                   onClick={() => isUnlocked && setActiveLevel(index)}
-                  className={`level-node ${isUnlocked ? 'unlocked' : ''} ${isCompleted ? 'completed' : ''} ${isCurrent ? 'ring-8 ring-primary/10' : ''}`}
+                  className={`level-node cursor-pointer w-24 h-24 rounded-3xl flex flex-col items-center justify-center relative transition-all duration-500 ${
+                    isUnlocked 
+                      ? isDSA ? 'bg-gradient-to-br from-amber-400 to-orange-500 text-white shadow-xl shadow-amber-200' : 'bg-primary text-white shadow-xl shadow-primary/30' 
+                      : 'bg-gray-100 text-gray-300 grayscale'
+                  } ${isCompleted ? 'ring-4 ring-emerald-400' : ''} ${isCurrent ? 'ring-8 ring-amber-400/20 scale-110' : ''}`}
                 >
-                  <span className="text-4xl mb-1">{getLevelIcon(index)}</span>
-                  <span className="text-[10px] font-black uppercase tracking-tighter">LVL {index}</span>
-                  {isCurrent && <div className="absolute -top-3 -right-3 bg-primary text-white text-[10px] px-2 py-1 rounded-full font-black animate-bounce shadow-lg">YOU</div>}
-                  {!isUnlocked && <FiLock className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-gray-300 text-xl" />}
+                  <span className="text-4xl mb-1">{getLevelIcon(index, domain.slug)}</span>
+                  <span className="text-[8px] font-black uppercase tracking-tighter">LVL {index}</span>
+                  {isCurrent && <div className="absolute -top-3 -right-3 bg-red-500 text-white text-[10px] px-2 py-1 rounded-full font-black animate-bounce shadow-lg">YOU</div>}
+                  {!isUnlocked && <FiLock className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-gray-400 text-xl" />}
+                  {isCompleted && <FiCheckCircle className="absolute -bottom-2 -right-2 text-emerald-500 bg-white rounded-full text-xl shadow-md" />}
                 </motion.div>
 
                 {/* Level Title */}
-                <div className="mt-4 text-center">
-                  <div className={`text-sm font-black ${isUnlocked ? 'text-[#1a1a1a]' : 'text-gray-400'}`}>{phase.name}</div>
-                  <div className="text-[10px] font-bold text-gray-400 uppercase mt-1">{getLevelThreshold(index)} XP Required</div>
+                <div className="mt-4 text-center max-w-[120px]">
+                  <div className={`text-xs font-black leading-tight ${isUnlocked ? 'text-[#1a1a1a]' : 'text-gray-400'}`}>{phase.name}</div>
+                  <div className="text-[8px] font-bold text-gray-400 uppercase mt-1 tracking-widest">{getLevelThreshold(index)} XP</div>
                 </div>
 
                 {index < phases.length - 1 && (
-                  <div className={`absolute top-[60px] left-[120px] w-12 h-1 ${isUnlocked && (index + 1 <= user.currentPhase) ? 'bg-primary' : 'bg-gray-200'}`}></div>
+                  <div className={`absolute top-[48px] left-[105px] w-12 h-1.5 rounded-full transition-colors duration-1000 ${isUnlocked && (index + 1 <= user.currentPhase) ? isDSA ? 'bg-amber-400' : 'bg-primary' : 'bg-gray-100'}`}></div>
                 )}
               </div>
             );
@@ -138,31 +151,34 @@ const Roadmap = () => {
       {/* Level Details Area */}
       {activeLevel !== null && (
         <motion.div 
-          initial={{ opacity: 0, y: 20 }}
+          key={activeLevel}
+          initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
-          className="mt-16 card p-10 bg-white shadow-2xl border-primary/10"
+          className={`mt-16 card p-10 bg-white shadow-2xl border-2 ${isDSA ? 'border-amber-100' : 'border-primary/10'}`}
         >
           <div className="flex flex-col md:flex-row justify-between items-start gap-10 mb-10 pb-10 border-b border-gray-100">
             <div className="flex-1">
               <div className="flex items-center gap-4 mb-4">
-                <span className="text-5xl">{getLevelIcon(activeLevel)}</span>
+                <span className="text-6xl bg-gray-50 w-20 h-20 flex items-center justify-center rounded-3xl shadow-inner">{getLevelIcon(activeLevel, domain.slug)}</span>
                 <div>
-                  <h2 className="text-3xl font-black text-[#1a1a1a]">{phases[activeLevel].name}</h2>
-                  <div className="text-primary font-bold text-sm tracking-widest uppercase mt-1">Level {activeLevel} Mission</div>
+                  <h2 className="text-4xl font-black text-[#1a1a1a] tracking-tight">{phases[activeLevel].name}</h2>
+                  <div className={`${isDSA ? 'text-amber-500' : 'text-primary'} font-black text-xs tracking-widest uppercase mt-1`}>Level {activeLevel} Expedition</div>
                 </div>
               </div>
-              <p className="text-gray-500 leading-relaxed max-w-2xl">
+              <p className="text-gray-500 leading-relaxed max-w-2xl font-medium text-lg">
                 {phases.find(p => p.phaseNumber === activeLevel)?.description || "Complete these challenges to master this level and earn massive XP rewards."}
               </p>
             </div>
-            <div className="bg-primary/5 p-6 rounded-2xl border border-primary/10">
-              <div className="text-sm font-black text-primary uppercase tracking-widest mb-3">Rewards for Completion</div>
+            <div className={`${isDSA ? 'bg-amber-50 border-amber-100' : 'bg-primary/5 border-primary/10'} p-6 rounded-3xl border-2 shadow-sm`}>
+              <div className={`text-[10px] font-black ${isDSA ? 'text-amber-700' : 'text-primary'} uppercase tracking-widest mb-4`}>Completion Rewards</div>
               <div className="space-y-3">
-                <div className="flex items-center gap-2 text-[#1a1a1a] font-bold">
-                  <FiZap className="text-amber-500" /> +500 XP
+                <div className="flex items-center gap-3 text-[#1a1a1a] font-black">
+                  <div className="w-8 h-8 bg-amber-200 text-amber-700 rounded-lg flex items-center justify-center"><FiZap /></div>
+                  +500 XP
                 </div>
-                <div className="flex items-center gap-2 text-[#1a1a1a] font-bold">
-                  <FiStar className="text-indigo-500" /> {phases[activeLevel].name} Badge
+                <div className="flex items-center gap-3 text-[#1a1a1a] font-black">
+                  <div className="w-8 h-8 bg-indigo-200 text-indigo-700 rounded-lg flex items-center justify-center"><FiAward /></div>
+                  {phases[activeLevel].name} Badge
                 </div>
               </div>
             </div>
@@ -172,6 +188,7 @@ const Roadmap = () => {
             phaseId={phases.find(p => p.phaseNumber === activeLevel)?._id} 
             isTopicCompleted={isTopicCompleted}
             activeLevel={activeLevel}
+            isDSA={isDSA}
           />
         </motion.div>
       )}
@@ -179,12 +196,13 @@ const Roadmap = () => {
   );
 };
 
-const TopicsList = ({ phaseId, isTopicCompleted, activeLevel }) => {
+const TopicsList = ({ phaseId, isTopicCompleted, activeLevel, isDSA }) => {
   const [topics, setTopics] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (phaseId) {
+      setLoading(true);
       api.get(`/topics/phase/${phaseId}`).then(res => {
         setTopics(res.data.data);
         setLoading(false);
@@ -193,7 +211,7 @@ const TopicsList = ({ phaseId, isTopicCompleted, activeLevel }) => {
   }, [phaseId]);
 
   if (!phaseId) return <div className="text-center py-10 text-gray-400 italic">No missions defined for this level yet.</div>;
-  if (loading) return <div className="text-center py-10"><div className="spinner w-8 h-8 border-2 mx-auto"></div></div>;
+  if (loading) return <div className="text-center py-20"><div className="spinner w-10 h-10 border-4 mx-auto border-t-amber-400"></div></div>;
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -204,26 +222,32 @@ const TopicsList = ({ phaseId, isTopicCompleted, activeLevel }) => {
           <Link 
             key={topic._id} 
             to={`/topic/${topic._id}`}
-            className={`group p-6 rounded-2xl border-2 transition-all flex items-center justify-between ${
-              completed ? 'bg-emerald-50 border-emerald-100' : 'bg-white border-[#f3f0ec] hover:border-primary/30 hover:shadow-xl hover:shadow-primary/5'
+            className={`group p-6 rounded-3xl border-2 transition-all flex items-center justify-between ${
+              completed 
+                ? 'bg-emerald-50 border-emerald-100 shadow-sm' 
+                : 'bg-white border-[#f3f0ec] hover:border-amber-400 hover:shadow-2xl hover:shadow-amber-100 hover:-translate-y-1'
             }`}
           >
             <div className="flex items-center gap-5">
-              <div className={`w-14 h-14 rounded-2xl flex items-center justify-center text-2xl transition-all ${
-                completed ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-200' : 'bg-gray-50 text-gray-400 group-hover:bg-primary/10 group-hover:text-primary'
+              <div className={`w-16 h-16 rounded-2xl flex items-center justify-center text-3xl transition-all duration-500 ${
+                completed 
+                  ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-100' 
+                  : 'bg-gray-50 text-gray-400 group-hover:bg-amber-100 group-hover:text-amber-500 group-hover:rotate-12'
               }`}>
                 {completed ? <FiCheckCircle /> : <FiPlayCircle />}
               </div>
               <div>
-                <h4 className={`font-black ${completed ? 'text-emerald-900' : 'text-[#1a1a1a]'}`}>{topic.title}</h4>
-                <div className="text-[10px] font-bold text-gray-400 uppercase mt-1 tracking-widest flex items-center gap-2">
-                  <span>{topic.estimatedTime}</span>
-                  <span>•</span>
-                  <span className="text-amber-500">+50 XP</span>
+                <h4 className={`font-black text-lg ${completed ? 'text-emerald-900' : 'text-[#1a1a1a]'}`}>{topic.title}</h4>
+                <div className="text-[10px] font-black text-gray-400 uppercase mt-1 tracking-widest flex items-center gap-3">
+                  <span className="flex items-center gap-1"><FiClock /> {topic.estimatedTime}</span>
+                  <span className="w-1 h-1 bg-gray-300 rounded-full"></span>
+                  <span className="text-amber-500 font-black">+50 XP</span>
                 </div>
               </div>
             </div>
-            <FiZap className={`text-xl transition-all ${completed ? 'text-emerald-500' : 'text-gray-200 group-hover:text-primary group-hover:translate-x-1'}`} />
+            <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-all ${completed ? 'bg-emerald-100 text-emerald-500' : 'bg-gray-50 text-gray-200 group-hover:bg-amber-50 group-hover:text-amber-500 group-hover:translate-x-1'}`}>
+              <FiZap className="text-xl" />
+            </div>
           </Link>
         );
       })}

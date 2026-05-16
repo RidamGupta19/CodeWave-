@@ -48,7 +48,12 @@ exports.chat = async (req, res) => {
       testsPassed: user.testResults?.filter(t => t.passed)?.length || 0,
       dailyStreak: user.dailyStreak || 0,
       skillLevel: user.profile?.currentSkillLevel || 'beginner',
-      goal: user.profile?.goal || 'job'
+      goal: user.profile?.goal || 'job',
+      dsaStats: {
+        solved: user.dsaStats?.totalProblemsSolved || 0,
+        strongest: user.dsaStats?.strongestTopic || 'N/A',
+        weakest: user.dsaStats?.weakestTopic || 'N/A'
+      }
     };
 
     let aiResponse;
@@ -56,13 +61,35 @@ exports.chat = async (req, res) => {
     // Try real AI API if configured
     if (process.env.AI_API_KEY && process.env.AI_API_KEY.length > 10) {
       try {
-        const response = await fetch(process.env.AI_API_URL, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${process.env.AI_API_KEY}`
-          },
-          body: JSON.stringify({
+        const isGemini = process.env.AI_API_URL.includes('generativelanguage.googleapis.com');
+        
+        let url = process.env.AI_API_URL;
+        let body;
+        let headers = { 'Content-Type': 'application/json' };
+
+        if (isGemini) {
+          url = `${process.env.AI_API_URL}?key=${process.env.AI_API_KEY}`;
+          body = JSON.stringify({
+            contents: [{
+              parts: [{
+                text: `You are CareerForge AI, a career guidance agent for BTech/engineering students. 
+                User context: Domain=${context.domain}, Progress=${context.progress}%, Phase=${context.currentPhase}, 
+                CompletedTopics=${context.completedTopics}, TestsPassed=${context.testsPassed}, 
+                Streak=${context.dailyStreak}days, SkillLevel=${context.skillLevel}, Goal=${context.goal}.
+                DSA Performance: Solved=${context.dsaStats.solved}, Strongest=${context.dsaStats.strongest}, Weakest=${context.dsaStats.weakest}.
+                Provide personalized, actionable career advice. Be encouraging and specific. If they struggle with their "weakest" topic, give them specific study tips for that area.
+                
+                User Message: ${message}`
+              }]
+            }],
+            generationConfig: {
+              maxOutputTokens: 800,
+              temperature: 0.7
+            }
+          });
+        } else {
+          headers['Authorization'] = `Bearer ${process.env.AI_API_KEY}`;
+          body = JSON.stringify({
             model: process.env.AI_MODEL || 'gpt-3.5-turbo',
             messages: [
               {
@@ -71,16 +98,29 @@ exports.chat = async (req, res) => {
                 User context: Domain=${context.domain}, Progress=${context.progress}%, Phase=${context.currentPhase}, 
                 CompletedTopics=${context.completedTopics}, TestsPassed=${context.testsPassed}, 
                 Streak=${context.dailyStreak}days, SkillLevel=${context.skillLevel}, Goal=${context.goal}.
-                Provide personalized, actionable career advice. Be encouraging and specific.`
+                DSA Performance: Solved=${context.dsaStats.solved}, Strongest=${context.dsaStats.strongest}, Weakest=${context.dsaStats.weakest}.
+                Provide personalized, actionable career advice. Be encouraging and specific. If they struggle with their "weakest" topic, give them specific study tips for that area.`
               },
               { role: 'user', content: message }
             ],
             max_tokens: 800,
             temperature: 0.7
-          })
+          });
+        }
+
+        const response = await fetch(url, {
+          method: 'POST',
+          headers,
+          body
         });
+
         const data = await response.json();
-        aiResponse = data.choices?.[0]?.message?.content || generateMockResponse(message, context);
+        
+        if (isGemini) {
+          aiResponse = data.candidates?.[0]?.content?.parts?.[0]?.text || generateMockResponse(message, context);
+        } else {
+          aiResponse = data.choices?.[0]?.message?.content || generateMockResponse(message, context);
+        }
       } catch (apiError) {
         console.log('AI API error, using mock:', apiError.message);
         aiResponse = generateMockResponse(message, context);
@@ -109,46 +149,66 @@ exports.generateRoadmap = async (req, res) => {
   try {
     const { answers } = req.body;
     const userId = req.user._id;
+    let startingLevel = 0;
+    let unlockedLevels = [0];
+    let xpMultiplier = 1.0;
 
     if (!answers) {
       return res.status(400).json({ success: false, message: 'Onboarding answers are required' });
     }
 
     // 1. Determine Starting Level (Rule-Based)
-    let startingLevel = 0;
-    let unlockedLevels = [0];
-    let xpMultiplier = 1.0;
+    const user = await User.findById(userId).populate('selectedDomain');
+    const domainSlug = user.selectedDomain?.slug || 'web-development';
 
     const experience = answers.coding_experience;
-    const techs = answers.technologies || [];
-    const knowsHTML = techs.includes('html');
-    const knowsCSS = techs.includes('css');
-    const knowsJS = techs.includes('js');
-    const knowsReact = techs.includes('react');
-    const canBuildWebPage = answers.web_page === 'yes';
+    const goal = answers.goal;
+    const dailyTime = parseInt(answers.daily_time) || 60;
 
     // Starting Level Logic
-    if (knowsHTML && knowsCSS && knowsJS) {
-      startingLevel = 4; // Skip to Git & GitHub / React
-      unlockedLevels = [0, 1, 2, 3, 4];
-    } else if (knowsHTML && knowsCSS) {
-      startingLevel = 3; // Start from JS
-      unlockedLevels = [0, 1, 2, 3];
-    } else if (knowsHTML) {
-      startingLevel = 2; // Start from CSS
-      unlockedLevels = [0, 1, 2];
-    } else if (experience === 'basic' || experience === 'projects') {
-      startingLevel = 1; // Start from HTML
-      unlockedLevels = [0, 1];
+    if (domainSlug === 'dsa') {
+      const complexity = answers.dsa_complexity || 'none';
+      const recursion = answers.dsa_recursion || 'none';
+      const language = answers.dsa_language || 'cpp';
+
+      if (complexity === 'advanced' && recursion === 'advanced') {
+        startingLevel = 5; // Stack & Queue Master
+        unlockedLevels = [0, 1, 2, 3, 4, 5];
+      } else if (complexity !== 'none' || recursion !== 'none') {
+        startingLevel = 1; // Arrays Explorer
+        unlockedLevels = [0, 1];
+      } else {
+        startingLevel = 0; // Programming Foundations
+        unlockedLevels = [0];
+      }
     } else {
-      startingLevel = 0; // Internet Explorer
-      unlockedLevels = [0];
+      // Web Dev Logic
+      const techs = answers.technologies || [];
+      const knowsHTML = techs.includes('html');
+      const knowsCSS = techs.includes('css');
+      const knowsJS = techs.includes('js');
+      
+      if (knowsHTML && knowsCSS && knowsJS) {
+        startingLevel = 4; // Skip to Logic Legend (JS) / Version Vanguard (Git)
+        unlockedLevels = [0, 1, 2, 3, 4];
+      } else if (knowsHTML && knowsCSS) {
+        startingLevel = 3; // Style Sorcerer / Logic Legend
+        unlockedLevels = [0, 1, 2, 3];
+      } else if (knowsHTML) {
+        startingLevel = 1; // Structure Sensei
+        unlockedLevels = [0, 1];
+      } else if (experience === 'basic' || experience === 'projects') {
+        startingLevel = 1;
+        unlockedLevels = [0, 1];
+      } else {
+        startingLevel = 0;
+        unlockedLevels = [0];
+      }
     }
 
     // Goal-Based Customization
     let roadmapType = 'Steady Pace';
     let recommendedProjects = [];
-    const goal = answers.goal;
 
     if (goal === 'internship') {
       roadmapType = 'Internship-Focused';
@@ -165,7 +225,6 @@ exports.generateRoadmap = async (req, res) => {
     }
 
     // Timeline Calculation based on daily study time
-    const dailyTime = parseInt(answers.daily_time) || 60;
     let estimatedTimeline = '6 Months';
     let recommendedPace = 'Moderate';
 
@@ -181,8 +240,15 @@ exports.generateRoadmap = async (req, res) => {
       recommendedPace = 'Steady';
     }
 
-    // Generate AI Summary (deterministic but personalized)
-    const aiSummary = `Based on your ${experience} background and your goal for a ${goal}, we've designed a ${roadmapType} path for you. Since you already know ${techs.length > 0 ? techs.join(', ') : 'the basics'}, you'll start at Level ${startingLevel}. We've estimated a ${estimatedTimeline} completion time at a ${recommendedPace} pace.`;
+    // Generate AI Summary
+    let aiSummary = "";
+    if (domainSlug === 'dsa') {
+      const languageMap = { 'cpp': 'C++', 'java': 'Java', 'python': 'Python', 'js': 'JavaScript' };
+      const lang = languageMap[answers.dsa_language] || 'C++';
+      aiSummary = `Since you're targeting ${lang} for DSA, we've optimized your roadmap for it. Based on your ${experience} level, you're starting at Level ${startingLevel}. We've calculated a ${estimatedTimeline} timeline to get you interview-ready.`;
+    } else {
+      aiSummary = `Based on your ${experience} background and your goal for a ${goal}, we've designed a ${roadmapType} path for you. You'll start at Level ${startingLevel}. We've estimated a ${estimatedTimeline} completion time.`;
+    }
 
     // Update User Profile
     const updatedUser = await User.findByIdAndUpdate(userId, {

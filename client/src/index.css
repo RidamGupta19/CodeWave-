@@ -269,3 +269,53 @@ h1, h2, h3, h4, h5, h6 {
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
+/* DSA Journey Custom Themes */
+.dsa-theme {
+  --primary: #eab308;
+  --primary-hover: #ca8a04;
+  --primary-light: #fefce8;
+}
+
+.dsa-workspace {
+  background: #fafaf9;
+}
+
+.dsa-workspace .custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #fcd34d;
+}
+
+.dsa-workspace .prose h1, 
+.dsa-workspace .prose h2, 
+.dsa-workspace .prose h3 {
+  color: #1a1a1a;
+  font-weight: 800;
+  border-bottom: 2px solid #fef3c7;
+  padding-bottom: 0.5rem;
+  margin-top: 2rem;
+}
+
+/* Animations for DSA Level Unlocks */
+@keyframes dsaPulse {
+  0% { box-shadow: 0 0 0 0 rgba(234, 179, 8, 0.4); }
+  70% { box-shadow: 0 0 0 15px rgba(234, 179, 8, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(234, 179, 8, 0); }
+}
+
+.level-node.unlocked.dsa-node {
+  animation: dsaPulse 2s infinite;
+}
+
+/* No scrollbar utility */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.text-gradient-dsa {
+  background: linear-gradient(135deg, #eab308 0%, #f97316 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
