@@ -104,22 +104,28 @@ const Onboarding = () => {
       // Final submit
       setLoading(true);
       try {
+        // First save basic profile info
         const profileData = {
           currentSkillLevel: answers.coding_experience,
           goal: answers.goal,
           dailyStudyTime: answers.daily_time,
           knownLanguages: answers.technologies || [],
-          isProfileComplete: true,
-          // Custom mapping for roadmap generation later
           onboardingAnswers: answers
         };
 
         await api.put('/auth/profile', { profile: profileData });
+        
+        // Then generate the AI roadmap
+        await api.post('/ai/generate-roadmap', { answers });
+        
         await refreshUser();
-        toast.success("Your journey is ready! 🚀");
-        navigate('/roadmap');
+        toast.success("Your AI Roadmap has been generated! 🚀", {
+          duration: 5000,
+          icon: '✨'
+        });
+        navigate('/dashboard');
       } catch (err) {
-        toast.error("Failed to save your preferences.");
+        toast.error("Failed to generate your personalized journey.");
       } finally {
         setLoading(false);
       }

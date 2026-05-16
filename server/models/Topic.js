@@ -17,6 +17,11 @@ const topicSchema = new mongoose.Schema({
   practiceLink: { type: String, default: '' },
   notesLink: { type: String, default: '' },
   
+  // Learning Content
+  instructor: { type: String, default: '' },
+  challenge: { type: String, default: '' },
+  theoryNotes: { type: String, default: '' },
+  
   isRequired: { type: Boolean, default: true },
   unlockAfterPreviousTopic: { type: Boolean, default: true },
   isActive: { type: Boolean, default: true }

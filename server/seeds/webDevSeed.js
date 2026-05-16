@@ -16,40 +16,121 @@ const domainsToSeed = domainData.map(d => ({
 
 const webDevTopics = {
   0: [
-    { title: 'The Internet Under the Hood', description: 'DNS, IP Addresses, and Packet Switching.', time: '1h' },
-    { title: 'HTTP/HTTPS & Security', description: 'SSL, Request/Response cycle.', time: '1.5h' }
+    { 
+      title: 'How the Internet Works', 
+      description: 'The foundation of everything. DNS, IP, and Browsers.', 
+      time: '1h', 
+      youtube: 'https://www.youtube.com/watch?v=7_LPdttKXPc', 
+      instructor: 'Apna College',
+      challenge: 'Explain how a browser fetches a website to a non-technical friend.',
+      notes: 'Focus on the Request/Response cycle and the role of the ISP.'
+    },
+    { 
+      title: 'HTTP/HTTPS Deep Dive', 
+      description: 'Understanding the protocol of the web.', 
+      time: '1h', 
+      youtube: 'https://www.youtube.com/watch?v=iYM2zFP3Zn0', 
+      instructor: 'Apna College',
+      challenge: 'Find the status code of a broken link on any website.',
+      notes: 'Learn about 200, 404, 500 status codes.'
+    }
   ],
   1: [
-    { title: 'Semantic HTML5', description: 'Why structure matters for SEO and Accessibility.', time: '2h' },
-    { title: 'Forms & Validations', description: 'Building interactive user inputs.', time: '2h' }
+    { 
+      title: 'Semantic HTML5', 
+      description: 'Building meaningful structure.', 
+      time: '2h', 
+      youtube: 'https://www.youtube.com/watch?v=hcMzwfj824A', 
+      instructor: 'Apna College',
+      challenge: 'Convert a <div> based layout to a semantic one using <header>, <main>, and <footer>.',
+      notes: 'Accessibility is the key here.'
+    }
   ],
   2: [
-    { title: 'Flexbox Layouts', description: 'Mastering the 1D layout engine.', time: '3h' },
-    { title: 'CSS Grid Mastery', description: 'Building complex 2D layouts.', time: '4h' }
+    { 
+      title: 'Modern CSS & Flexbox', 
+      description: 'Mastering layouts without floats.', 
+      time: '3h', 
+      youtube: 'https://www.youtube.com/watch?v=Edsxf_NBFrw', 
+      instructor: 'Chai aur Code',
+      challenge: 'Create a responsive 3-column layout using Flexbox.',
+      notes: 'justify-content vs align-items is the most important concept.'
+    }
   ],
   3: [
-    { title: 'ES6+ Features', description: 'Destructuring, Arrow functions, and Modules.', time: '5h' },
-    { title: 'Async/Await & Promises', description: 'Handling API calls and async logic.', time: '6h' }
+    { 
+      title: 'JavaScript Fundamentals', 
+      description: 'Variables, Data types, and Loops.', 
+      time: '5h', 
+      youtube: 'https://www.youtube.com/watch?v=2md4HQNRqJA', 
+      instructor: 'Chai aur Code',
+      challenge: 'Write a program that calculates the sum of all prime numbers between 1 and 100.',
+      notes: 'Master the "let" vs "const" and arrow functions.'
+    },
+    { 
+      title: 'DOM Manipulation', 
+      description: 'Making the web alive.', 
+      time: '4h', 
+      youtube: 'https://www.youtube.com/watch?v=y17RuWkWdn8', 
+      instructor: 'Chai aur Code',
+      challenge: 'Build a simple "To-Do" list that adds items on click.',
+      notes: 'Events and event listeners are your best friends.'
+    }
   ],
   4: [
-    { title: 'Git Flow', description: 'Branching, Merging, and Pull Requests.', time: '2h' },
-    { title: 'Open Source Contribution', description: 'Your first contribution guide.', time: '3h' }
+    { 
+      title: 'Git & GitHub Mastery', 
+      description: 'Version control for everyone.', 
+      time: '2h', 
+      youtube: 'https://www.youtube.com/watch?v=apGV9Kg7ics', 
+      instructor: 'Chai aur Code',
+      challenge: 'Initialize a repo, make 3 commits, and push to GitHub.',
+      notes: 'Learn the "staging area" concept properly.'
+    }
   ],
   5: [
-    { title: 'React Hooks', description: 'useState, useEffect, and useMemo.', time: '8h' },
-    { title: 'State Management', description: 'Context API and global state.', time: '10h' }
+    { 
+      title: 'React Fundamentals', 
+      description: 'Components, Props, and State.', 
+      time: '10h', 
+      youtube: 'https://www.youtube.com/watch?v=e6O9shS_C0Q', 
+      instructor: 'Chai aur Code',
+      challenge: 'Build a weather app using a public API and React.',
+      notes: 'Think in components.'
+    }
   ],
   6: [
-    { title: 'Express Middleware', description: 'Auth, Logging, and Error handling.', time: '6h' },
-    { title: 'RESTful API Design', description: 'CRUD patterns and status codes.', time: '8h' }
+    { 
+      title: 'Backend with Node & Express', 
+      description: 'Building server-side logic.', 
+      time: '8h', 
+      youtube: 'https://www.youtube.com/watch?v=7H_QH9ippp8', 
+      instructor: 'Sheriyans',
+      challenge: 'Create a simple API that returns a list of your favorite books.',
+      notes: 'Understanding middleware is crucial.'
+    }
   ],
   7: [
-    { title: 'NoSQL Modeling', description: 'Referencing vs Embedding in MongoDB.', time: '5h' },
-    { title: 'Mongoose Aggregation', description: 'Complex queries and pipelines.', time: '6h' }
+    { 
+      title: 'MongoDB & Mongoose', 
+      description: 'Persisting data elegantly.', 
+      time: '6h', 
+      youtube: 'https://www.youtube.com/watch?v=9OD4V9fR_V0', 
+      instructor: 'Sheriyans',
+      challenge: 'Design a schema for a "User" and "Post" relationship.',
+      notes: 'Focus on .populate() and referencing.'
+    }
   ],
   8: [
-    { title: 'The MERN Integration', description: 'Connecting frontend to backend.', time: '15h' },
-    { title: 'Deployment & CI/CD', description: 'Deploying to Vercel and Render.', time: '5h' }
+    { 
+      title: 'The Full Stack Project', 
+      description: 'Connecting everything together.', 
+      time: '20h', 
+      youtube: 'https://www.youtube.com/watch?v=X7U-9_n_0oU', 
+      instructor: 'Chai aur Code',
+      challenge: 'Deploy a full-stack MERN application to Render.',
+      notes: 'CORS and Environment variables are the biggest hurdles.'
+    }
   ]
 };
 
@@ -100,11 +181,15 @@ async function seedAllDomains() {
           await Topic.create({
             title: t.title,
             description: t.description,
-            youtubeLink: 'https://www.youtube.com/watch?v=hcMzwfj824A',
+            youtubeLink: t.youtube || 'https://www.youtube.com/watch?v=hcMzwfj824A',
+            instructor: t.instructor || '',
+            challenge: t.challenge || '',
+            theoryNotes: t.notes || '',
             estimatedTime: t.time || '1 hour',
             phaseId: phase._id,
             domainId: domain._id,
-            isActive: true
+            isActive: true,
+            order: topicsToAdd.indexOf(t)
           });
         }
       }
@@ -116,3 +201,23 @@ async function seedAllDomains() {
 }
 
 module.exports = seedAllDomains;
+
+// If run directly
+if (require.main === module) {
+  const dotenv = require('dotenv');
+  dotenv.config({ path: '.env' });
+  
+  mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/careerforge')
+    .then(() => {
+      console.log('📡 Connected to MongoDB for seeding...');
+      return seedAllDomains();
+    })
+    .then(() => {
+      console.log('✅ Seeding complete');
+      process.exit(0);
+    })
+    .catch(err => {
+      console.error('❌ Seeding failed:', err);
+      process.exit(1);
+    });
+}

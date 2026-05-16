@@ -103,6 +103,124 @@ exports.chat = async (req, res) => {
   }
 };
 
+// @desc    Generate personalized roadmap based on onboarding answers
+// @route   POST /api/ai/generate-roadmap
+exports.generateRoadmap = async (req, res) => {
+  try {
+    const { answers } = req.body;
+    const userId = req.user._id;
+
+    if (!answers) {
+      return res.status(400).json({ success: false, message: 'Onboarding answers are required' });
+    }
+
+    // 1. Determine Starting Level (Rule-Based)
+    let startingLevel = 0;
+    let unlockedLevels = [0];
+    let xpMultiplier = 1.0;
+
+    const experience = answers.coding_experience;
+    const techs = answers.technologies || [];
+    const knowsHTML = techs.includes('html');
+    const knowsCSS = techs.includes('css');
+    const knowsJS = techs.includes('js');
+    const knowsReact = techs.includes('react');
+    const canBuildWebPage = answers.web_page === 'yes';
+
+    // Starting Level Logic
+    if (knowsHTML && knowsCSS && knowsJS) {
+      startingLevel = 4; // Skip to Git & GitHub / React
+      unlockedLevels = [0, 1, 2, 3, 4];
+    } else if (knowsHTML && knowsCSS) {
+      startingLevel = 3; // Start from JS
+      unlockedLevels = [0, 1, 2, 3];
+    } else if (knowsHTML) {
+      startingLevel = 2; // Start from CSS
+      unlockedLevels = [0, 1, 2];
+    } else if (experience === 'basic' || experience === 'projects') {
+      startingLevel = 1; // Start from HTML
+      unlockedLevels = [0, 1];
+    } else {
+      startingLevel = 0; // Internet Explorer
+      unlockedLevels = [0];
+    }
+
+    // Goal-Based Customization
+    let roadmapType = 'Steady Pace';
+    let recommendedProjects = [];
+    const goal = answers.goal;
+
+    if (goal === 'internship') {
+      roadmapType = 'Internship-Focused';
+      recommendedProjects = ['Personal Portfolio', 'Task Management App', 'E-commerce UI'];
+      xpMultiplier = 1.2;
+    } else if (goal === 'freelancing') {
+      roadmapType = 'Freelance-Focused';
+      recommendedProjects = ['Business Landing Page', 'Portfolio for Client', 'Contact Form Integration'];
+      xpMultiplier = 1.1;
+    } else if (goal === 'job') {
+      roadmapType = 'Fast-Track';
+      recommendedProjects = ['Full Stack Blog', 'Job Board Portal', 'Social Media Dashboard'];
+      xpMultiplier = 1.3;
+    }
+
+    // Timeline Calculation based on daily study time
+    const dailyTime = parseInt(answers.daily_time) || 60;
+    let estimatedTimeline = '6 Months';
+    let recommendedPace = 'Moderate';
+
+    if (dailyTime < 60) {
+      estimatedTimeline = '8-10 Months';
+      recommendedPace = 'Slow & Steady';
+      roadmapType = 'Extended Journey';
+    } else if (dailyTime >= 120) {
+      estimatedTimeline = '3-4 Months';
+      recommendedPace = 'Aggressive';
+    } else {
+      estimatedTimeline = '5-6 Months';
+      recommendedPace = 'Steady';
+    }
+
+    // Generate AI Summary (deterministic but personalized)
+    const aiSummary = `Based on your ${experience} background and your goal for a ${goal}, we've designed a ${roadmapType} path for you. Since you already know ${techs.length > 0 ? techs.join(', ') : 'the basics'}, you'll start at Level ${startingLevel}. We've estimated a ${estimatedTimeline} completion time at a ${recommendedPace} pace.`;
+
+    // Update User Profile
+    const updatedUser = await User.findByIdAndUpdate(userId, {
+      $set: {
+        'profile.onboardingAnswers': answers,
+        'profile.currentSkillLevel': experience,
+        'profile.goal': goal,
+        'profile.dailyStudyTime': dailyTime,
+        'profile.roadmapType': roadmapType,
+        'profile.estimatedTimeline': estimatedTimeline,
+        'profile.aiSummary': aiSummary,
+        'profile.recommendedProjects': recommendedProjects,
+        'profile.xpMultiplier': xpMultiplier,
+        'profile.isProfileComplete': true,
+        'currentPhase': startingLevel
+      }
+    }, { new: true });
+
+    res.json({
+      success: true,
+      data: {
+        roadmapType,
+        startingLevel,
+        unlockedLevels,
+        estimatedTimeline,
+        recommendedPace,
+        xpMultiplier,
+        recommendedProjects,
+        aiSummary,
+        user: updatedUser
+      }
+    });
+
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
 // @desc    Get chat history
 // @route   GET /api/ai/history
 exports.getChatHistory = async (req, res) => {

@@ -107,7 +107,7 @@ const Roadmap = () => {
             const isCurrent = index === (user.currentPhase || 0);
 
             return (
-              <div key={level.id} className="flex flex-col items-center relative">
+              <div key={phase._id} className="flex flex-col items-center relative">
                 {/* Level Node */}
                 <motion.div
                   whileHover={isUnlocked ? { scale: 1.05 } : {}}
