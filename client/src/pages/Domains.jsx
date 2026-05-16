@@ -28,7 +28,9 @@ const Domains = () => {
   };
 
   const handleSelectDomain = async (domainId) => {
-    if (user.selectedDomain?._id === domainId) {
+    const currentDomainId = user.selectedDomain?._id || user.selectedDomain;
+    
+    if (currentDomainId === domainId) {
       navigate('/roadmap');
       return;
     }
@@ -41,8 +43,8 @@ const Domains = () => {
     try {
       await api.post('/progress/select-domain', { domainId });
       await refreshUser();
-      toast.success('Domain selected successfully!');
-      navigate('/roadmap');
+      toast.success('Domain selected! Let\'s personalize your journey.');
+      navigate('/setup-profile');
     } catch (err) {
       toast.error('Failed to select domain');
     } finally {

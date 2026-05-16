@@ -10,9 +10,6 @@ const errorHandler = require('./middleware/errorHandler');
 // Load env vars
 dotenv.config();
 
-// Connect to database
-connectDB();
-
 const app = express();
 
 // Body parser
@@ -66,9 +63,35 @@ app.get('/api/health', (req, res) => {
 // Error handler
 app.use(errorHandler);
 
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-  console.log(`\n🔥 CareerForge Server running on port ${PORT}`);
-  console.log(`📡 Environment: ${process.env.NODE_ENV}`);
-  console.log(`🌐 Client URL: ${process.env.CLIENT_URL}\n`);
-});
+// Connect to database and then start server
+const startServer = async () => {
+  try {
+    await connectDB();
+    
+    const PORT = process.env.PORT || 5000;
+    app.listen(PORT, async () => {
+      console.log(`\n🔥 CareerForge Server running on port ${PORT}`);
+      console.log(`📡 Environment: ${process.env.NODE_ENV}`);
+      console.log(`🌐 Client URL: ${process.env.CLIENT_URL}\n`);
+
+      // Auto-seed if empty (useful for In-Memory DB)
+      try {
+        const Domain = require('./models/Domain');
+        const domainCount = await Domain.countDocuments();
+        if (domainCount === 0) {
+          console.log('🌱 Database is empty. Running auto-seed...');
+          const seedAllDomains = require('./seeds/webDevSeed');
+          await seedAllDomains();
+          console.log('✅ Auto-seed completed!\n');
+        }
+      } catch (err) {
+        console.error('❌ Auto-seed failed:', err.message);
+      }
+    });
+  } catch (err) {
+    console.error('❌ Server startup failed:', err.message);
+    process.exit(1);
+  }
+};
+
+startServer();

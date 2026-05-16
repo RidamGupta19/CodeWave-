@@ -73,8 +73,9 @@ exports.completeTopic = async (req, res) => {
       notes: notes || ''
     });
 
-    // Update total study minutes
+    // Update total study minutes and XP
     user.totalStudyMinutes += (studyTimeMinutes || 0);
+    user.xp = (user.xp || 0) + 50;
 
     // Update activity log
     const today = new Date().toISOString().split('T')[0];
@@ -101,10 +102,34 @@ exports.completeTopic = async (req, res) => {
     }
     user.lastActiveDate = new Date();
 
-    // Calculate overall progress
+    // Calculate overall progress and auto-advance phase
     if (user.selectedDomain) {
-      const totalTopics = await Topic.countDocuments({ domainId: user.selectedDomain, isActive: true });
-      user.overallProgress = totalTopics > 0 ? Math.round((user.completedTopics.length / totalTopics) * 100) : 0;
+      const totalTopicsInDomain = await Topic.countDocuments({ domainId: user.selectedDomain, isActive: true });
+      user.overallProgress = totalTopicsInDomain > 0 ? Math.round((user.completedTopics.length / totalTopicsInDomain) * 100) : 0;
+
+      // Check if current phase is complete
+      const currentPhase = await Phase.findOne({ domainId: user.selectedDomain, phaseNumber: user.currentPhase });
+      if (currentPhase) {
+        const topicsInPhase = await Topic.find({ phaseId: currentPhase._id, isActive: true });
+        const completedInPhase = user.completedTopics.filter(ct => 
+          topicsInPhase.some(tp => tp._id.toString() === ct.topicId.toString())
+        );
+
+        if (completedInPhase.length === topicsInPhase.length && topicsInPhase.length > 0) {
+          // Phase complete! Advance to next phase
+          user.currentPhase += 1;
+          user.xp = (user.xp || 0) + 500; // Bonus XP for phase completion
+          
+          // Award phase badge if exists
+          const badge = await Badge.findOne({ phaseId: currentPhase._id });
+          if (badge) {
+            const alreadyEarned = user.earnedBadges.some(b => b.badgeId.toString() === badge._id.toString());
+            if (!alreadyEarned) {
+              user.earnedBadges.push({ badgeId: badge._id, earnedAt: new Date() });
+            }
+          }
+        }
+      }
     }
 
     await user.save();
@@ -196,7 +221,8 @@ exports.getDashboard = async (req, res) => {
           currentPhase: user.currentPhase,
           overallProgress: user.overallProgress,
           dailyStreak: user.dailyStreak,
-          totalStudyMinutes: user.totalStudyMinutes
+          totalStudyMinutes: user.totalStudyMinutes,
+          xp: user.xp || 0
         },
         currentPhaseData,
         upcomingAssessment,

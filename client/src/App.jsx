@@ -12,7 +12,7 @@ import Landing from './pages/Landing';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
 import Dashboard from './pages/Dashboard';
-import ProfileSetup from './pages/ProfileSetup';
+import Onboarding from './pages/Onboarding';
 import Domains from './pages/Domains';
 import Roadmap from './pages/Roadmap';
 import TopicDetail from './pages/TopicDetail';
@@ -38,7 +38,7 @@ function App() {
           {/* Protected Student Routes */}
           <Route element={<ProtectedRoute allowedRoles={['student', 'admin']} />}>
             <Route element={<Layout />}>
-              <Route path="/setup-profile" element={<ProfileSetup />} />
+              <Route path="/setup-profile" element={<Onboarding />} />
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/domains" element={<Domains />} />
               <Route path="/roadmap" element={<Roadmap />} />

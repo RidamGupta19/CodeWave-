@@ -17,18 +17,25 @@ const userSchema = new mongoose.Schema({
     semester: { type: Number, min: 1, max: 10 },
     knownLanguages: [{ type: String }],
     knownTools: [{ type: String }],
-    currentSkillLevel: { type: String, enum: ['beginner', 'intermediate', 'advanced', ''], default: '' },
+    currentSkillLevel: { type: String, enum: ['none', 'basic', 'projects', 'frontend', 'intermediate', 'beginner', 'advanced', ''], default: '' },
     careerInterest: { type: String, default: '' },
-    goal: { type: String, enum: ['job', 'internship', 'freelancing', 'startup', 'higher-studies', ''], default: '' },
+    goal: { type: String, enum: ['job', 'internship', 'freelancing', 'startup', 'exploration', 'higher-studies', ''], default: '' },
     dailyStudyTime: { type: Number, default: 0 },  // in minutes
     targetCompletionTime: { type: String, default: '' },
-    isProfileComplete: { type: Boolean, default: false }
+    isProfileComplete: { type: Boolean, default: false },
+    onboardingAnswers: { type: Object },
+    roadmapType: { type: String, enum: ['Fast-Track', 'Steady Pace', 'Extended Journey', 'Internship-Focused', 'Freelance-Focused', ''], default: '' },
+    estimatedTimeline: { type: String, default: '' },
+    aiSummary: { type: String, default: '' },
+    recommendedProjects: [{ type: String }],
+    xpMultiplier: { type: Number, default: 1.0 }
   },
 
   // Selected domain
   selectedDomain: { type: mongoose.Schema.Types.ObjectId, ref: 'Domain' },
 
   // Progress tracking
+  xp: { type: Number, default: 0 },
   currentPhase: { type: Number, default: 0 },
   overallProgress: { type: Number, default: 0, min: 0, max: 100 },
   dailyStreak: { type: Number, default: 0 },

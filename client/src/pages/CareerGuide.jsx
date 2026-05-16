@@ -1,10 +1,19 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { FiBookOpen, FiCode, FiCpu, FiTerminal, FiLayers, FiExternalLink, FiChevronRight } from 'react-icons/fi';
+import api from '../api/axios';
+import { useAuth } from '../context/AuthContext';
+import toast from 'react-hot-toast';
 
 const CareerGuide = () => {
+  const { user, refreshUser } = useAuth();
+  const navigate = useNavigate();
+  const [selecting, setSelecting] = useState(false);
+
   const sections = [
     {
       id: 'web-dev',
+      slug: 'web-development',
       title: 'Web Development',
       icon: <FiCode className="text-blue-500" />,
       content: `Web development is the most visible and accessible entry point into the tech industry. It involves creating everything from simple portfolios to complex SaaS platforms like GitHub or Airbnb. In today’s market, every business requires a digital presence, making web developers consistently high in demand.`,
@@ -20,6 +29,7 @@ const CareerGuide = () => {
     },
     {
       id: 'dsa',
+      slug: 'dsa',
       title: 'Data Structures & Algorithms',
       icon: <FiCpu className="text-purple-500" />,
       content: `DSA is the fundamental language of efficient problem-solving. Whether you are optimizing a search engine or managing a database, DSA helps you write code that is fast and scalable. It is also the primary filter used by top-tier tech companies during interviews.`,
@@ -35,6 +45,7 @@ const CareerGuide = () => {
     },
     {
       id: 'cp',
+      slug: 'dsa', // Linking CP to DSA domain as it's the closest match
       title: 'Competitive Programming',
       icon: <FiTerminal className="text-emerald-500" />,
       content: `Competitive Programming is a mental sport where you solve complex algorithmic puzzles under tight time constraints. It improves coding speed, logical accuracy, and your ability to handle edge cases in high-stakes engineering roles.`,
@@ -50,6 +61,7 @@ const CareerGuide = () => {
     },
     {
       id: 'devops',
+      slug: 'devops',
       title: 'DevOps & Cloud',
       icon: <FiLayers className="text-orange-500" />,
       content: `DevOps bridges the gap between development and operations. It involves automation, containerization, and cloud infrastructure to ensure software is shipped faster and with fewer bugs.`,
@@ -64,6 +76,30 @@ const CareerGuide = () => {
       ]
     }
   ];
+
+  const handleSelectDomain = async (slug) => {
+    setSelecting(true);
+    try {
+      // 1. Fetch domain by slug
+      const res = await api.get('/domains');
+      const domain = res.data.data.find(d => d.slug === slug);
+      
+      if (!domain) {
+        toast.error('Domain roadmap not found yet.');
+        return;
+      }
+
+      // 2. Select it
+      await api.post('/progress/select-domain', { domainId: domain._id });
+      await refreshUser();
+      toast.success(`You've chosen ${domain.name}!`);
+      navigate('/setup-profile');
+    } catch (err) {
+      toast.error('Failed to select roadmap');
+    } finally {
+      setSelecting(false);
+    }
+  };
 
   return (
     <div className="fade-in max-w-5xl mx-auto py-12 px-6 lg:px-8">
@@ -139,8 +175,12 @@ const CareerGuide = () => {
                       </a>
                     ))}
                   </div>
-                  <button className="w-full mt-6 py-2.5 rounded-lg bg-[#4361ee] text-white font-bold text-xs flex items-center justify-center gap-2 hover:bg-[#3730a3] transition-all">
-                    View Roadmap <FiChevronRight />
+                  <button 
+                    disabled={selecting}
+                    onClick={() => handleSelectDomain(section.slug)}
+                    className="w-full mt-6 py-2.5 rounded-lg bg-[#4361ee] text-white font-bold text-xs flex items-center justify-center gap-2 hover:bg-[#3730a3] transition-all disabled:opacity-50"
+                  >
+                    {selecting ? "Setting Up..." : "Start This Roadmap"} <FiChevronRight />
                   </button>
                 </div>
               </div>
@@ -154,12 +194,15 @@ const CareerGuide = () => {
 
       {/* Footer Advice */}
       <div className="mt-32 p-10 rounded-3xl bg-[#fcfcfd] border-2 border-dashed border-[#eaecf0] text-center">
-        <h3 className="text-2xl font-bold text-[#101828] mb-4">Start Your Journey Today</h3>
+        <h3 className="text-2xl font-bold text-[#101828] mb-4">Ready to Commit?</h3>
         <p className="text-[#667085] max-w-2xl mx-auto mb-8 font-medium">
-          Theory only sticks when applied. Build a project, solve a problem, or automate a script. Join our community to share your progress.
+          Choose a domain above or explore all 14 specializations in our academy to start your journey.
         </p>
-        <button className="btn-primary py-3 px-8 text-lg shadow-xl shadow-indigo-100">
-          Explore All Roadmaps
+        <button 
+          onClick={() => navigate('/domains')}
+          className="btn-primary py-3 px-8 text-lg shadow-xl shadow-indigo-100"
+        >
+          Browse All Specializations
         </button>
       </div>
     </div>
