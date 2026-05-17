@@ -18,6 +18,7 @@ const Sidebar = ({ isAdmin }) => {
 
   const studentLinks = [
     { name: 'Dashboard', path: '/dashboard', icon: <MdOutlineDashboard /> },
+    { name: 'Zero to Coding', path: '/zero-to-coding', icon: <FiZap className="text-violet-500 font-black" /> },
     { name: 'Mission Map', path: '/roadmap', icon: <FiMap /> },
     { name: 'Domains', path: '/domains', icon: <FiList /> },
     { name: 'Assessments', path: '/assessments', icon: <FiCheckSquare /> },

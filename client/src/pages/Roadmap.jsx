@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import api from '../api/axios';
 import { useAuth } from '../context/AuthContext';
-import { FiLock, FiUnlock, FiCheckCircle, FiPlayCircle, FiZap, FiStar, FiTrendingUp } from 'react-icons/fi';
+import { FiLock, FiUnlock, FiCheckCircle, FiPlayCircle, FiZap, FiStar, FiTrendingUp, FiAward, FiClock } from 'react-icons/fi';
 import toast from 'react-hot-toast';
 import { motion } from 'framer-motion';
 
@@ -21,27 +21,43 @@ const getLevelThreshold = (index) => {
 };
 
 const Roadmap = () => {
-  const { user } = useAuth();
+  const { user, refreshUser } = useAuth();
   const navigate = useNavigate();
   const [domainData, setDomainData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [activeLevel, setActiveLevel] = useState(null);
 
-  useEffect(() => {
-    if (!user?.selectedDomain) {
-      navigate('/domains');
-      return;
-    }
-    fetchRoadmap();
-  }, [user]);
+  const domainId = user?.selectedDomain?._id || user?.selectedDomain;
 
-  const fetchRoadmap = async () => {
+  useEffect(() => {
+    const initRoadmap = async () => {
+      try {
+        const freshUser = await refreshUser();
+        if (!freshUser?.selectedDomain) {
+          navigate('/domains');
+          return;
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    };
+    initRoadmap();
+  }, []);
+
+  useEffect(() => {
+    if (domainId) {
+      fetchRoadmap(domainId);
+    }
+  }, [domainId]);
+
+  const fetchRoadmap = async (id) => {
     try {
-      const domainId = user.selectedDomain._id || user.selectedDomain;
-      const res = await api.get(`/domains/${domainId}`);
+      setLoading(true);
+      const res = await api.get(`/domains/${id}`);
       setDomainData(res.data.data);
-      // Set active level based on current phase
-      setActiveLevel(user.currentPhase || 0);
+      if (activeLevel === null) {
+        setActiveLevel(user?.currentPhase || 0);
+      }
     } catch (err) {
       toast.error('Failed to load roadmap');
     } finally {
@@ -50,7 +66,7 @@ const Roadmap = () => {
   };
 
   const isTopicCompleted = (topicId) => {
-    return user.completedTopics?.some(t => t.topicId === topicId || t.topicId?._id === topicId);
+    return user?.completedTopics?.some(t => t.topicId === topicId || t.topicId?._id === topicId);
   };
 
   if (loading) return <div className="flex justify-center py-24"><div className="spinner"></div></div>;

@@ -5,6 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import { FiCheckCircle, FiPlay, FiBook, FiYoutube, FiCode, FiArrowLeft, FiMessageSquare, FiZap, FiAward, FiClock, FiArrowRight } from 'react-icons/fi';
 import toast from 'react-hot-toast';
 import { motion } from 'framer-motion';
+import { getDsaLanguageContent } from '../utils/dsaContent';
 
 const TopicDetail = () => {
   const { id } = useParams();
@@ -16,11 +17,18 @@ const TopicDetail = () => {
   const [studyTime, setStudyTime] = useState(30);
   const [notes, setNotes] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [selectedLang, setSelectedLang] = useState('cpp');
   
   // DSA feedback state
   const [difficultyFeedback, setDifficultyFeedback] = useState('easy');
   const [confidenceLevel, setConfidenceLevel] = useState(3);
   const [revisionNeeded, setRevisionNeeded] = useState(false);
+
+  useEffect(() => {
+    if (user?.profile?.onboardingAnswers?.dsa_language) {
+      setSelectedLang(user.profile.onboardingAnswers.dsa_language);
+    }
+  }, [user]);
 
   useEffect(() => {
     fetchTopic();
@@ -91,11 +99,13 @@ const TopicDetail = () => {
   if (loading) return <div className="flex justify-center py-24"><div className="spinner"></div></div>;
   if (!topic) return null;
 
-  const isCompleted = user.completedTopics?.some(t => t.topicId === id || t.topicId?._id === id);
+  const isCompleted = user?.completedTopics?.some(t => t.topicId === id || t.topicId?._id === id);
   const videoId = getYouTubeId(topic.youtubeLink);
+  const isDsaDomain = topic.domainId?.slug === 'dsa' || topic.domainId === 'dsa' || (typeof topic.domainId === 'object' && topic.domainId?.slug === 'dsa') || (typeof topic.domainId === 'string' && topic.domainId === 'dsa');
+  const langContent = isDsaDomain ? getDsaLanguageContent(topic.title, selectedLang) : null;
 
   return (
-    <div className={`flex flex-col lg:flex-row min-h-[calc(100vh-100px)] bg-[#fdfcfb] ${topic.domainId?.slug === 'dsa' || topic.domainId === 'dsa' ? 'dsa-workspace' : ''}`}>
+    <div className={`flex flex-col lg:flex-row min-h-[calc(100vh-100px)] bg-[#fdfcfb] ${isDsaDomain ? 'dsa-workspace' : ''}`}>
       
       {/* LEFT SIDEBAR: Roadmap Progression (Locked/Unlocked) */}
       <div className="w-full lg:w-80 flex-shrink-0 bg-white border-r border-gray-100 hidden lg:block overflow-y-auto custom-scrollbar">
@@ -116,7 +126,7 @@ const TopicDetail = () => {
           <div className="space-y-3">
             {allTopics.map((t, index) => {
               const active = t._id === id;
-              const done = user.completedTopics?.some(ct => ct.topicId === t._id || ct.topicId?._id === t._id);
+              const done = user?.completedTopics?.some(ct => ct.topicId === t._id || ct.topicId?._id === t._id);
               return (
                 <Link 
                   key={t._id} 
@@ -208,6 +218,75 @@ const TopicDetail = () => {
                   {topic.description || "Master the concepts of this mission to progress your journey. Every bit of knowledge is a step towards placement mastery."}
                 </div>
               </section>
+
+              {isDsaDomain && langContent && (
+                <section className="space-y-6">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                     <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-amber-50 text-amber-500 rounded-xl flex items-center justify-center text-lg shadow-sm border border-amber-100">
+                           <FiCode />
+                        </div>
+                        <h3 className="text-2xl font-black text-[#1a1a1a] tracking-tight">DSA Language Engine</h3>
+                     </div>
+                     <div className="flex flex-wrap gap-1.5 bg-gray-50 p-1 rounded-2xl border border-gray-200">
+                       {['cpp', 'java', 'python', 'js'].map((langKey) => (
+                         <button
+                           key={langKey}
+                           type="button"
+                           onClick={() => setSelectedLang(langKey)}
+                           className={`px-3 py-1.5 rounded-xl text-xs font-black uppercase transition-all ${
+                             selectedLang === langKey 
+                               ? 'bg-amber-500 text-white shadow-lg shadow-amber-200' 
+                               : 'text-gray-400 hover:text-gray-700'
+                           }`}
+                         >
+                           {langKey === 'cpp' ? 'C++' : langKey === 'java' ? 'Java' : langKey === 'python' ? 'Python' : 'JS'}
+                         </button>
+                       ))}
+                     </div>
+                  </div>
+                  
+                  <div className="bg-white p-8 rounded-[2.5rem] border border-gray-100 shadow-sm space-y-8">
+                    <div>
+                      <div className="text-[10px] text-amber-600 font-black uppercase tracking-widest mb-3">Optimal {langContent.langName} Implementation</div>
+                      <pre className="bg-[#1e1e1e] text-emerald-400 p-6 rounded-2xl overflow-x-auto text-sm font-mono shadow-inner border border-gray-800 leading-relaxed max-w-full">
+                        <code>{langContent.code}</code>
+                      </pre>
+                    </div>
+
+                    <div className="grid md:grid-cols-2 gap-6">
+                      <div className="bg-amber-50/50 p-6 rounded-2xl border border-amber-100/50">
+                        <div className="text-[10px] text-amber-700 font-black uppercase tracking-widest mb-2">Practice Guidelines</div>
+                        <p className="text-xs font-semibold text-gray-600 leading-relaxed">{langContent.recommendations}</p>
+                      </div>
+                      
+                      <div className="bg-indigo-50/50 p-6 rounded-2xl border border-indigo-100/50">
+                        <div className="text-[10px] text-indigo-700 font-black uppercase tracking-widest mb-2">Expedition Warnings</div>
+                        <p className="text-xs font-semibold text-gray-600 leading-relaxed">{langContent.notes}</p>
+                      </div>
+                    </div>
+
+                    {langContent.resources && langContent.resources.length > 0 && (
+                      <div>
+                        <div className="text-[10px] text-gray-400 font-black uppercase tracking-widest mb-3">Language-Specific Artifacts</div>
+                        <div className="flex flex-wrap gap-4">
+                          {langContent.resources.map((res, idx) => (
+                            <a
+                              key={idx}
+                              href={res.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="px-4 py-2 bg-gray-50 border border-gray-100 rounded-xl text-[10px] font-black text-gray-500 hover:text-primary hover:border-primary/20 transition-all flex items-center gap-1.5 uppercase"
+                            >
+                              <FiBook /> {res.name}
+                            </a>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </section>
+              )}
 
               <section>
                 <div className="flex items-center gap-3 mb-6">

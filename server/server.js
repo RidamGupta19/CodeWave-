@@ -95,3 +95,5 @@ const startServer = async () => {
 };
 
 startServer();
+
+// Triggering restart with newly freed disk space!

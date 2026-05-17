@@ -102,6 +102,34 @@ const Dashboard = () => {
         </div>
       </div>
 
+      {/* Zero to Coding Arcade Invitation Card */}
+      <div className="mb-12 bg-gradient-to-r from-[#1e152a] via-[#101012] to-[#0f1d24] p-8 rounded-[2.5rem] border border-violet-500/20 shadow-2xl relative overflow-hidden flex flex-col md:flex-row items-center justify-between gap-8 group">
+        <div className="absolute -top-12 -left-12 w-48 h-48 bg-violet-600/10 rounded-full blur-3xl"></div>
+        <div className="absolute -bottom-12 -right-12 w-48 h-48 bg-cyan-600/10 rounded-full blur-3xl"></div>
+        
+        <div className="flex flex-col md:flex-row items-center gap-6 relative z-10 text-center md:text-left">
+          <div className="w-16 h-16 bg-[#1f1f23] border border-violet-500/30 rounded-2xl flex items-center justify-center text-4xl shadow-inner animate-bounce">
+            👾
+          </div>
+          <div>
+            <div className="inline-block px-3 py-1 bg-violet-500/20 text-violet-300 text-[9px] font-black uppercase tracking-wider rounded-xl mb-2">
+              New to Programming?
+            </div>
+            <h2 className="text-2xl font-black text-white tracking-tight">Zero to Coding Arcade</h2>
+            <p className="text-xs text-gray-400 font-semibold mt-1">
+              Start with our Duolingo-style interactives! Print statements, simple math, variables, and logic games.
+            </p>
+          </div>
+        </div>
+
+        <Link 
+          to="/zero-to-coding" 
+          className="relative z-10 px-8 py-4 bg-gradient-to-r from-violet-500 to-cyan-500 hover:from-violet-600 hover:to-cyan-600 text-white rounded-2xl text-xs font-black uppercase tracking-wider shadow-lg shadow-violet-500/10 hover:-translate-y-0.5 transition-all flex items-center gap-2 group-hover:shadow-violet-500/20"
+        >
+          Enter Arcade <FiArrowRight className="group-hover:translate-x-1 transition-transform" />
+        </Link>
+      </div>
+
       <div className="grid lg:grid-cols-3 gap-8 mb-12">
         {/* Active Quest Card */}
         <div className="card lg:col-span-2 p-10 relative overflow-hidden bg-white border-primary/5 shadow-2xl shadow-primary/5 group">
