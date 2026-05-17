@@ -2,11 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import api from '../api/axios';
 import { useAuth } from '../context/AuthContext';
-import { FiLock, FiUnlock, FiCheckCircle, FiPlayCircle, FiZap, FiStar, FiTrendingUp, FiAward, FiClock } from 'react-icons/fi';
+import { 
+  FiLock, FiUnlock, FiCheckCircle, FiPlayCircle, FiZap, FiStar, 
+  FiTrendingUp, FiAward, FiClock, FiCode, FiInfo 
+} from 'react-icons/fi';
 import toast from 'react-hot-toast';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 
-// Levels derived dynamically
+// Beautiful gamified icons for DSA and Generic roadmaps
 const getLevelIcon = (index, domainSlug) => {
   if (domainSlug === 'dsa') {
     const dsaIcons = ["🌱", "🧱", "🗺️", "🥷", "⚔️", "🛡️", "🌳", "⛰️", "👹", "🏹", "🏆"];
@@ -20,6 +23,21 @@ const getLevelThreshold = (index) => {
   return index * 300;
 };
 
+// DSA specific gamified level titles
+const dsaLevelNames = [
+  "Programming Foundations",
+  "Arrays Explorer",
+  "Hashing Hunter",
+  "Recursion Survivor",
+  "Linked List Warrior",
+  "Stack & Queue Master",
+  "Tree Master",
+  "Graph Adventurer",
+  "Dynamic Programming Beast",
+  "Greedy Strategist",
+  "Placement Challenger"
+];
+
 const Roadmap = () => {
   const { user, refreshUser } = useAuth();
   const navigate = useNavigate();
@@ -27,8 +45,13 @@ const Roadmap = () => {
   const [loading, setLoading] = useState(true);
   const [activeLevel, setActiveLevel] = useState(null);
 
+  // Dynamic language selection state synced with local cache
+  const [selectedLang, setSelectedLang] = useState(() => localStorage.getItem('dsa_lang') || 'cpp');
+  const [useStriverAdvanced, setUseStriverAdvanced] = useState(() => localStorage.getItem('striver_advanced') === 'true');
+
   const domainId = user?.selectedDomain?._id || user?.selectedDomain;
 
+  // Track initial state
   useEffect(() => {
     const initRoadmap = async () => {
       try {
@@ -37,6 +60,9 @@ const Roadmap = () => {
           navigate('/domains');
           return;
         }
+        if (freshUser?.profile?.onboardingAnswers?.dsa_language) {
+          setSelectedLang(localStorage.getItem('dsa_lang') || freshUser.profile.onboardingAnswers.dsa_language);
+        }
       } catch (err) {
         console.error(err);
       }
@@ -44,11 +70,21 @@ const Roadmap = () => {
     initRoadmap();
   }, []);
 
+  // Fetch roadmap data
   useEffect(() => {
     if (domainId) {
       fetchRoadmap(domainId);
     }
   }, [domainId]);
+
+  // Sync state modifications with local persistence
+  useEffect(() => {
+    localStorage.setItem('dsa_lang', selectedLang);
+  }, [selectedLang]);
+
+  useEffect(() => {
+    localStorage.setItem('striver_advanced', useStriverAdvanced.toString());
+  }, [useStriverAdvanced]);
 
   const fetchRoadmap = async (id) => {
     try {
@@ -82,11 +118,18 @@ const Roadmap = () => {
   const currentStreak = user.dailyStreak || 0;
   const isDSA = domain.slug === 'dsa';
 
+  const langNames = {
+    cpp: 'C++',
+    java: 'Java',
+    python: 'Python',
+    js: 'JavaScript'
+  };
+
   return (
     <div className="pb-20 max-w-6xl mx-auto px-6 pt-10 transition-colors duration-300">
       
       {/* Premium Gamification Header */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12 animate-fade-in">
         <div className="card p-6 bg-[var(--bg-card)] flex items-center gap-5 border-b-4 border-amber-400">
           <div className="w-14 h-14 bg-amber-500/10 rounded-2xl flex items-center justify-center text-2xl text-amber-500 shadow-inner">
             <FiZap fill="currentColor" />
@@ -96,6 +139,7 @@ const Roadmap = () => {
             <div className="text-2xl font-black text-[var(--text-main)]">{currentXP} XP</div>
           </div>
         </div>
+        
         <div className="card p-6 bg-[var(--bg-card)] flex items-center gap-5 border-b-4 border-emerald-400">
           <div className="w-14 h-14 bg-emerald-500/10 rounded-2xl flex items-center justify-center text-2xl text-emerald-500 shadow-inner">
             <FiTrendingUp />
@@ -105,37 +149,110 @@ const Roadmap = () => {
             <div className="text-2xl font-black text-[var(--text-main)]">{currentStreak} 🔥</div>
           </div>
         </div>
+        
         <div className="card p-6 bg-[var(--bg-card)] flex items-center gap-5 border-b-4 border-indigo-400">
           <div className="w-14 h-14 bg-indigo-500/10 rounded-2xl flex items-center justify-center text-2xl text-[var(--primary)] shadow-inner">
             <FiStar />
           </div>
           <div>
             <div className="text-[10px] font-black text-[var(--text-light)] uppercase tracking-wider">Current Rank</div>
-            <div className="text-2xl font-black text-[var(--text-main)]">{phases[user.currentPhase]?.name || 'Apprentice'}</div>
+            <div className="text-2xl font-black text-[var(--text-main)]">
+              {isDSA ? (dsaLevelNames[user.currentPhase] || 'Apprentice') : (phases[user.currentPhase]?.name || 'Apprentice')}
+            </div>
           </div>
         </div>
       </div>
 
-      <div className="text-center mb-16">
+      {/* Main Roadmap Description */}
+      <div className="text-center mb-12">
         <div className={`inline-flex items-center gap-2 px-4 py-2 bg-[var(--primary-light)] text-[var(--primary)] rounded-full text-[10px] font-black uppercase tracking-widest mb-6 border border-[var(--border)]`}>
-          <FiZap /> {isDSA ? "Striver's A2Z Roadmap" : (user.profile?.roadmapType || 'Steady Pace')} • {isDSA ? 'Placement Focused' : (user.profile?.estimatedTimeline || '6 Months')}
+          <FiZap /> {isDSA ? "Language-Adaptive DSA Track" : (user.profile?.roadmapType || 'Steady Pace')} • {isDSA ? 'Love Babbar & CodeWithHarry' : (user.profile?.estimatedTimeline || '6 Months')}
         </div>
         <h1 className="text-4xl md:text-5xl font-black mb-4 text-gradient tracking-tight">
           {isDSA ? 'The Ultimate DSA Journey' : `Your ${domain.name} Adventure`}
         </h1>
-        <p className="text-[var(--text-muted)] max-w-2xl mx-auto text-base font-semibold leading-relaxed">
-          {isDSA ? "Master the art of problem solving with our gamified roadmap based on Striver's A2Z sheet. Level up your skills and crush your placement goals." : (user.profile?.aiSummary || "Master each level to unlock the next chapter of your coding journey.")}
+        <p className="text-[var(--text-muted)] max-w-2xl mx-auto text-sm font-bold leading-relaxed">
+          {isDSA 
+            ? "Master variables, trees, recursion, and dynamic algorithms in your selected programming language. Learn from direct visual courses and solve challenges to unlock new level phases."
+            : (user.profile?.aiSummary || "Master each level to unlock the next chapter of your coding journey.")}
         </p>
       </div>
 
+      {/* Interactive Language Selector for DSA ROADMAP */}
+      {isDSA && (
+        <div className="card p-6 mb-12 border-amber-500/20 max-w-2xl mx-auto relative overflow-hidden bg-gradient-to-r from-[var(--bg-card)] via-[var(--bg-sub)] to-[var(--bg-card)]">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 relative z-10">
+            <div>
+              <h3 className="text-sm font-black text-[var(--text-main)] flex items-center gap-2">
+                <FiCode className="text-amber-500 text-lg" /> Selected Language Option
+              </h3>
+              <p className="text-[10px] text-[var(--text-light)] font-bold uppercase mt-1 tracking-wider">
+                Current: <span className="text-amber-500">{langNames[selectedLang] || 'C++'}</span>
+              </p>
+            </div>
+            
+            <div className="flex items-center gap-1 bg-[var(--bg-sub)] p-1 rounded-xl border border-[var(--border)] shadow-inner">
+              {['cpp', 'java', 'python', 'javascript'].map((lang) => (
+                <button
+                  key={lang}
+                  onClick={() => setSelectedLang(lang)}
+                  className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase transition-all ${
+                    selectedLang === lang 
+                      ? 'bg-amber-500 text-white shadow-sm' 
+                      : 'text-[var(--text-muted)] hover:text-[var(--text-main)]'
+                  }`}
+                >
+                  {lang === 'cpp' ? 'C++' : lang === 'javascript' ? 'JS' : lang}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Optional Striver Advanced Track Toggle */}
+          {(selectedLang === 'cpp' || selectedLang === 'java') && (
+            <motion.div 
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              className="mt-5 border-t border-[var(--border)] pt-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 relative z-10"
+            >
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-lg bg-amber-500/10 text-amber-500 flex items-center justify-center font-bold">🇬🇧</div>
+                <div>
+                  <div className="text-xs font-black text-[var(--text-main)]">
+                    Comfortable learning in English?
+                  </div>
+                  <div className="text-[9px] font-semibold text-[var(--text-light)]">
+                    Unlock Striver's Advanced DSA Track as an optional learning overlay.
+                  </div>
+                </div>
+              </div>
+              
+              <button
+                onClick={() => setUseStriverAdvanced(!useStriverAdvanced)}
+                className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase transition-all shadow border ${
+                  useStriverAdvanced 
+                    ? 'bg-amber-500 border-amber-500 text-white' 
+                    : 'bg-[var(--bg-sub)] border-[var(--border)] text-[var(--text-main)] hover:bg-[var(--bg-card)]'
+                }`}
+              >
+                {useStriverAdvanced ? 'Striver Mode Active 🏆' : 'Try Striver Track'}
+              </button>
+            </motion.div>
+          )}
+        </div>
+      )}
+
       {/* Connected Progression Level Path */}
-      <div className="relative py-12 overflow-x-auto no-scrollbar">
+      <div className="relative py-6 overflow-x-auto no-scrollbar scroll-smooth">
         <div className="flex items-start gap-12 min-w-max px-10 pb-10 relative">
           
           {phases.map((phase, index) => {
             const isUnlocked = index <= (user.currentPhase || 0);
             const isCompleted = index < (user.currentPhase || 0);
             const isCurrent = index === (user.currentPhase || 0);
+            
+            // Override title if domain is DSA
+            const levelName = isDSA ? (dsaLevelNames[index] || phase.name) : phase.name;
 
             let nodeClass = "locked";
             if (isCompleted) nodeClass = "completed";
@@ -145,15 +262,15 @@ const Roadmap = () => {
               <div key={phase._id} className="flex flex-col items-center relative z-10">
                 {/* Level Node with custom states */}
                 <motion.div
-                  whileHover={isUnlocked ? { scale: 1.1, y: -4 } : {}}
+                  whileHover={isUnlocked ? { scale: 1.08, y: -4 } : {}}
                   onClick={() => isUnlocked && setActiveLevel(index)}
-                  className={`level-node w-24 h-24 ${nodeClass}`}
+                  className={`level-node w-24 h-24 cursor-pointer relative ${nodeClass}`}
                 >
                   <span className="text-4xl mb-1 filter drop-shadow-sm">{getLevelIcon(index, domain.slug)}</span>
                   <span className="text-[8px] font-black uppercase tracking-widest mt-0.5">LVL {index}</span>
                   
                   {isCurrent && (
-                    <div className="absolute -top-3 -right-3 bg-rose-500 text-white text-[9px] px-2 py-0.5 rounded-full font-black animate-bounce shadow-md">
+                    <div className="absolute -top-3 -right-3 bg-rose-500 text-white text-[8px] px-2 py-0.5 rounded-full font-black animate-bounce shadow-md">
                       ACTIVE
                     </div>
                   )}
@@ -169,7 +286,7 @@ const Roadmap = () => {
 
                 {/* Level Title */}
                 <div className="mt-4 text-center max-w-[130px]">
-                  <div className={`text-xs font-black leading-tight ${isUnlocked ? 'text-[var(--text-main)]' : 'text-[var(--text-light)]'}`}>{phase.name}</div>
+                  <div className={`text-xs font-black leading-tight ${isUnlocked ? 'text-[var(--text-main)]' : 'text-[var(--text-light)]'}`}>{levelName}</div>
                   <div className="text-[8px] font-bold text-[var(--text-light)] uppercase mt-1 tracking-widest">{getLevelThreshold(index)} XP</div>
                 </div>
 
@@ -195,7 +312,7 @@ const Roadmap = () => {
           key={activeLevel}
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="mt-12 card p-8 md:p-10 relative overflow-hidden"
+          className="mt-12 card p-8 md:p-10 relative overflow-hidden border-2 border-[var(--border)]"
         >
           <div className="absolute top-[-20%] left-[-20%] w-64 h-64 bg-[var(--primary)]/5 rounded-full blur-[100px] pointer-events-none"></div>
 
@@ -206,11 +323,13 @@ const Roadmap = () => {
                   {getLevelIcon(activeLevel, domain.slug)}
                 </span>
                 <div>
-                  <h2 className="text-3xl font-black text-[var(--text-main)] tracking-tight">{phases[activeLevel].name}</h2>
+                  <h2 className="text-3xl font-black text-[var(--text-main)] tracking-tight">
+                    {isDSA ? (dsaLevelNames[activeLevel] || phases[activeLevel].name) : phases[activeLevel].name}
+                  </h2>
                   <div className="text-[var(--primary)] font-black text-xs tracking-widest uppercase mt-0.5">Level {activeLevel} Expedition</div>
                 </div>
               </div>
-              <p className="text-[var(--text-muted)] leading-relaxed max-w-2xl font-semibold text-base">
+              <p className="text-[var(--text-muted)] leading-relaxed max-w-2xl font-semibold text-sm">
                 {phases.find(p => p.phaseNumber === activeLevel)?.description || "Complete these challenges to master this level and earn massive XP rewards."}
               </p>
             </div>
@@ -225,7 +344,7 @@ const Roadmap = () => {
                 </div>
                 <div className="flex items-center gap-3 text-[var(--text-main)] font-black text-sm">
                   <div className="w-7 h-7 bg-indigo-500/10 text-[var(--primary)] rounded-lg flex items-center justify-center"><FiAward /></div>
-                  {phases[activeLevel].name} Badge
+                  Master Badge
                 </div>
               </div>
             </div>
@@ -289,7 +408,7 @@ const TopicsList = ({ phaseId, isTopicCompleted, activeLevel, isDSA }) => {
                 {completed ? <FiCheckCircle /> : <FiPlayCircle />}
               </div>
               <div>
-                <h4 className={`font-black text-base transition-colors leading-snug ${completed ? 'text-emerald-600 dark:text-emerald-400' : 'text-[var(--text-main)] group-hover:text-[var(--primary)]'}`}>{topic.title}</h4>
+                <h4 className={`font-black text-sm transition-colors leading-snug ${completed ? 'text-emerald-600 dark:text-emerald-400' : 'text-[var(--text-main)] group-hover:text-[var(--primary)]'}`}>{topic.title}</h4>
                 <div className="text-[9px] font-black text-[var(--text-light)] uppercase mt-1 tracking-widest flex items-center gap-2.5">
                   <span className="flex items-center gap-1"><FiClock /> {topic.estimatedTime}</span>
                   <span className="w-1 h-1 bg-[var(--border)] rounded-full"></span>
