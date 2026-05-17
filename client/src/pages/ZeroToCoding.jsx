@@ -1,17 +1,20 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 import api from '../api/axios';
 import { 
   ArrowLeft, Play, RotateCcw, Check, Sparkles, HelpCircle, 
-  Trophy, Terminal, Award, Zap, ChevronLeft, ChevronRight, RefreshCw, Volume2
+  Trophy, Terminal, Award, Zap, ChevronLeft, ChevronRight, RefreshCw, 
+  Volume2, VolumeX, Sun, Moon, Maximize2, Minimize2, Save, FileCode,
+  CheckCircle2, XCircle, AlertCircle, PlayCircle
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { motion, AnimatePresence } from 'framer-motion';
 import Editor from '@monaco-editor/react';
 import { zeroToCodingMonacoLevels } from '../utils/zeroToCodingMonacoQuestions';
 
-// Built-in Synthesizer Sound Engine for high-fidelity retro game sounds
-const playSound = (type) => {
+// Synthesizer Sound Engine for high-fidelity interactive feedback
+const playSound = (type, isMuted) => {
+  if (isMuted) return;
   try {
     const ctx = new (window.AudioContext || window.webkitAudioContext)();
     const osc = ctx.createOscillator();
@@ -49,6 +52,13 @@ const playSound = (type) => {
       gain.gain.exponentialRampToValueAtTime(0.01, now + 0.7);
       osc.start(now);
       osc.stop(now + 0.7);
+    } else if (type === 'click') {
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(600, now);
+      gain.gain.setValueAtTime(0.05, now);
+      gain.gain.exponentialRampToValueAtTime(0.01, now + 0.05);
+      osc.start(now);
+      osc.stop(now + 0.05);
     }
   } catch (err) {
     console.warn("Audio engine inactive or waiting for user interaction:", err);
@@ -58,36 +68,55 @@ const playSound = (type) => {
 const ZeroToCoding = () => {
   const { user, refreshUser } = useAuth();
   
+  // Custom States
+  const [theme, setTheme] = useState(() => localStorage.getItem('editor_theme') || 'light');
+  const [selectedLang, setSelectedLang] = useState(() => localStorage.getItem('editor_lang') || 'cpp');
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [isMuted, setIsMuted] = useState(false);
+  const [activeTab, setActiveTab] = useState('testcases'); // 'testcases' | 'console' | 'custominput' | 'results'
+  const [leftTab, setLeftTab] = useState('description'); // 'description' | 'examples' | 'clues'
+  
   // Game & User Progression States
   const [userState, setUserState] = useState({
     xp: 0,
     level: 1,
-    streak: 5, // starting streak
+    streak: 5,
     completedQuestions: [],
     unlockedBadges: []
   });
   
-  const [activeLevelIndex, setActiveLevelIndex] = useState(0); // Active Level Index (0-6)
-  const activeLevel = zeroToCodingMonacoLevels[activeLevelIndex];
+  const [activeLevelIndex, setActiveLevelIndex] = useState(0);
+  const activeLevel = zeroToCodingMonacoLevels[activeLevelIndex] || zeroToCodingMonacoLevels[0];
   
-  // Editor state
+  // Editor code states & persistence cache
   const [editorCode, setEditorCode] = useState('');
+  const [savedCodes, setSavedCodes] = useState({});
   
-  // Console / Terminal state
+  // Console & Compilation States
   const [terminalLogs, setTerminalLogs] = useState([]);
   const [compilerStatus, setCompilerStatus] = useState('idle'); // 'idle' | 'compiling' | 'success' | 'error'
   const [compilationError, setCompilationError] = useState('');
-  const [terminalOutput, setTerminalOutput] = useState('');
+  const [testResults, setTestResults] = useState([]);
+  const [appreciationMsg, setAppreciationMsg] = useState('');
+  
+  // Custom execution input
+  const [useCustomInput, setUseCustomInput] = useState(false);
+  const [customInput, setCustomInput] = useState('');
+  const [customOutput, setCustomOutput] = useState('');
 
-  // Interactive UI indicators
+  // Layout Resizer States (LeetCode-style draggable dividers)
+  const [leftWidth, setLeftWidth] = useState(40); // percent width of Left Column
+  const [bottomHeight, setBottomHeight] = useState(38); // percent height of bottom terminal/tabs
+  const [isResizingLeft, setIsResizingLeft] = useState(false);
+  const [isResizingBottom, setIsResizingBottom] = useState(false);
+
+  // Animations & Confetti
   const [showConfetti, setShowConfetti] = useState(false);
+  const [particles, setParticles] = useState([]);
   const [showCelebrationModal, setShowCelebrationModal] = useState(false);
   const [showHintIndex, setShowHintIndex] = useState(-1);
-  
-  // Confetti particles generator helper
-  const [particles, setParticles] = useState([]);
 
-  // Load state from backend or LocalStorage
+  // Load user profile
   useEffect(() => {
     if (user?.profile?.zeroToCoding) {
       setUserState(user.profile.zeroToCoding);
@@ -103,13 +132,33 @@ const ZeroToCoding = () => {
     }
   }, [user]);
 
-  // Sync state helper
+  // Preload code when Level or Language changes
+  useEffect(() => {
+    if (activeLevel) {
+      const cached = savedCodes[`${activeLevel.id}_${selectedLang}`];
+      if (cached) {
+        setEditorCode(cached);
+      } else {
+        setEditorCode(activeLevel.starterCodes[selectedLang] || '');
+      }
+      
+      // Reset execution states
+      setTerminalLogs(["// Sandbox initialized.", `Ready for compiling in ${selectedLang.toUpperCase()}...`]);
+      setCompilerStatus('idle');
+      setCompilationError('');
+      setTestResults(activeLevel.testCases.map(tc => ({ ...tc, status: 'pending', actual: '' })));
+      setCustomOutput('');
+      setAppreciationMsg('');
+      setShowHintIndex(-1);
+    }
+  }, [activeLevelIndex, selectedLang]);
+
+  // Sync to database and LocalStorage
   const saveUserState = async (updated) => {
     setUserState(updated);
     localStorage.setItem('careerforge_zero_to_coding', JSON.stringify(updated));
     
     try {
-      // Sync seamlessly to backend
       await api.put('/auth/profile', {
         profile: {
           zeroToCoding: updated
@@ -121,31 +170,60 @@ const ZeroToCoding = () => {
     }
   };
 
-  // Preload boilerplate for active level
-  useEffect(() => {
-    if (activeLevel) {
-      setEditorCode(activeLevel.starterCode);
-      setTerminalLogs(["// Terminal ready for compilation...", "Press 'Run Compiler' to execute."]);
-      setCompilerStatus('idle');
-      setCompilationError('');
-      setTerminalOutput('');
-      setShowHintIndex(-1);
-    }
-  }, [activeLevelIndex]);
-
-  const triggerSoundEffect = (type) => {
-    playSound(type);
+  // Draggable columns and rows events
+  const startResizingLeft = (e) => {
+    e.preventDefault();
+    setIsResizingLeft(true);
   };
 
-  // Pure CSS high-performance Confetti generator
+  const startResizingBottom = (e) => {
+    e.preventDefault();
+    setIsResizingBottom(true);
+  };
+
+  useEffect(() => {
+    const handleMouseMove = (e) => {
+      if (isResizingLeft) {
+        const newWidth = (e.clientX / window.innerWidth) * 100;
+        if (newWidth > 20 && newWidth < 80) setLeftWidth(newWidth);
+      }
+      if (isResizingBottom) {
+        const rightHeight = window.innerHeight - 64; // subtract header
+        const newHeight = ((rightHeight - e.clientY + 64) / rightHeight) * 100;
+        if (newHeight > 15 && newHeight < 80) setBottomHeight(newHeight);
+      }
+    };
+
+    const handleMouseUp = () => {
+      setIsResizingLeft(false);
+      setIsResizingBottom(false);
+    };
+
+    if (isResizingLeft || isResizingBottom) {
+      window.addEventListener('mousemove', handleMouseMove);
+      window.addEventListener('mouseup', handleMouseUp);
+    }
+
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [isResizingLeft, isResizingBottom]);
+
+  // Sounds
+  const triggerSoundEffect = (type) => {
+    playSound(type, isMuted);
+  };
+
+  // High performance confetti generator
   const triggerConfetti = () => {
     const freshParticles = [];
-    const colors = ['#a78bfa', '#f472b6', '#38bdf8', '#34d399', '#fbbf24', '#f87171'];
+    const colors = ['#8b5cf6', '#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#ec4899'];
     for (let i = 0; i < 80; i++) {
       freshParticles.push({
         id: i,
-        x: Math.random() * 100, // percentage x-axis
-        y: Math.random() * -30 - 10, // vertical starting point above viewport
+        x: Math.random() * 100,
+        y: Math.random() * -30 - 10,
         size: Math.random() * 8 + 6,
         color: colors[Math.floor(Math.random() * colors.length)],
         rotation: Math.random() * 360,
@@ -161,121 +239,267 @@ const ZeroToCoding = () => {
     }, 4000);
   };
 
-  // Compile and evaluate
-  const runCode = () => {
-    if (!activeLevel) return;
-
-    setCompilerStatus('compiling');
-    setTerminalLogs([
-      "⚙️ g++ -O3 -std=c++20 main.cpp -o main...",
-      "⚡ Linking binary components...",
-      "🚀 Executing binary main..."
-    ]);
-
-    setTimeout(() => {
-      const res = activeLevel.validationFn(editorCode);
-      
-      if (res.success) {
-        setCompilerStatus('success');
-        setTerminalOutput(res.output);
-        setTerminalLogs(prev => [
-          ...prev,
-          "🟢 Program executed cleanly.",
-          `📥 Output: ${res.output}`,
-          "🎉 STATUS: MISSION COMPLETED"
-        ]);
-        
-        triggerSoundEffect('success');
-        triggerConfetti();
-
-        // Save XP
-        let earnedXP = activeLevel.xpReward;
-        let newXP = userState.xp + earnedXP;
-        
-        // Ranks Calculation
-        let currentLevel = userState.level;
-        let didLevelUp = false;
-        if (newXP >= 200 && currentLevel < 8) {
-          currentLevel = 8;
-          didLevelUp = true;
-        } else if (newXP >= 100 && currentLevel < 5) {
-          currentLevel = 5;
-          didLevelUp = true;
-        } else if (newXP >= 50 && currentLevel < 3) {
-          currentLevel = 3;
-          didLevelUp = true;
-        } else if (newXP >= 20 && currentLevel < 2) {
-          currentLevel = 2;
-          didLevelUp = true;
-        }
-
-        // Add to completed list
-        const freshCompleted = [...userState.completedQuestions];
-        if (!freshCompleted.includes(activeLevel.id.toString())) {
-          freshCompleted.push(activeLevel.id.toString());
-        }
-
-        const updated = {
-          ...userState,
-          xp: newXP,
-          level: currentLevel,
-          completedQuestions: freshCompleted
-        };
-        
-        saveUserState(updated);
-
-        if (didLevelUp) {
-          setTimeout(() => {
-            triggerSoundEffect('levelup');
-            toast.success(`🎉 LEVEL UP! You are now a Level ${currentLevel} Coder!`, { duration: 5000 });
-          }, 800);
-        }
-
-        setShowCelebrationModal(true);
-      } else {
-        setCompilerStatus('error');
-        setCompilationError(res.error);
-        setTerminalLogs(prev => [
-          ...prev,
-          "❌ Compilation failed.",
-          `🛑 Error: ${res.error}`
-        ]);
-        triggerSoundEffect('error');
-      }
-    }, 1200);
+  // Cache editor changes
+  const handleEditorChange = (value) => {
+    const code = value || '';
+    setEditorCode(code);
+    setSavedCodes(prev => ({
+      ...prev,
+      [`${activeLevel.id}_${selectedLang}`]: code
+    }));
   };
 
+  // Reset starter template code
   const handleResetCode = () => {
-    if (window.confirm("Are you sure you want to reset your editor code back to the starter boilerplate?")) {
-      setEditorCode(activeLevel.starterCode);
-      setTerminalLogs(["// Terminal reset.", "Ready for compiler execution..."]);
+    triggerSoundEffect('click');
+    if (window.confirm(`Are you sure you want to reset your ${selectedLang.toUpperCase()} code back to the starter boilerplate?`)) {
+      const defaultCode = activeLevel.starterCodes[selectedLang] || '';
+      setEditorCode(defaultCode);
+      setSavedCodes(prev => ({
+        ...prev,
+        [`${activeLevel.id}_${selectedLang}`]: defaultCode
+      }));
+      setTerminalLogs(["// Terminal reset.", "Ready for execution..."]);
       setCompilerStatus('idle');
       setCompilationError('');
-      setTerminalOutput('');
+      setTestResults(activeLevel.testCases.map(tc => ({ ...tc, status: 'pending', actual: '' })));
+      toast.success("Code reset successfully!");
     }
   };
 
+  // Save code local persistence
+  const handleSaveCode = () => {
+    triggerSoundEffect('click');
+    localStorage.setItem(`saved_code_${activeLevel.id}_${selectedLang}`, editorCode);
+    toast.success("Code saved successfully to local cache! 💾");
+  };
+
+  // Interactive mock execution compiler
+  const runCode = (isSubmit = false) => {
+    if (!activeLevel) return;
+
+    setCompilerStatus('compiling');
+    setActiveTab('results');
+    
+    // Choose beautiful logs depending on selected language
+    let compileLogs = [];
+    if (selectedLang === 'cpp') {
+      compileLogs = [
+        "⚙️ g++ -O3 -std=c++20 main.cpp -o main...",
+        "⚡ Linking binary elements with GCC compiler...",
+        "🚀 Running executable main..."
+      ];
+    } else if (selectedLang === 'java') {
+      compileLogs = [
+        "⚙️ javac Main.java...",
+        "⚡ Optimizing class bytecodes...",
+        "🚀 Executing Main.class via JVM..."
+      ];
+    } else if (selectedLang === 'python') {
+      compileLogs = [
+        "⚙️ python3 -m py_compile solution.py...",
+        "⚡ Validating indentations...",
+        "🚀 Running script via CPython..."
+      ];
+    } else {
+      compileLogs = [
+        "⚙️ node solution.js...",
+        "⚡ Parsing JavaScript AST in V8 engine...",
+        "🚀 Running local runtime environment..."
+      ];
+    }
+
+    setTerminalLogs(compileLogs);
+
+    setTimeout(() => {
+      // Validate code inputs
+      let currentResults = [];
+      let overallSuccess = true;
+      let compilationFailure = false;
+      let compilerErrorText = "";
+
+      // Process test cases
+      if (useCustomInput) {
+        // Custom input mode
+        const res = activeLevel.validationFn(editorCode, selectedLang, customInput);
+        if (res.success) {
+          setCustomOutput(res.output);
+          setTerminalLogs(prev => [
+            ...prev,
+            "🟢 Program executed cleanly on custom input.",
+            `📥 Input: ${customInput || "None"}`,
+            `📤 Output: ${res.output}`
+          ]);
+          setCompilerStatus('success');
+        } else {
+          setCompilerStatus('error');
+          setCompilationError(res.error);
+          setTerminalLogs(prev => [
+            ...prev,
+            "❌ Compilation / Execution Failed.",
+            `🛑 Error: ${res.error}`
+          ]);
+          triggerSoundEffect('error');
+        }
+        return;
+      }
+
+      // Standard test cases mode
+      activeLevel.testCases.forEach((tc) => {
+        const res = activeLevel.validationFn(editorCode, selectedLang, tc.input);
+        
+        if (res.success) {
+          currentResults.push({
+            ...tc,
+            actual: res.output,
+            status: 'passed'
+          });
+        } else {
+          overallSuccess = false;
+          compilationFailure = true;
+          compilerErrorText = res.error;
+          currentResults.push({
+            ...tc,
+            actual: '',
+            status: 'failed',
+            error: res.error
+          });
+        }
+      });
+
+      setTestResults(currentResults);
+
+      if (overallSuccess) {
+        setCompilerStatus('success');
+        setTerminalLogs(prev => [
+          ...prev,
+          "🟢 All test cases completed successfully.",
+          `🎉 Status: Success! ${currentResults.length}/${currentResults.length} cases passed.`
+        ]);
+        
+        // Pick appreciation phrases
+        const compliments = [
+          "Great job! All test cases passed 🎉",
+          "Clean solution! Keep going 🚀",
+          "Excellent work, warrior ⚡",
+          "You’re improving fast 🔥"
+        ];
+        const selectedCompliment = compliments[Math.floor(Math.random() * compliments.length)];
+        setAppreciationMsg(selectedCompliment);
+
+        triggerSoundEffect('success');
+        triggerConfetti();
+
+        if (isSubmit) {
+          // Process XP rewards
+          let earnedXP = activeLevel.xpReward;
+          let newXP = userState.xp + earnedXP;
+          
+          let currentLevel = userState.level;
+          let didLevelUp = false;
+          
+          // XP Milestones
+          if (newXP >= 200 && currentLevel < 5) {
+            currentLevel = 5;
+            didLevelUp = true;
+          } else if (newXP >= 120 && currentLevel < 4) {
+            currentLevel = 4;
+            didLevelUp = true;
+          } else if (newXP >= 60 && currentLevel < 3) {
+            currentLevel = 3;
+            didLevelUp = true;
+          } else if (newXP >= 25 && currentLevel < 2) {
+            currentLevel = 2;
+            didLevelUp = true;
+          }
+
+          const freshCompleted = [...userState.completedQuestions];
+          if (!freshCompleted.includes(activeLevel.id.toString())) {
+            freshCompleted.push(activeLevel.id.toString());
+          }
+
+          const updated = {
+            ...userState,
+            xp: newXP,
+            level: currentLevel,
+            completedQuestions: freshCompleted
+          };
+
+          saveUserState(updated);
+
+          if (didLevelUp) {
+            setTimeout(() => {
+              triggerSoundEffect('levelup');
+              toast.success(`🎉 LEVEL UP! You are now a Level ${currentLevel} coder!`, { duration: 6000 });
+            }, 800);
+          }
+
+          setShowCelebrationModal(true);
+        }
+      } else {
+        setCompilerStatus('error');
+        setCompilationError(compilerErrorText);
+        setTerminalLogs(prev => [
+          ...prev,
+          "❌ Code failed or encountered compiler warnings.",
+          `🛑 Error Details: ${compilerErrorText}`
+        ]);
+        setAppreciationMsg("Nice progress! A few test cases still need work.");
+        triggerSoundEffect('error');
+      }
+    }, 1000);
+  };
+
   const handleBackToDashboard = () => {
+    triggerSoundEffect('click');
     window.location.href = '/dashboard';
   };
 
-  // Ranks helper
   const getRankName = (xp) => {
     if (xp >= 200) return "Architect 🏆";
-    if (xp >= 100) return "Coder ⚡";
-    if (xp >= 50) return "Builder 🧠";
-    if (xp >= 20) return "Explorer 🧭";
+    if (xp >= 120) return "Coder ⚡";
+    if (xp >= 60) return "Builder 🧠";
+    if (xp >= 25) return "Explorer 🧭";
     return "Rookie 👾";
   };
 
-  return (
-    <div className="h-screen bg-[#09090b] text-[#f4f4f5] relative overflow-hidden flex flex-col font-sans">
-      
-      {/* Background Neon Orbs */}
-      <div className="absolute top-[-25%] left-[-10%] w-[600px] h-[600px] bg-violet-600/5 rounded-full blur-[140px] pointer-events-none"></div>
-      <div className="absolute bottom-[-25%] right-[-10%] w-[600px] h-[600px] bg-cyan-600/5 rounded-full blur-[140px] pointer-events-none"></div>
+  const getDifficultyColor = (diff) => {
+    switch (diff) {
+      case 'Rookie': return 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20';
+      case 'Explorer': return 'bg-blue-500/10 text-blue-500 border-blue-500/20';
+      case 'Builder': return 'bg-orange-500/10 text-orange-500 border-orange-500/20';
+      default: return 'bg-rose-500/10 text-rose-500 border-rose-500/20';
+    }
+  };
 
-      {/* Floating Confetti particles */}
+  // Toggle Theme
+  const toggleTheme = () => {
+    const newTheme = theme === 'light' ? 'dark' : 'light';
+    setTheme(newTheme);
+    localStorage.setItem('editor_theme', newTheme);
+    triggerSoundEffect('click');
+  };
+
+  // Fullscreen Mode
+  const toggleFullscreen = () => {
+    setIsFullscreen(!isFullscreen);
+    triggerSoundEffect('click');
+  };
+
+  return (
+    <div className={`h-screen flex flex-col font-sans transition-colors duration-300 relative overflow-hidden select-none ${
+      theme === 'dark' ? 'bg-[#09090b] text-[#f4f4f5] dark-mode' : 'bg-[#f8fafc] text-[#0f172a] light-mode'
+    }`}>
+      
+      {/* Background Orbs in Dark Mode */}
+      {theme === 'dark' && (
+        <>
+          <div className="absolute top-[-25%] left-[-10%] w-[600px] h-[600px] bg-violet-600/5 rounded-full blur-[140px] pointer-events-none"></div>
+          <div className="absolute bottom-[-25%] right-[-10%] w-[600px] h-[600px] bg-cyan-600/5 rounded-full blur-[140px] pointer-events-none"></div>
+        </>
+      )}
+
+      {/* Confetti Animation */}
       {showConfetti && (
         <div className="absolute inset-0 pointer-events-none z-50 overflow-hidden">
           {particles.map((p) => (
@@ -305,148 +529,331 @@ const ZeroToCoding = () => {
         </div>
       )}
 
-      {/* FULL-SCREEN SPLIT WORKSPACE PANELS */}
-      <div className="flex-1 flex flex-col lg:flex-row overflow-hidden">
+      {/* HEADER / NAVIGATION BAR */}
+      <header className={`h-16 flex items-center justify-between px-6 border-b shrink-0 transition-colors duration-300 ${
+        theme === 'dark' ? 'bg-[#09090b] border-zinc-800' : 'bg-white border-slate-200'
+      }`}>
+        <div className="flex items-center gap-4">
+          <button 
+            onClick={handleBackToDashboard}
+            className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+              theme === 'dark' ? 'text-zinc-400 hover:text-white hover:bg-zinc-800' : 'text-slate-500 hover:text-slate-800 hover:bg-slate-100'
+            }`}
+          >
+            <ArrowLeft size={16} /> Back to Dashboard
+          </button>
+          
+          <div className="h-4 w-px bg-slate-300 dark:bg-zinc-800"></div>
+
+          {/* Level Switcher */}
+          <div className="flex items-center gap-2">
+            <span className={`px-2.5 py-1 rounded-md text-xs font-bold border ${getDifficultyColor(activeLevel.difficulty)}`}>
+              Lvl {activeLevel.id}
+            </span>
+            <span className={`text-sm font-extrabold ${theme === 'dark' ? 'text-white' : 'text-slate-800'}`}>
+              {activeLevel.title}
+            </span>
+          </div>
+        </div>
+
+        {/* CONTROLS: Language Switcher, Sound, Mode, Fullscreen */}
+        <div className="flex items-center gap-3">
+          {/* Language Switcher */}
+          <div className="flex items-center gap-1.5 bg-slate-100 dark:bg-zinc-900 p-1 rounded-lg border border-slate-200 dark:border-zinc-800">
+            {['cpp', 'java', 'python', 'javascript'].map((lang) => (
+              <button
+                key={lang}
+                onClick={() => {
+                  setSelectedLang(lang);
+                  localStorage.setItem('editor_lang', lang);
+                  triggerSoundEffect('click');
+                }}
+                className={`px-2.5 py-1 rounded-md text-xs font-black uppercase transition-all ${
+                  selectedLang === lang 
+                    ? 'bg-indigo-600 text-white shadow' 
+                    : theme === 'dark' ? 'text-zinc-400 hover:text-zinc-200' : 'text-slate-500 hover:text-slate-800'
+                }`}
+              >
+                {lang === 'cpp' ? 'C++' : lang === 'javascript' ? 'JS' : lang}
+              </button>
+            ))}
+          </div>
+
+          <div className="h-4 w-px bg-slate-300 dark:bg-zinc-800"></div>
+
+          {/* Sound Toggle */}
+          <button
+            onClick={() => setIsMuted(!isMuted)}
+            className={`p-2 rounded-lg border transition-all ${
+              theme === 'dark' 
+                ? 'border-zinc-800 hover:bg-zinc-800 text-zinc-400' 
+                : 'border-slate-200 hover:bg-slate-100 text-slate-500'
+            }`}
+            title={isMuted ? "Unmute sounds" : "Mute sounds"}
+          >
+            {isMuted ? <VolumeX size={16} /> : <Volume2 size={16} />}
+          </button>
+
+          {/* Dark / Light Toggle */}
+          <button
+            onClick={toggleTheme}
+            className={`p-2 rounded-lg border transition-all ${
+              theme === 'dark' 
+                ? 'border-zinc-800 hover:bg-zinc-800 text-zinc-400' 
+                : 'border-slate-200 hover:bg-slate-100 text-slate-500'
+            }`}
+            title="Toggle color theme"
+          >
+            {theme === 'dark' ? <Sun size={16} className="text-amber-400" /> : <Moon size={16} className="text-slate-600" />}
+          </button>
+
+          {/* Fullscreen Toggle */}
+          <button
+            onClick={toggleFullscreen}
+            className={`p-2 rounded-lg border transition-all ${
+              theme === 'dark' 
+                ? 'border-zinc-800 hover:bg-zinc-800 text-zinc-400' 
+                : 'border-slate-200 hover:bg-slate-100 text-slate-500'
+            }`}
+            title="Toggle fullscreen mode"
+          >
+            {isFullscreen ? <Minimize2 size={16} /> : <Maximize2 size={16} />}
+          </button>
+        </div>
+      </header>
+
+      {/* CORE WORKSPACE PANELS */}
+      <main className="flex-1 flex overflow-hidden relative">
         
         {/* ========================================================
-            LEFT PANEL: Learning section & mascot briefings
+            LEFT COLUMN: Problem Statement, Constraints, Examples
            ======================================================== */}
-        <div className="w-full lg:w-[45%] border-r border-[#1c1c1f] bg-[#0c0a09]/60 flex flex-col overflow-y-auto">
-          
-          {/* Header Panel Navigator */}
-          <div className="p-6 border-b border-[#1c1c1f] bg-[#0c0a09] flex items-center justify-between sticky top-0 z-10 backdrop-blur-md">
-            <button 
-              onClick={handleBackToDashboard}
-              className="flex items-center gap-2 text-xs font-black text-gray-500 hover:text-white transition-colors"
-            >
-              <ArrowLeft size={14} /> Back to CF
-            </button>
-            <div className="flex items-center gap-3">
-              <span className="px-2.5 py-1 bg-violet-500/10 text-violet-400 border border-violet-500/20 rounded-lg text-[9px] font-black uppercase tracking-wider">
-                Level {activeLevel.id} / 7
-              </span>
-              <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">
-                {activeLevel.difficulty}
-              </span>
-            </div>
+        <section 
+          style={{ width: `${leftWidth}%` }}
+          className={`h-full flex flex-col border-r transition-colors duration-300 select-text overflow-hidden shrink-0 ${
+            theme === 'dark' ? 'bg-[#0c0a09]/80 border-zinc-800' : 'bg-white border-slate-200'
+          }`}
+        >
+          {/* Header tabs */}
+          <div className={`flex items-center px-4 border-b shrink-0 ${
+            theme === 'dark' ? 'bg-zinc-900/50 border-zinc-800' : 'bg-slate-50 border-slate-200'
+          }`}>
+            {[
+              { id: 'description', label: 'Problem Description', icon: FileCode },
+              { id: 'examples', label: 'Constraints & Examples', icon: Trophy },
+              { id: 'clues', label: 'Hints & Accordion', icon: HelpCircle }
+            ].map(tab => (
+              <button
+                key={tab.id}
+                onClick={() => {
+                  setLeftTab(tab.id);
+                  triggerSoundEffect('click');
+                }}
+                className={`flex items-center gap-2 px-4 py-3.5 text-xs font-bold transition-all border-b-2 -mb-px ${
+                  leftTab === tab.id
+                    ? 'border-indigo-600 text-indigo-600'
+                    : 'border-transparent text-slate-500 hover:text-slate-800 dark:text-zinc-400 dark:hover:text-zinc-200'
+                }`}
+              >
+                <tab.icon size={14} /> {tab.label}
+              </button>
+            ))}
           </div>
 
-          <div className="p-8 space-y-8 flex-1">
+          {/* Details Scrollable Container */}
+          <div className="flex-1 overflow-y-auto p-6 space-y-6">
             
-            {/* Topic & Rewards Block */}
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                <h1 className="text-3xl font-black text-white tracking-tight">
-                  {activeLevel.title}
-                </h1>
-                <p className="text-xs text-gray-500 font-medium mt-1">C++ Programming Foundations</p>
-              </div>
-
-              {/* Status metrics pill */}
-              <div className="bg-[#18181b] border border-[#27272a] px-4 py-2 rounded-2xl flex items-center gap-3 flex-shrink-0">
-                <div className="flex items-center gap-1.5 border-r border-[#27272a] pr-3">
-                  <Zap size={14} className="text-violet-400 fill-violet-400" />
-                  <span className="text-xs font-black text-white">{activeLevel.xpReward} XP</span>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <span className="text-xs font-black text-orange-500">🔥 {userState.streak} Days</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Forgey Mascot Mission Card */}
-            <div className="bg-gradient-to-r from-violet-950/40 via-[#121214] to-cyan-950/40 border border-violet-500/20 p-6 rounded-[2rem] shadow-xl relative overflow-hidden flex items-start gap-4">
-              <div className="absolute -top-12 -left-12 w-24 h-24 bg-violet-600/10 rounded-full blur-2xl"></div>
-              <div className="w-12 h-12 bg-[#1c1c1f] border border-violet-500/20 rounded-2xl flex items-center justify-center text-3xl flex-shrink-0 shadow-inner animate-bounce">
-                🤖
-              </div>
-              <div className="space-y-1 relative z-10">
-                <div className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Mission Objective</div>
-                <p className="text-xs text-gray-300 font-semibold leading-relaxed">
-                  "{activeLevel.learningObjective}"
-                </p>
-              </div>
-            </div>
-
-            {/* Challenge Task Card */}
-            <div className="bg-[#121214] border border-[#1c1c1f] rounded-[2rem] p-8 space-y-6">
-              <h3 className="text-sm font-black text-white uppercase tracking-wider flex items-center gap-2">
-                📋 Challenge Statement
-              </h3>
-              <p className="text-sm font-semibold text-gray-400 leading-relaxed whitespace-pre-line">
-                {activeLevel.problemStatement}
-              </p>
-              
-              <div className="border-t border-[#1c1c1f] pt-6 grid grid-cols-2 gap-4 text-xs font-mono">
-                <div>
-                  <div className="text-[9px] text-gray-500 font-black uppercase tracking-widest mb-1">Input Context</div>
-                  <div className="text-white font-bold">No Input Needed</div>
-                </div>
-                <div>
-                  <div className="text-[9px] text-gray-500 font-black uppercase tracking-widest mb-1">Expected Output</div>
-                  <div className="text-emerald-400 font-bold whitespace-pre-line">{activeLevel.id === 2 ? "Hello\nWorld" : activeLevel.id === 7 ? "*\n**" : activeLevel.id === 6 ? "1 2 3 " : activeLevel.id === 4 ? "Code is: 42" : activeLevel.id === 3 ? "20" : activeLevel.id === 5 ? "Can Vote" : "Hello World!"}</div>
-                </div>
-              </div>
-            </div>
-
-            {/* Clues accordion */}
-            <div className="space-y-3">
-              <div className="text-[10px] text-gray-500 font-black uppercase tracking-widest">Compiler Clues & Hints</div>
-              <div className="space-y-2">
-                {activeLevel.hints.map((hint, idx) => (
-                  <div key={idx} className="border border-[#1c1c1f] rounded-xl overflow-hidden">
-                    <button
-                      onClick={() => setShowHintIndex(showHintIndex === idx ? -1 : idx)}
-                      className="w-full px-5 py-3.5 bg-[#121214] hover:bg-[#18181b] flex items-center justify-between text-left transition-colors"
-                    >
-                      <span className="text-xs font-black text-white">Hint #{idx + 1}</span>
-                      <HelpCircle size={14} className="text-gray-400" />
-                    </button>
-                    <AnimatePresence>
-                      {showHintIndex === idx && (
-                        <motion.div
-                          initial={{ height: 0 }}
-                          animate={{ height: 'auto' }}
-                          exit={{ height: 0 }}
-                          className="overflow-hidden bg-[#18181b]/30"
-                        >
-                          <p className="p-5 text-xs font-medium text-gray-400 leading-relaxed whitespace-pre-wrap">
-                            {hint}
-                          </p>
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
+            {leftTab === 'description' && (
+              <div className="space-y-6 animate-fade-in">
+                {/* Level Title, Difficulty & Stats */}
+                <div className="flex items-start justify-between">
+                  <div className="space-y-1">
+                    <h2 className={`text-2xl font-black ${theme === 'dark' ? 'text-white' : 'text-slate-800'}`}>
+                      {activeLevel.title}
+                    </h2>
+                    <p className={`text-xs ${theme === 'dark' ? 'text-zinc-500' : 'text-slate-400'}`}>
+                      Foundations of Beginner Programming
+                    </p>
                   </div>
-                ))}
-              </div>
-            </div>
+                  
+                  <div className={`px-3 py-1.5 rounded-lg border flex items-center gap-1.5 shrink-0 ${
+                    theme === 'dark' ? 'bg-zinc-900 border-zinc-800' : 'bg-slate-50 border-slate-200'
+                  }`}>
+                    <Zap size={14} className="text-violet-500 fill-violet-500 animate-pulse" />
+                    <span className="text-xs font-black">+{activeLevel.xpReward} XP</span>
+                  </div>
+                </div>
 
-            {/* Progression & Rank Indicators */}
-            <div className="bg-[#121214] border border-[#1c1c1f] rounded-[2rem] p-6 space-y-4">
-              <div className="flex justify-between items-center text-xs font-black">
-                <span className="text-gray-500 uppercase tracking-widest">Rookie Rank</span>
-                <span className="text-violet-400">{getRankName(userState.xp)}</span>
+                {/* Level Mascot Briefing */}
+                <div className={`p-4 rounded-xl border flex items-start gap-3 bg-gradient-to-r ${
+                  theme === 'dark'
+                    ? 'from-violet-950/20 via-zinc-900/40 to-cyan-950/20 border-violet-500/20'
+                    : 'from-violet-50 via-slate-50/50 to-cyan-50 border-violet-100'
+                }`}>
+                  <div className="text-2xl pt-1">🤖</div>
+                  <div className="space-y-1">
+                    <div className="text-[10px] font-bold text-indigo-500 uppercase tracking-widest">
+                      Mascot Briefing
+                    </div>
+                    <p className={`text-xs font-medium leading-relaxed ${theme === 'dark' ? 'text-zinc-300' : 'text-slate-600'}`}>
+                      "{activeLevel.learningObjective}"
+                    </p>
+                  </div>
+                </div>
+
+                {/* Problem Statement text */}
+                <div className="space-y-3">
+                  <h3 className={`text-sm font-black uppercase tracking-wider ${theme === 'dark' ? 'text-white' : 'text-slate-800'}`}>
+                    Problem Statement
+                  </h3>
+                  <div className={`text-sm font-medium leading-relaxed whitespace-pre-line p-5 rounded-xl border ${
+                    theme === 'dark' ? 'bg-zinc-900/30 border-zinc-800 text-zinc-300' : 'bg-slate-50/50 border-slate-200 text-slate-600'
+                  }`}>
+                    {activeLevel.problemStatement}
+                  </div>
+                </div>
               </div>
-              <div className="progress-container h-2 bg-[#1c1c1f]">
-                <div className="progress-bar-fill bg-gradient-to-r from-violet-500 to-cyan-400" style={{ width: `${(userState.xp % 200) / 2}%` }}></div>
+            )}
+
+            {leftTab === 'examples' && (
+              <div className="space-y-6 animate-fade-in">
+                {/* Constraints */}
+                <div className="space-y-3">
+                  <h3 className={`text-sm font-black uppercase tracking-wider ${theme === 'dark' ? 'text-white' : 'text-slate-800'}`}>
+                    Constraints
+                  </h3>
+                  <div className={`p-4 rounded-xl border text-xs font-mono ${
+                    theme === 'dark' ? 'bg-zinc-900/30 border-zinc-800 text-zinc-300' : 'bg-slate-50/50 border-slate-200 text-slate-600'
+                  }`}>
+                    {activeLevel.constraints}
+                  </div>
+                </div>
+
+                {/* Examples */}
+                <div className="space-y-4">
+                  <h3 className={`text-sm font-black uppercase tracking-wider ${theme === 'dark' ? 'text-white' : 'text-slate-800'}`}>
+                    Example Cases
+                  </h3>
+                  {activeLevel.examples.map((ex, idx) => (
+                    <div 
+                      key={idx} 
+                      className={`p-5 rounded-xl border space-y-3 font-mono text-xs ${
+                        theme === 'dark' ? 'bg-zinc-900/30 border-zinc-800' : 'bg-slate-50/50 border-slate-200'
+                      }`}
+                    >
+                      <div className="font-bold text-indigo-500 uppercase tracking-widest text-[10px]">
+                        Example {idx + 1}
+                      </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <div className={`text-[10px] uppercase font-bold mb-1 ${theme === 'dark' ? 'text-zinc-500' : 'text-slate-400'}`}>
+                            Input
+                          </div>
+                          <pre className={`p-2.5 rounded-lg font-mono text-xs ${
+                            theme === 'dark' ? 'bg-zinc-950 text-zinc-300' : 'bg-slate-100 text-slate-700'
+                          }`}>{ex.input}</pre>
+                        </div>
+                        <div>
+                          <div className={`text-[10px] uppercase font-bold mb-1 ${theme === 'dark' ? 'text-zinc-500' : 'text-slate-400'}`}>
+                            Output
+                          </div>
+                          <pre className={`p-2.5 rounded-lg font-mono text-xs ${
+                            theme === 'dark' ? 'bg-zinc-950 text-zinc-300' : 'bg-slate-100 text-slate-700'
+                          }`}>{ex.output}</pre>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
-              <div className="flex justify-between text-[10px] text-gray-500 font-black">
+            )}
+
+            {leftTab === 'clues' && (
+              <div className="space-y-4 animate-fade-in">
+                <h3 className={`text-sm font-black uppercase tracking-wider ${theme === 'dark' ? 'text-white' : 'text-slate-800'}`}>
+                  Compiler Clues & Hints
+                </h3>
+                <div className="space-y-3">
+                  {activeLevel.hints.map((hint, idx) => (
+                    <div 
+                      key={idx} 
+                      className={`border rounded-xl overflow-hidden transition-all ${
+                        theme === 'dark' ? 'border-zinc-800 bg-zinc-900/20' : 'border-slate-200 bg-slate-50/20'
+                      }`}
+                    >
+                      <button
+                        onClick={() => {
+                          setShowHintIndex(showHintIndex === idx ? -1 : idx);
+                          triggerSoundEffect('click');
+                        }}
+                        className={`w-full px-5 py-4 flex items-center justify-between text-left transition-colors ${
+                          theme === 'dark' ? 'hover:bg-zinc-900' : 'hover:bg-slate-50'
+                        }`}
+                      >
+                        <span className="text-xs font-black">Hint #{idx + 1}</span>
+                        <HelpCircle size={16} className="text-slate-400 dark:text-zinc-500" />
+                      </button>
+                      <AnimatePresence>
+                        {showHintIndex === idx && (
+                          <motion.div
+                            initial={{ height: 0 }}
+                            animate={{ height: 'auto' }}
+                            exit={{ height: 0 }}
+                            className="overflow-hidden border-t dark:border-zinc-800 border-slate-100"
+                          >
+                            <p className={`p-5 text-xs font-medium leading-relaxed whitespace-pre-wrap ${
+                              theme === 'dark' ? 'text-zinc-400' : 'text-slate-600'
+                            }`}>
+                              {hint}
+                            </p>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Profile Level Rank */}
+            <div className={`p-5 rounded-2xl border space-y-3 ${
+              theme === 'dark' ? 'bg-zinc-900/40 border-zinc-800' : 'bg-slate-50/40 border-slate-200'
+            }`}>
+              <div className="flex justify-between items-center text-xs font-extrabold">
+                <span className="text-slate-400 uppercase tracking-widest text-[9px]">Developer Ranking</span>
+                <span className="text-indigo-600">{getRankName(userState.xp)}</span>
+              </div>
+              <div className="progress-container h-1.5 bg-slate-200 dark:bg-zinc-800">
+                <div 
+                  className="progress-bar-fill bg-gradient-to-r from-indigo-500 to-cyan-500" 
+                  style={{ width: `${Math.min(100, (userState.xp % 200) / 2)}%` }}
+                ></div>
+              </div>
+              <div className="flex justify-between text-[10px] text-slate-400 font-bold">
                 <span>{userState.xp} Total XP</span>
-                <span>{200 - (userState.xp % 200)} XP to Next Rank</span>
+                <span>{Math.max(0, 200 - (userState.xp % 200))} XP to Next Rank</span>
               </div>
             </div>
 
           </div>
 
-          {/* Bottom Module Navigator list */}
-          <div className="p-6 bg-[#0c0a09] border-t border-[#1c1c1f] flex items-center justify-between sticky bottom-0 z-10">
+          {/* Left panel footer navigator */}
+          <div className={`p-4 border-t flex items-center justify-between shrink-0 ${
+            theme === 'dark' ? 'bg-[#09090b] border-zinc-800' : 'bg-white border-slate-200'
+          }`}>
             <button
               disabled={activeLevelIndex === 0}
-              onClick={() => setActiveLevelIndex(p => p - 1)}
-              className="flex items-center gap-1.5 text-xs font-black text-gray-400 hover:text-white disabled:opacity-20 transition-all"
+              onClick={() => {
+                setActiveLevelIndex(p => p - 1);
+                triggerSoundEffect('click');
+              }}
+              className={`flex items-center gap-1 text-xs font-bold px-3 py-2 rounded-lg transition-all disabled:opacity-30 ${
+                theme === 'dark' ? 'text-zinc-400 hover:text-white hover:bg-zinc-800' : 'text-slate-500 hover:text-slate-800 hover:bg-slate-100'
+              }`}
             >
-              <ChevronLeft size={16} /> Prev Level
+              <ChevronLeft size={16} /> Prev Lvl
             </button>
+            
             <div className="flex gap-1.5">
               {zeroToCodingMonacoLevels.map((lvl, idx) => {
                 const isCompleted = userState.completedQuestions.includes(lvl.id.toString());
@@ -455,13 +862,18 @@ const ZeroToCoding = () => {
                 return (
                   <button
                     key={lvl.id}
-                    onClick={() => setActiveLevelIndex(idx)}
-                    className={`w-7 h-7 rounded-lg text-xs font-black transition-all flex items-center justify-center ${
+                    onClick={() => {
+                      setActiveLevelIndex(idx);
+                      triggerSoundEffect('click');
+                    }}
+                    className={`w-7 h-7 rounded-lg text-xs font-black transition-all flex items-center justify-center border ${
                       isActive 
-                        ? 'bg-violet-500 text-white shadow-lg shadow-violet-500/20' 
+                        ? 'bg-indigo-600 border-indigo-600 text-white shadow-lg shadow-indigo-600/20' 
                         : isCompleted 
-                          ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' 
-                          : 'bg-[#18181b] text-gray-500 border border-transparent hover:border-[#27272a]'
+                          ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-500 dark:text-emerald-400' 
+                          : theme === 'dark' 
+                            ? 'bg-zinc-900 border-zinc-800 text-zinc-500 hover:border-zinc-700 hover:text-zinc-300'
+                            : 'bg-slate-50 border-slate-200 text-slate-400 hover:border-slate-300 hover:text-slate-700'
                     }`}
                   >
                     {idx + 1}
@@ -469,61 +881,83 @@ const ZeroToCoding = () => {
                 );
               })}
             </div>
+
             <button
               disabled={activeLevelIndex === zeroToCodingMonacoLevels.length - 1}
-              onClick={() => setActiveLevelIndex(p => p + 1)}
-              className="flex items-center gap-1.5 text-xs font-black text-gray-400 hover:text-white disabled:opacity-20 transition-all"
+              onClick={() => {
+                setActiveLevelIndex(p => p + 1);
+                triggerSoundEffect('click');
+              }}
+              className={`flex items-center gap-1 text-xs font-bold px-3 py-2 rounded-lg transition-all disabled:opacity-30 ${
+                theme === 'dark' ? 'text-zinc-400 hover:text-white hover:bg-zinc-800' : 'text-slate-500 hover:text-slate-800 hover:bg-slate-100'
+              }`}
             >
-              Next Level <ChevronRight size={16} />
+              Next Lvl <ChevronRight size={16} />
             </button>
           </div>
+        </section>
 
+        {/* LEFT COLUMN DRAG SPLITTER */}
+        <div 
+          onMouseDown={startResizingLeft}
+          className={`w-1 cursor-col-resize shrink-0 transition-colors z-20 flex items-center justify-center hover:bg-indigo-500 ${
+            theme === 'dark' ? 'bg-zinc-900' : 'bg-slate-200'
+          }`}
+          title="Drag to resize panels"
+        >
+          <div className="w-[2px] h-8 rounded bg-slate-300 dark:bg-zinc-700 pointer-events-none"></div>
         </div>
 
         {/* ========================================================
-            RIGHT PANEL: VS Code style Monaco Editor Sandbox
+            RIGHT COLUMN: Coding Editor & Test Cases Terminal
            ======================================================== */}
-        <div className="flex-1 bg-[#09090b] flex flex-col overflow-hidden relative">
+        <section className="flex-1 flex flex-col overflow-hidden relative h-full">
           
-          {/* Top Panel header */}
-          <div className="px-6 py-4 bg-[#09090b] border-b border-[#1c1c1f] flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="flex gap-1.5">
-                <span className="w-3 h-3 rounded-full bg-red-500/80"></span>
-                <span className="w-3 h-3 rounded-full bg-yellow-500/80"></span>
-                <span className="w-3 h-3 rounded-full bg-green-500/80"></span>
+          {/* Coding Editor Container */}
+          <div 
+            style={{ height: `${100 - bottomHeight}%` }}
+            className={`flex flex-col overflow-hidden transition-all relative ${
+              theme === 'dark' ? 'bg-[#0f0e0d]' : 'bg-[#fafafa]'
+            }`}
+          >
+            {/* Editor Sub-header */}
+            <div className={`h-11 px-4 border-b flex items-center justify-between shrink-0 ${
+              theme === 'dark' ? 'bg-[#0c0a09]/50 border-zinc-800' : 'bg-slate-50 border-slate-200'
+            }`}>
+              <div className="flex items-center gap-2">
+                <FileCode size={14} className="text-indigo-500" />
+                <span className="text-xs font-mono font-bold text-slate-500 dark:text-zinc-400">
+                  {selectedLang === 'cpp' ? 'main.cpp' : selectedLang === 'java' ? 'Main.java' : selectedLang === 'python' ? 'solution.py' : 'index.js'}
+                </span>
               </div>
-              <span className="text-xs font-mono font-bold text-gray-400 bg-[#18181b] px-3 py-1 rounded-lg border border-[#27272a]">
-                main.cpp (C++)
-              </span>
-            </div>
-            <div className="flex items-center gap-3">
-              <button 
-                onClick={handleResetCode}
-                className="w-10 h-10 rounded-xl bg-[#18181b] border border-[#27272a] hover:bg-[#27272a] text-gray-400 hover:text-white transition-all flex items-center justify-center text-xs font-bold"
-                title="Reset starter template code"
-              >
-                <RotateCcw size={14} />
-              </button>
-              <button 
-                onClick={runCode}
-                className="px-6 py-2.5 bg-gradient-to-r from-violet-500 to-cyan-500 hover:from-violet-600 hover:to-cyan-600 text-white rounded-xl text-xs font-black uppercase tracking-wider shadow-lg shadow-violet-500/10 flex items-center gap-2 hover:-translate-y-0.5 transition-all"
-              >
-                <Play size={14} fill="white" /> Run Compiler
-              </button>
-            </div>
-          </div>
 
-          {/* Real Monaco Editor workspace box */}
-          <div className="flex-1 min-h-[300px] bg-[#0c0a09] relative flex flex-col justify-between">
+              {/* Reset, Save Buttons */}
+              <div className="flex items-center gap-1.5">
+                <button
+                  onClick={handleResetCode}
+                  className={`p-1.5 rounded hover:bg-slate-200 dark:hover:bg-zinc-800 text-slate-500 dark:text-zinc-400 transition-all`}
+                  title="Reset starter template code"
+                >
+                  <RotateCcw size={14} />
+                </button>
+                <button
+                  onClick={handleSaveCode}
+                  className={`p-1.5 rounded hover:bg-slate-200 dark:hover:bg-zinc-800 text-slate-500 dark:text-zinc-400 transition-all`}
+                  title="Save current code draft"
+                >
+                  <Save size={14} />
+                </button>
+              </div>
+            </div>
+
+            {/* Monaco Component */}
             <div className="flex-1 relative overflow-hidden">
               <Editor
                 height="100%"
-                defaultLanguage="cpp"
-                defaultValue={activeLevel.starterCode}
+                language={selectedLang}
+                theme={theme === 'light' ? 'vs' : 'vs-dark'}
                 value={editorCode}
-                onChange={(val) => setEditorCode(val || '')}
-                theme="vs-dark"
+                onChange={handleEditorChange}
                 options={{
                   fontSize: 14,
                   fontFamily: 'Fira Code, Monaco, Courier New, monospace',
@@ -536,93 +970,362 @@ const ZeroToCoding = () => {
                   scrollbar: {
                     vertical: 'visible',
                     horizontal: 'visible'
-                  }
+                  },
+                  cursorBlinking: 'smooth',
+                  tabSize: 4,
+                  autoIndent: 'full',
+                  bracketPairColorization: { enabled: true }
                 }}
               />
             </div>
           </div>
 
-          {/* INTERACTIVE TERMINAL / OUTPUT PANEL */}
-          <div className="h-[220px] bg-[#09090b] border-t border-[#1c1c1f] flex flex-col">
-            
-            {/* Header tab */}
-            <div className="px-6 py-2 bg-[#09090b] border-b border-[#1c1c1f] flex items-center gap-3 text-xs font-bold text-gray-400">
-              <Terminal size={14} />
-              <span className="uppercase tracking-wider">Terminal output</span>
-              <span className={`w-2.5 h-2.5 rounded-full ml-auto ${
-                compilerStatus === 'compiling' ? 'bg-amber-500 animate-pulse' :
-                compilerStatus === 'success' ? 'bg-emerald-500' :
-                compilerStatus === 'error' ? 'bg-red-500' :
-                'bg-gray-500'
-              }`}></span>
+          {/* VERTICAL ROW SPLITTER */}
+          <div 
+            onMouseDown={startResizingBottom}
+            className={`h-1 cursor-row-resize shrink-0 transition-colors z-20 flex items-center justify-center hover:bg-indigo-500 ${
+              theme === 'dark' ? 'bg-zinc-900' : 'bg-slate-200'
+            }`}
+            title="Drag to resize terminal panel"
+          >
+            <div className="w-8 h-[2px] rounded bg-slate-300 dark:bg-zinc-700 pointer-events-none"></div>
+          </div>
+
+          {/* ========================================================
+              BOTTOM TERMINAL: Tabs, Test Cases & Execution Details
+             ======================================================== */}
+          <div 
+            style={{ height: `${bottomHeight}%` }}
+            className={`flex flex-col border-t shrink-0 overflow-hidden relative ${
+              theme === 'dark' ? 'bg-[#09090b] border-zinc-800' : 'bg-white border-slate-200'
+            }`}
+          >
+            {/* Terminal Tab Bar */}
+            <div className={`flex items-center px-4 border-b shrink-0 justify-between ${
+              theme === 'dark' ? 'bg-zinc-900/50 border-zinc-800' : 'bg-slate-50 border-slate-200'
+            }`}>
+              <div className="flex gap-2">
+                {[
+                  { id: 'testcases', label: 'Test Cases', icon: Trophy },
+                  { id: 'custominput', label: 'Custom Input', icon: HelpCircle },
+                  { id: 'console', label: 'Console Logs', icon: Terminal },
+                  { id: 'results', label: 'Run Results', icon: CheckCircle2 }
+                ].map(tab => (
+                  <button
+                    key={tab.id}
+                    onClick={() => {
+                      setActiveTab(tab.id);
+                      triggerSoundEffect('click');
+                    }}
+                    className={`flex items-center gap-1.5 px-3 py-3 text-xs font-black transition-all border-b-2 -mb-px ${
+                      activeTab === tab.id
+                        ? 'border-indigo-600 text-indigo-600'
+                        : 'border-transparent text-slate-500 hover:text-slate-800 dark:text-zinc-400 dark:hover:text-zinc-200'
+                    }`}
+                  >
+                    <tab.icon size={13} /> {tab.label}
+                  </button>
+                ))}
+              </div>
+
+              {/* Action buttons: Run Code, Submit */}
+              <div className="flex items-center gap-2 py-1.5">
+                <button
+                  onClick={() => runCode(false)}
+                  disabled={compilerStatus === 'compiling'}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-black border uppercase tracking-wider flex items-center gap-1.5 transition-all ${
+                    compilerStatus === 'compiling'
+                      ? 'opacity-50 cursor-not-allowed'
+                      : theme === 'dark'
+                        ? 'bg-zinc-850 hover:bg-zinc-800 border-zinc-700 text-white'
+                        : 'bg-white hover:bg-slate-50 border-slate-300 text-slate-700'
+                  }`}
+                >
+                  <Play size={12} fill="currentColor" /> Run Code
+                </button>
+                
+                <button
+                  onClick={() => runCode(true)}
+                  disabled={compilerStatus === 'compiling'}
+                  className="px-4 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-black uppercase tracking-wider shadow-sm flex items-center gap-1.5 hover:-translate-y-0.5 active:translate-y-0 transition-all disabled:opacity-50"
+                >
+                  <Sparkles size={12} /> Submit Solution
+                </button>
+              </div>
             </div>
 
-            {/* Terminal logs list */}
-            <div className="flex-1 p-6 font-mono text-xs overflow-y-auto space-y-1.5 selection:bg-violet-500/30 selection:text-white">
-              {terminalLogs.map((log, idx) => {
-                let colorClass = "text-gray-400";
-                if (log.startsWith("❌") || log.startsWith("🛑")) colorClass = "text-red-400 font-bold";
-                if (log.startsWith("🟢") || log.startsWith("🎉") || log.startsWith("📥")) colorClass = "text-emerald-400 font-black";
-                if (log.startsWith("⚙️") || log.startsWith("⚡")) colorClass = "text-indigo-400";
-                
-                return (
-                  <div key={idx} className={`${colorClass} whitespace-pre-wrap`}>
-                    {log}
+            {/* Terminal Body */}
+            <div className="flex-1 overflow-y-auto p-5 font-sans">
+              
+              {/* Tab 1: Visible Sample Test Cases */}
+              {activeTab === 'testcases' && (
+                <div className="space-y-4 animate-fade-in">
+                  <div className="flex justify-between items-center text-xs">
+                    <span className="font-extrabold text-slate-500 dark:text-zinc-400">Sample Test Cases</span>
+                    <span className="text-slate-400">Run code to see actual outputs.</span>
                   </div>
-                );
-              })}
-
-              {/* Show errors in friendly format */}
-              {compilerStatus === 'error' && compilationError && (
-                <div className="mt-4 p-4 bg-red-500/5 border border-red-500/10 rounded-2xl flex items-start gap-3 text-red-300">
-                  <div className="w-5 h-5 rounded-lg bg-red-500/10 flex items-center justify-center flex-shrink-0 mt-0.5">⚠️</div>
-                  <div className="space-y-1">
-                    <div className="text-[10px] font-black uppercase tracking-widest">Friendly AI Hint</div>
-                    <p className="text-xs font-semibold leading-relaxed">{compilationError}</p>
+                  
+                  <div className="grid md:grid-cols-2 gap-4">
+                    {activeLevel.testCases.map((tc, idx) => (
+                      <div 
+                        key={tc.id} 
+                        className={`p-4 rounded-xl border space-y-2.5 font-mono text-xs ${
+                          theme === 'dark' ? 'bg-zinc-900/30 border-zinc-800' : 'bg-slate-50/50 border-slate-200'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between">
+                          <span className="font-extrabold text-indigo-500">Case #{idx + 1}</span>
+                          <span className="px-2 py-0.5 rounded bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 text-[10px] font-bold uppercase">
+                            Sample
+                          </span>
+                        </div>
+                        
+                        <div className="space-y-1.5">
+                          {tc.input && (
+                            <div>
+                              <span className="text-[10px] text-slate-400 dark:text-zinc-500 uppercase tracking-wider font-bold">Input</span>
+                              <pre className={`p-1.5 rounded text-[11px] mt-0.5 ${theme === 'dark' ? 'bg-zinc-950 text-zinc-300' : 'bg-slate-100 text-slate-700'}`}>{tc.input}</pre>
+                            </div>
+                          )}
+                          <div>
+                            <span className="text-[10px] text-slate-400 dark:text-zinc-500 uppercase tracking-wider font-bold">Expected Output</span>
+                            <pre className={`p-1.5 rounded text-[11px] mt-0.5 ${theme === 'dark' ? 'bg-zinc-950 text-emerald-400' : 'bg-emerald-50 text-emerald-700'}`}>{tc.expected}</pre>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </div>
               )}
-            </div>
 
+              {/* Tab 2: Custom Input Support */}
+              {activeTab === 'custominput' && (
+                <div className="space-y-4 animate-fade-in max-w-xl">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input 
+                      type="checkbox"
+                      checked={useCustomInput}
+                      onChange={(e) => {
+                        setUseCustomInput(e.target.checked);
+                        triggerSoundEffect('click');
+                      }}
+                      className="rounded border-slate-300 dark:border-zinc-700 text-indigo-600 focus:ring-indigo-500"
+                    />
+                    <div className="flex flex-col">
+                      <span className="text-xs font-black text-slate-700 dark:text-zinc-300">Enable Custom Input</span>
+                      <span className="text-[10px] text-slate-400">Read custom parameters during mock run code.</span>
+                    </div>
+                  </label>
+
+                  {useCustomInput && (
+                    <div className="space-y-3">
+                      <textarea
+                        value={customInput}
+                        onChange={(e) => setCustomInput(e.target.value)}
+                        placeholder="Type standard console input arguments here..."
+                        rows={3}
+                        className={`w-full p-3 rounded-xl border text-xs font-mono focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 ${
+                          theme === 'dark' ? 'bg-zinc-950 border-zinc-800 text-zinc-200' : 'bg-slate-50 border-slate-200 text-slate-800'
+                        }`}
+                      />
+                      
+                      {customOutput && (
+                        <div className="space-y-1.5 font-mono text-xs">
+                          <div className="text-[10px] text-slate-400 uppercase tracking-widest font-bold">Custom Run Output</div>
+                          <pre className={`p-3 rounded-xl font-mono ${
+                            theme === 'dark' ? 'bg-zinc-950 text-emerald-400' : 'bg-slate-100 text-slate-700'
+                          }`}>{customOutput}</pre>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Tab 3: Terminal Console Output */}
+              {activeTab === 'console' && (
+                <div className="space-y-1.5 font-mono text-xs animate-fade-in">
+                  {terminalLogs.map((log, idx) => {
+                    let colorClass = theme === 'dark' ? 'text-zinc-400' : 'text-slate-600';
+                    if (log.startsWith("❌") || log.startsWith("🛑")) colorClass = "text-rose-500 font-bold";
+                    if (log.startsWith("🟢") || log.startsWith("🎉")) colorClass = "text-emerald-500 font-black";
+                    if (log.startsWith("⚙️") || log.startsWith("⚡")) colorClass = "text-violet-500";
+                    
+                    return (
+                      <div key={idx} className={`${colorClass} whitespace-pre-wrap`}>
+                        {log}
+                      </div>
+                    );
+                  })}
+
+                  {/* Show AI Hints for errors */}
+                  {compilerStatus === 'error' && compilationError && (
+                    <div className="mt-4 p-4 bg-rose-500/5 border border-rose-500/10 rounded-xl flex items-start gap-3 text-rose-600 dark:text-rose-400">
+                      <AlertCircle size={16} className="shrink-0 mt-0.5" />
+                      <div className="space-y-1">
+                        <div className="text-[9px] font-black uppercase tracking-widest leading-none">Diagnostic AI Hint</div>
+                        <p className="text-xs font-semibold leading-relaxed">{compilationError}</p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Tab 4: Results & Status Colors */}
+              {activeTab === 'results' && (
+                <div className="space-y-4 animate-fade-in">
+                  
+                  {/* Appreciation Messages & Status */}
+                  {appreciationMsg && (
+                    <div className={`p-4 rounded-xl border flex items-center justify-between shadow-sm ${
+                      compilerStatus === 'success'
+                        ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-600 dark:text-emerald-400'
+                        : 'bg-rose-500/10 border-rose-500/20 text-rose-600 dark:text-rose-400'
+                    }`}>
+                      <div className="flex items-center gap-3">
+                        {compilerStatus === 'success' ? (
+                          <div className="w-8 h-8 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-600 shrink-0">
+                            <CheckCircle2 size={18} />
+                          </div>
+                        ) : (
+                          <div className="w-8 h-8 rounded-full bg-rose-500/20 flex items-center justify-center text-rose-600 shrink-0">
+                            <XCircle size={18} />
+                          </div>
+                        )}
+                        <span className="text-sm font-extrabold">{appreciationMsg}</span>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Test Cases Results cards */}
+                  <div className="grid md:grid-cols-2 gap-4">
+                    {testResults.map((tr, idx) => (
+                      <div 
+                        key={tr.id} 
+                        className={`p-5 rounded-xl border font-mono text-xs transition-all relative ${
+                          tr.status === 'passed'
+                            ? 'bg-emerald-500/5 border-emerald-500/20 shadow-emerald-500/5'
+                            : tr.status === 'failed'
+                              ? 'bg-rose-500/5 border-rose-500/20 shadow-rose-500/5 animate-shake'
+                              : theme === 'dark' ? 'bg-zinc-900/30 border-zinc-800' : 'bg-slate-50/50 border-slate-200'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between mb-3 border-b pb-2 dark:border-zinc-800 border-slate-100">
+                          <span className="font-extrabold text-indigo-500">Test Case #{idx + 1}</span>
+                          
+                          <div className="flex items-center gap-1.5">
+                            {tr.status === 'passed' && (
+                              <span className="flex items-center gap-1 bg-emerald-500/10 text-emerald-500 px-2 py-0.5 rounded text-[10px] font-black uppercase">
+                                <Check size={12} /> Pass
+                              </span>
+                            )}
+                            {tr.status === 'failed' && (
+                              <span className="flex items-center gap-1 bg-rose-500/10 text-rose-500 px-2 py-0.5 rounded text-[10px] font-black uppercase">
+                                <XCircle size={12} /> Fail
+                              </span>
+                            )}
+                            {tr.status === 'pending' && (
+                              <span className="bg-slate-100 dark:bg-zinc-800 text-slate-400 px-2 py-0.5 rounded text-[10px] font-black uppercase">
+                                Pending
+                              </span>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Test Case Inputs & Outputs Diff details */}
+                        <div className="space-y-2 font-mono">
+                          {tr.input && (
+                            <div>
+                              <span className="text-[9px] text-slate-400 dark:text-zinc-500 font-bold uppercase tracking-wider">Input</span>
+                              <pre className={`p-1.5 rounded mt-0.5 text-[11px] ${theme === 'dark' ? 'bg-zinc-950 text-zinc-300' : 'bg-slate-100 text-slate-700'}`}>{tr.input}</pre>
+                            </div>
+                          )}
+                          <div className="grid grid-cols-2 gap-3">
+                            <div>
+                              <span className="text-[9px] text-slate-400 dark:text-zinc-500 font-bold uppercase tracking-wider">Expected Output</span>
+                              <pre className={`p-1.5 rounded mt-0.5 text-[11px] ${theme === 'dark' ? 'bg-zinc-950 text-emerald-400' : 'bg-emerald-50 text-emerald-700'}`}>{tr.expected}</pre>
+                            </div>
+                            <div>
+                              <span className="text-[9px] text-slate-400 dark:text-zinc-500 font-bold uppercase tracking-wider">Your Output</span>
+                              <pre className={`p-1.5 rounded mt-0.5 text-[11px] ${
+                                tr.status === 'passed' 
+                                  ? theme === 'dark' ? 'bg-zinc-950 text-emerald-400' : 'bg-emerald-50 text-emerald-700' 
+                                  : theme === 'dark' ? 'bg-zinc-950 text-rose-400' : 'bg-rose-50 text-rose-700'
+                              }`}>{tr.status === 'pending' ? 'None' : tr.actual}</pre>
+                            </div>
+                          </div>
+
+                          {tr.status === 'failed' && tr.error && (
+                            <div className="pt-2 text-[10px] text-rose-500 font-bold">
+                              Mismatch details: {tr.error}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                </div>
+              )}
+
+            </div>
           </div>
 
-        </div>
+        </section>
 
-      </div>
+      </main>
 
-      {/* MISSION COMPLETED CELEBRATION POPUP DIALOG */}
+      {/* CELEBRATION MODAL COMPONENT */}
       <AnimatePresence>
         {showCelebrationModal && (
-          <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-6">
+          <div className="fixed inset-0 bg-black/70 backdrop-blur-md z-50 flex items-center justify-center p-6 select-text">
             <motion.div
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
-              className="bg-[#0c0a09] border-2 border-violet-500/30 max-w-lg w-full rounded-[2.5rem] p-8 md:p-10 space-y-6 shadow-2xl relative overflow-hidden text-center"
+              className={`max-w-lg w-full rounded-3xl p-8 space-y-6 shadow-2xl relative overflow-hidden text-center border ${
+                theme === 'dark' ? 'bg-zinc-950 border-zinc-800' : 'bg-white border-slate-200'
+              }`}
             >
-              {/* Gold trophy icon */}
-              <div className="w-20 h-20 rounded-full bg-violet-500/10 border border-violet-500/20 mx-auto flex items-center justify-center text-4xl shadow-inner animate-bounce">
+              {/* Sparkle neon orb background */}
+              <div className="absolute top-[-20%] left-[-20%] w-64 h-64 bg-violet-600/10 rounded-full blur-[100px] pointer-events-none"></div>
+              
+              <div className="w-20 h-20 rounded-full bg-indigo-50 dark:bg-indigo-950/30 border border-indigo-100 dark:border-indigo-900/40 mx-auto flex items-center justify-center text-4xl shadow-inner animate-bounce">
                 🏆
               </div>
               
               <div className="space-y-2">
-                <div className="text-violet-400 text-xs font-black uppercase tracking-widest">Level Up Completed!</div>
-                <h3 className="text-2xl font-black text-white tracking-tight">"MISSION COMPLETED"</h3>
-                <p className="text-xs text-gray-400 font-semibold leading-relaxed px-4">
-                  Outstanding job, Cadet! Your C++ program compiled and matched output cases exactly! You've earned **+{activeLevel.xpReward} XP** and strengthened your developer muscle memory!
+                <div className="text-indigo-600 dark:text-indigo-400 text-xs font-black uppercase tracking-widest flex items-center justify-center gap-1">
+                  <Sparkles size={12} fill="currentColor" /> Level Mission Cleared! <Sparkles size={12} fill="currentColor" />
+                </div>
+                <h3 className={`text-2xl font-black ${theme === 'dark' ? 'text-white' : 'text-slate-800'}`}>
+                  "MISSION COMPLETED"
+                </h3>
+                <p className={`text-xs font-semibold leading-relaxed px-4 ${theme === 'dark' ? 'text-zinc-400' : 'text-slate-500'}`}>
+                  Outstanding solution! Your program compiled, executed, and validated successfully against all expected test cases. You've earned <span className="text-indigo-600 font-extrabold">+{activeLevel.xpReward} XP</span> and strengthened your algorithms muscle memory!
                 </p>
               </div>
 
-              {/* Console log preview */}
-              <div className="bg-[#121214] border border-[#1c1c1f] p-4 rounded-xl text-left font-mono text-xs">
-                <div className="text-[9px] text-gray-500 font-black uppercase tracking-widest leading-none mb-1">Standard Console Output</div>
-                <div className="text-emerald-400 font-bold">{terminalOutput}</div>
+              {/* Console log execution preview */}
+              <div className={`p-4 rounded-xl text-left font-mono text-xs border ${
+                theme === 'dark' ? 'bg-zinc-950 border-zinc-900' : 'bg-slate-50 border-slate-100'
+              }`}>
+                <div className="text-[10px] text-slate-400 font-black uppercase tracking-widest leading-none mb-1.5">Standard Output Stream</div>
+                <div className="text-emerald-500 font-black whitespace-pre-line">{testResults[0]?.actual || "Output Ok!"}</div>
               </div>
 
+              {/* Next step buttons */}
               <div className="flex gap-4">
                 <button
-                  onClick={() => setShowCelebrationModal(false)}
-                  className="flex-1 py-4 bg-[#18181b] border border-[#27272a] hover:bg-[#27272a] rounded-2xl text-xs font-black text-white uppercase tracking-wider transition-colors"
+                  onClick={() => {
+                    setShowCelebrationModal(false);
+                    triggerSoundEffect('click');
+                  }}
+                  className={`flex-1 py-3 border rounded-xl text-xs font-black uppercase tracking-wider transition-colors ${
+                    theme === 'dark' 
+                      ? 'border-zinc-800 hover:bg-zinc-800 text-white' 
+                      : 'border-slate-200 hover:bg-slate-100 text-slate-700'
+                  }`}
                 >
                   Keep Reviewing
                 </button>
@@ -630,7 +1333,7 @@ const ZeroToCoding = () => {
                 <button
                   onClick={() => {
                     setShowCelebrationModal(false);
-                    // Next question sequence
+                    triggerSoundEffect('click');
                     if (activeLevelIndex < zeroToCodingMonacoLevels.length - 1) {
                       setActiveLevelIndex(p => p + 1);
                     } else {
@@ -638,9 +1341,9 @@ const ZeroToCoding = () => {
                       toast.success("🎮 SPECTACULAR! You completed the Zero to Coding arcade!");
                     }
                   }}
-                  className="flex-1 py-4 bg-gradient-to-r from-violet-500 to-cyan-500 hover:from-violet-600 hover:to-cyan-600 text-white rounded-2xl text-xs font-black uppercase tracking-wider shadow-lg shadow-violet-500/10 flex items-center justify-center gap-2 hover:-translate-y-0.5 transition-all"
+                  className="flex-1 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-black uppercase tracking-wider shadow-lg shadow-indigo-600/10 flex items-center justify-center gap-1.5 hover:-translate-y-0.5 active:translate-y-0 transition-all"
                 >
-                  Continue Learning <ChevronRight size={14} />
+                  Next Level <ChevronRight size={14} />
                 </button>
               </div>
 
