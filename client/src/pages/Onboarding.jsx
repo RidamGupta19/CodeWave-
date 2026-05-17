@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import api from '../api/axios';
 import toast from 'react-hot-toast';
 import { motion, AnimatePresence } from 'framer-motion';
+import { FiSun, FiMoon } from 'react-icons/fi';
 
 const generalQuestions = [
   {
@@ -100,7 +101,23 @@ const webQuestions = [
 const Onboarding = () => {
   const navigate = useNavigate();
   const { user, refreshUser } = useAuth();
-  
+  const [theme, setTheme] = useState(() => localStorage.getItem('careerforge_theme') || 'light');
+
+  useEffect(() => {
+    if (theme === 'dark') {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, [theme]);
+
+  const toggleTheme = () => {
+    const nextTheme = theme === 'dark' ? 'light' : 'dark';
+    setTheme(nextTheme);
+    localStorage.setItem('careerforge_theme', nextTheme);
+    window.dispatchEvent(new Event('themechange'));
+  };
+
   // Compute activeQuestions based on domain
   const getQuestions = () => {
     const domainSlug = user?.selectedDomain?.slug || 'web-development';
@@ -170,13 +187,23 @@ const Onboarding = () => {
   const progress = ((currentStep + 1) / activeQuestions.length) * 100;
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-6 bg-[#fdfcfb]">
-      <div className="w-full max-w-xl mb-12">
-        <div className="flex justify-between items-center mb-4">
-          <span className="text-sm font-semibold text-gray-500 uppercase tracking-wider">Step {currentStep + 1} of {activeQuestions.length}</span>
-          <span className="text-sm font-bold text-primary">{Math.round(progress)}% Complete</span>
+    <div className="min-h-screen flex flex-col items-center justify-center p-6 bg-[var(--bg-main)] text-[var(--text-main)] transition-colors duration-300 relative select-none">
+      
+      {/* Floating Theme Button */}
+      <button 
+        onClick={toggleTheme}
+        className="absolute top-6 right-6 p-2.5 text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--bg-sub)] rounded-xl border border-[var(--border)] transition-all"
+        title="Toggle Theme"
+      >
+        {theme === 'dark' ? <FiSun className="text-xl text-amber-400" /> : <FiMoon className="text-xl text-indigo-500" />}
+      </button>
+
+      <div className="w-full max-w-xl mb-8">
+        <div className="flex justify-between items-center mb-3">
+          <span className="text-xs font-black text-[var(--text-light)] uppercase tracking-wider">Step {currentStep + 1} of {activeQuestions.length}</span>
+          <span className="text-xs font-black text-[var(--primary)]">{Math.round(progress)}% Complete</span>
         </div>
-        <div className="progress-container">
+        <div className="progress-container h-2 shadow-inner">
           <motion.div 
             className="progress-bar-fill" 
             initial={{ width: 0 }}
@@ -188,16 +215,16 @@ const Onboarding = () => {
       <AnimatePresence mode="wait">
         <motion.div
           key={currentStep}
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -20 }}
-          transition={{ duration: 0.4, ease: "easeOut" }}
-          className="onboarding-card"
+          exit={{ opacity: 0, y: -15 }}
+          transition={{ duration: 0.3, ease: "easeOut" }}
+          className="onboarding-card max-w-xl w-full p-8 md:p-10"
         >
-          <h2 className="text-2xl font-extrabold mb-2 text-[#1a1a1a]">{activeQuestions[currentStep].question}</h2>
-          <p className="text-gray-500 mb-8">Tell us a bit about yourself so we can tailor your experience.</p>
+          <h2 className="text-2xl md:text-3xl font-black mb-1.5 leading-snug">{activeQuestions[currentStep].question}</h2>
+          <p className="text-xs text-[var(--text-light)] font-bold uppercase tracking-wider mb-8">Tell us a bit about yourself so we can tailor your experience.</p>
 
-          <div className="space-y-3">
+          <div className="space-y-3 max-h-[350px] overflow-y-auto pr-1 no-scrollbar">
             {activeQuestions[currentStep].options.map((opt) => {
               const isSelected = activeQuestions[currentStep].multiple 
                 ? (answers[activeQuestions[currentStep].id] || []).includes(opt.value)
@@ -207,42 +234,44 @@ const Onboarding = () => {
                 <button
                   key={opt.value}
                   onClick={() => handleOptionSelect(opt.value)}
-                  className={`option-card ${isSelected ? 'selected' : ''}`}
+                  className={`option-card p-4 transition-all duration-300 flex items-center justify-between border-2 rounded-xl text-left w-full ${
+                    isSelected 
+                      ? 'border-[var(--primary)] bg-[var(--primary-light)] text-[var(--text-main)] shadow-sm' 
+                      : 'border-[var(--border)] bg-[var(--bg-card)] text-[var(--text-main)] hover:border-[var(--primary)] hover:bg-[var(--bg-sub)]'
+                  }`}
                 >
-                  <div className="flex justify-between items-center">
-                    <div>
-                      <span className="block font-bold text-lg">{opt.label}</span>
-                      {opt.description && <span className="text-sm text-gray-500">{opt.description}</span>}
-                    </div>
-                    {isSelected && (
-                      <motion.div 
-                        initial={{ scale: 0 }} 
-                        animate={{ scale: 1 }} 
-                        className="w-6 h-6 rounded-full bg-primary flex items-center justify-center"
-                      >
-                        <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                        </svg>
-                      </motion.div>
-                    )}
+                  <div>
+                    <span className="block font-black text-base">{opt.label}</span>
+                    {opt.description && <span className="text-xs text-[var(--text-muted)] font-medium mt-0.5 block">{opt.description}</span>}
                   </div>
+                  {isSelected && (
+                    <motion.div 
+                      initial={{ scale: 0 }} 
+                      animate={{ scale: 1 }} 
+                      className="w-6 h-6 rounded-full bg-[var(--primary)] flex items-center justify-center shrink-0"
+                    >
+                      <svg className="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                      </svg>
+                    </motion.div>
+                  )}
                 </button>
               );
             })}
           </div>
 
-          <div className="mt-10 flex justify-between items-center">
+          <div className="mt-8 flex justify-between items-center border-t border-[var(--border)] pt-6">
             <button 
               onClick={() => setCurrentStep(Math.max(0, currentStep - 1))}
               disabled={currentStep === 0}
-              className="text-gray-400 font-bold hover:text-gray-600 disabled:opacity-0 transition-all"
+              className="text-[var(--text-light)] font-black uppercase text-xs hover:text-[var(--text-main)] disabled:opacity-0 transition-all"
             >
               Back
             </button>
             <button 
               onClick={handleNext}
               disabled={!answers[activeQuestions[currentStep].id] || (activeQuestions[currentStep].multiple && answers[activeQuestions[currentStep].id].length === 0)}
-              className="btn-primary"
+              className="btn-primary py-3 px-6 text-xs uppercase tracking-wider"
             >
               {loading ? 'Generating Journey...' : (currentStep === activeQuestions.length - 1 ? 'Start My Journey' : 'Continue')}
             </button>
@@ -250,7 +279,7 @@ const Onboarding = () => {
         </motion.div>
       </AnimatePresence>
 
-      <div className="mt-12 text-center text-gray-400 text-sm">
+      <div className="mt-8 text-center text-[var(--text-light)] text-xs font-semibold uppercase tracking-wider">
         Your data is used solely to personalize your learning path.
       </div>
     </div>
