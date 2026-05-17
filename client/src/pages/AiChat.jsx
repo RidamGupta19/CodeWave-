@@ -1,9 +1,60 @@
 import React, { useState, useEffect, useRef } from 'react';
 import api from '../api/axios';
 import { useAuth } from '../context/AuthContext';
-import { FiSend, FiTrash2, FiUser, FiCpu } from 'react-icons/fi';
+import { FiSend, FiTrash2, FiUser, FiCpu, FiCompass, FiZap, FiAward, FiClock, FiStar, FiActivity, FiTrendingUp, FiArrowRight } from 'react-icons/fi';
 import toast from 'react-hot-toast';
 import ReactMarkdown from 'react-markdown';
+import { motion, AnimatePresence } from 'framer-motion';
+
+// Robust Error Boundary for ReactMarkdown to prevent blank page crashes in React 19
+class SafeMarkdown extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError(error) {
+    return { hasError: true };
+  }
+
+  componentDidCatch(error, errorInfo) {
+    console.error("SafeMarkdown caught rendering exception:", error, errorInfo);
+  }
+
+  render() {
+    const { content, className } = this.props;
+    if (this.state.hasError || !content) {
+      return <div className={`whitespace-pre-wrap ${className || ''}`}>{content || ''}</div>;
+    }
+
+    // Dynamic cleaning of mojibake characters that can trip up v10 markdown parsers
+    let cleanContent = content;
+    try {
+      cleanContent = cleanContent
+        .replace(/ðŸ‘‹/g, '👋')
+        .replace(/ðŸš€/g, '🚀')
+        .replace(/ðŸ‘¾/g, '👾')
+        .replace(/ðŸ”¥/g, '🔥')
+        .replace(/ðŸ’¬/g, '💬')
+        .replace(/ðŸ’ª/g, '💪')
+        .replace(/ðŸ—‚/g, '📋')
+        .replace(/ðŸ” /g, '💡')
+        .replace(/ðŸŽ¯/g, '🎯')
+        .replace(/ðŸ“Š/g, '📊')
+        .replace(/ðŸ“…/g, '📅')
+        .replace(/ðŸ /g, '🛠️')
+        .replace(/ðŸ¾/g, '🐾');
+    } catch (e) {
+      console.warn("Character cleaning exception:", e);
+    }
+
+    return (
+      <div className={className || ''}>
+        <ReactMarkdown>{cleanContent}</ReactMarkdown>
+      </div>
+    );
+  }
+}
 
 const AiChat = () => {
   const { user } = useAuth();
@@ -11,10 +62,12 @@ const AiChat = () => {
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
+  const [insights, setInsights] = useState(null);
   const messagesEndRef = useRef(null);
 
   useEffect(() => {
     fetchHistory();
+    fetchInsights();
   }, []);
 
   useEffect(() => {
@@ -25,11 +78,10 @@ const AiChat = () => {
     try {
       const res = await api.get('/ai/history');
       if (res.data.data.length === 0) {
-        // Add initial greeting
         setMessages([{
           _id: 'initial',
           role: 'assistant',
-          content: `Hi ${user.fullName.split(' ')[0]}! 👋 I'm your CareerForge AI Mentor.\n\nI see you're interested in **${user.selectedDomain?.name || 'exploring tech careers'}**. I can help you with:\n- Career roadmaps and next steps\n- Explaining complex technical concepts\n- Project ideas and interview prep\n- Study plans\n\nHow can I help you today?`
+          content: `Hi ${user.fullName.split(' ')[0]}! 👋 I'm your CareerForge Personalized Mentor.\n\nI've analyzed your progress, XP, completed lessons, and assessments to design your coaching blueprint. I can guide you on:\n\n* **Weak Topics:** Step-by-step revision strategies.\n* **Placement Audit:** Job & internship readiness advice.\n* **Learning Plan:** Crafting optimal weekly study schedules.\n* **Interactive Support:** Explaining complex systems & logic games.\n\nWhat should we tackle today? Choose a suggested question below or ask me anything! 🚀`
         }]);
       } else {
         setMessages(res.data.data);
@@ -41,18 +93,27 @@ const AiChat = () => {
     }
   };
 
+  const fetchInsights = async () => {
+    try {
+      const res = await api.get('/ai/performance-insights');
+      setInsights(res.data.data);
+    } catch (err) {
+      console.log('Error loading dynamic AI insights:', err.message);
+    }
+  };
+
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  const handleSend = async (e) => {
-    e.preventDefault();
-    if (!input.trim() || sending) return;
+  const handleSend = async (textToSend) => {
+    const text = textToSend || input;
+    if (!text.trim() || sending) return;
 
-    const userMessage = input.trim();
     setInput('');
+    const userMessage = text.trim();
     
-    // Optimistic UI update
+    // Add User Message optimistically
     const newMsg = { _id: Date.now(), role: 'user', content: userMessage };
     setMessages(prev => [...prev, newMsg]);
     setSending(true);
@@ -60,9 +121,11 @@ const AiChat = () => {
     try {
       const res = await api.post('/ai/chat', { message: userMessage });
       setMessages(prev => [...prev, { _id: Date.now() + 1, role: 'assistant', content: res.data.data.message }]);
+      
+      // Refresh insights dynamically after a question is asked to keep stats in sync!
+      fetchInsights();
     } catch (err) {
-      toast.error('Failed to get response');
-      // Remove failed message
+      toast.error('Failed to get mentor response');
       setMessages(prev => prev.filter(m => m._id !== newMsg._id));
     } finally {
       setSending(false);
@@ -70,7 +133,7 @@ const AiChat = () => {
   };
 
   const handleClear = async () => {
-    if (!window.confirm('Are you sure you want to clear chat history?')) return;
+    if (!window.confirm('Are you sure you want to clear your mentorship log?')) return;
     try {
       await api.delete('/ai/history');
       setMessages([{
@@ -78,106 +141,240 @@ const AiChat = () => {
         role: 'assistant',
         content: "Chat history cleared. How can I help you today?"
       }]);
-      toast.success('Chat history cleared');
+      toast.success('Mentorship history cleared');
     } catch (err) {
       toast.error('Failed to clear history');
     }
   };
 
-  const commonQuestions = [
-    "What should be my next step?",
-    "How to prepare for interviews?",
-    "Suggest a good project idea",
-    "I'm stuck, how to improve?"
+  const suggestedPrompts = [
+    { label: "What should I learn next?", text: "What should I learn next in my roadmap?" },
+    { label: "Analyze my performance", text: "Analyze my performance, what are my weak topics?" },
+    { label: "Create my weekly plan", text: "Create my weekly study plan based on my pace" },
+    { label: "Suggest a project", text: "Suggest a project for my level and domain" },
+    { label: "How close is internship?", text: "How close am I to internship readiness?" }
   ];
 
-  if (loading) return <div className="flex justify-center py-20"><div className="spinner"></div></div>;
+  if (loading) return (
+    <div className="flex justify-center items-center h-[80vh]">
+      <div className="animate-spin rounded-full h-10 w-10 border-4 border-[var(--primary)] border-t-transparent"></div>
+    </div>
+  );
 
   return (
-    <div className="fade-in max-w-4xl mx-auto h-[calc(100vh-8rem)] flex flex-col">
-      <div className="flex items-center justify-between mb-4">
+    <div className="max-w-7xl mx-auto py-8 px-6 lg:px-10 transition-colors duration-300">
+      
+      {/* Page Header */}
+      <div className="flex justify-between items-center mb-8 border-b border-[var(--border)] pb-5">
         <div>
-          <h1 className="text-2xl font-bold text-white flex items-center gap-2">
-            <FiCpu className="text-indigo-400" /> AI Career Mentor
+          <h1 className="text-3xl font-black text-[var(--text-main)] flex items-center gap-2.5">
+            <span className="bg-gradient-to-r from-violet-500 to-indigo-500 text-white p-2 rounded-xl text-lg shadow-md shrink-0">🤖</span>
+            AI Personal <span className="text-gradient">Mentor & Coach</span>
           </h1>
-          <p className="text-sm text-slate-400">Ask anything about your learning path</p>
+          <p className="text-xs text-[var(--text-light)] font-bold uppercase tracking-wider mt-1">Adaptive feedback based on your actual performance logs</p>
         </div>
-        <button onClick={handleClear} className="text-slate-500 hover:text-red-400 p-2 rounded-lg hover:bg-slate-800 transition-colors" title="Clear History">
-          <FiTrash2 />
+        <button 
+          onClick={handleClear} 
+          className="p-3 text-[var(--text-light)] hover:text-red-500 hover:bg-red-500/5 rounded-xl border border-[var(--border)] transition-all shrink-0"
+          title="Clear History"
+        >
+          <FiTrash2 size={16} />
         </button>
       </div>
 
-      <div className="glass flex-1 flex flex-col overflow-hidden rounded-2xl border border-slate-700/50">
-        {/* Chat Messages */}
-        <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6">
-          {messages.map((msg) => (
-            <div key={msg._id} className={`flex flex-col ${msg.role === 'user' ? 'items-end' : 'items-start'}`}>
-              <div className={`flex items-center gap-2 mb-1 px-1 ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}>
-                <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs ${msg.role === 'user' ? 'bg-indigo-500 text-white' : 'bg-pink-500 text-white'}`}>
-                  {msg.role === 'user' ? <FiUser /> : <FiCpu />}
-                </div>
-                <span className="text-xs text-slate-400 font-medium">{msg.role === 'user' ? 'You' : 'CareerForge AI'}</span>
+      {/* Main Workspace - Grid layout split panel */}
+      <div className="grid lg:grid-cols-3 gap-8 items-start h-[calc(100vh-230px)] min-h-[500px]">
+        
+        {/* Left Side: Real-time Mentor Insights Dashboard */}
+        <div className="space-y-6 lg:col-span-1 h-full overflow-y-auto pr-2 custom-scrollbar hidden lg:block">
+          
+          {/* Readiness Meter Card */}
+          {insights && (
+            <div className="card p-6 bg-gradient-to-br from-indigo-500/5 to-cyan-500/5 border-[var(--primary)]/10 shadow-sm relative overflow-hidden">
+              <div className="absolute top-0 right-0 p-4 opacity-[0.03] pointer-events-none">
+                <FiAward className="text-7xl text-[var(--primary)]" />
               </div>
+              <h3 className="text-xs font-black text-[var(--text-light)] uppercase tracking-wider mb-4">Internship Readiness Audit</h3>
               
-              <div className={`text-sm ${msg.role === 'user' ? 'chat-bubble-user' : 'chat-bubble-ai text-slate-200'}`}>
-                {msg.role === 'user' ? (
-                  <div className="whitespace-pre-wrap">{msg.content}</div>
-                ) : (
-                  <div className="prose prose-invert prose-sm max-w-none prose-p:my-1 prose-headings:mb-2 prose-headings:mt-4 prose-ul:my-1 prose-li:my-0">
-                    <ReactMarkdown>{msg.content}</ReactMarkdown>
-                  </div>
-                )}
-              </div>
-            </div>
-          ))}
-          {sending && (
-            <div className="flex flex-col items-start">
-              <div className="chat-bubble-ai text-slate-400 flex items-center gap-2">
-                <div className="w-2 h-2 bg-slate-400 rounded-full animate-bounce"></div>
-                <div className="w-2 h-2 bg-slate-400 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
-                <div className="w-2 h-2 bg-slate-400 rounded-full animate-bounce" style={{animationDelay: '0.4s'}}></div>
+              <div className="flex items-center gap-5">
+                <div className="w-16 h-16 rounded-full border-4 border-[var(--primary)]/15 border-t-[var(--primary)] flex flex-col items-center justify-center shrink-0 shadow-md">
+                  <span className="text-lg font-black text-[var(--text-main)]">{insights.readinessPercent}%</span>
+                </div>
+                <div>
+                  <div className="font-extrabold text-[var(--text-main)] text-sm">Almost Interview Ready!</div>
+                  <p className="text-[10px] text-[var(--text-light)] font-medium mt-0.5">Solve lessons and score in assessments to cross the 85% benchmark.</p>
+                </div>
               </div>
             </div>
           )}
-          <div ref={messagesEndRef} />
+
+          {/* Diagnostic Strengths & Weaknesses */}
+          <div className="card p-6 space-y-5">
+            <h3 className="text-xs font-black text-[var(--text-light)] uppercase tracking-wider border-b border-[var(--border)] pb-2">Diagnostic Metrics</h3>
+            
+            {insights ? (
+              <div className="space-y-4 text-xs font-semibold">
+                <div className="flex justify-between items-center bg-[var(--bg-sub)] p-3 rounded-xl border border-[var(--border)]">
+                  <div>
+                    <div className="text-[9px] text-[var(--text-light)] uppercase font-black">Domain</div>
+                    <span className="text-[var(--text-main)] font-black text-sm">{insights.domain}</span>
+                  </div>
+                  <span className="text-xl">🚀</span>
+                </div>
+
+                <div className="flex justify-between items-center bg-[var(--bg-sub)] p-3 rounded-xl border border-[var(--border)]">
+                  <div>
+                    <div className="text-[9px] text-[var(--text-light)] uppercase font-black">Strongest Concept</div>
+                    <span className="text-emerald-500 font-black text-sm">{insights.strongestTopic}</span>
+                  </div>
+                  <span className="text-xl">🏆</span>
+                </div>
+
+                <div className="flex justify-between items-center bg-[var(--bg-sub)] p-3 rounded-xl border border-[var(--border)]">
+                  <div>
+                    <div className="text-[9px] text-[var(--text-light)] uppercase font-black">Flagged for Revision</div>
+                    <span className="text-amber-500 font-black text-sm">{insights.weakestTopic}</span>
+                  </div>
+                  <span className="text-xl">⚠️</span>
+                </div>
+
+                <div className="flex justify-between items-center bg-[var(--bg-sub)] p-3 rounded-xl border border-[var(--border)]">
+                  <div>
+                    <div className="text-[9px] text-[var(--text-light)] uppercase font-black">Coding Consistency</div>
+                    <span className="text-[var(--primary)] font-black text-sm">{insights.consistency}</span>
+                  </div>
+                  <span className="text-xl">🔥</span>
+                </div>
+              </div>
+            ) : (
+              <div className="text-center py-4 text-[var(--text-light)] italic">Loading metrics...</div>
+            )}
+          </div>
+
+          {/* Mentor Smart Recommendations */}
+          <div className="card p-6">
+            <h3 className="text-xs font-black text-[var(--text-light)] uppercase tracking-wider mb-4 border-b border-[var(--border)] pb-2">Coach Actionables</h3>
+            <ul className="space-y-3.5">
+              {insights && insights.recommendations?.map((rec, i) => (
+                <li key={i} className="flex gap-2.5 items-start text-xs font-semibold text-[var(--text-muted)] leading-relaxed">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[var(--primary)] shrink-0 mt-1.5"></span>
+                  <span>{rec}</span>
+                </li>
+              ))}
+              {!insights && <li className="text-center py-4 text-[var(--text-light)] italic">Loading recommendations...</li>}
+            </ul>
+          </div>
         </div>
 
-        {/* Suggested Questions */}
-        {messages.length <= 2 && (
-          <div className="px-6 py-2 flex flex-wrap gap-2">
-            {commonQuestions.map((q, i) => (
+        {/* Right Side: High-End Chat Stream Container */}
+        <div className="lg:col-span-2 h-full flex flex-col bg-[var(--bg-card)] border border-[var(--border)] rounded-2xl overflow-hidden shadow-sm">
+          
+          {/* Chat Bubble Stream */}
+          <div className="flex-1 overflow-y-auto p-6 space-y-6 custom-scrollbar">
+            {messages.map((msg) => (
+              <div key={msg._id} className={`flex flex-col ${msg.role === 'user' ? 'items-end' : 'items-start'}`}>
+                
+                {/* Bubble Header */}
+                <div className={`flex items-center gap-1.5 mb-1.5 px-1 ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}>
+                  <div className={`w-6 h-6 rounded-lg flex items-center justify-center text-xs shadow-sm ${
+                    msg.role === 'user' 
+                      ? 'bg-[var(--primary)] text-white' 
+                      : 'bg-gradient-to-tr from-violet-500 to-indigo-500 text-white'
+                  }`}>
+                    {msg.role === 'user' ? <FiUser size={12} /> : <FiCpu size={12} />}
+                  </div>
+                  <span className="text-[9px] text-[var(--text-light)] font-black uppercase tracking-wider">{msg.role === 'user' ? 'You' : 'Personal Coach'}</span>
+                </div>
+                
+                {/* Bubble Container */}
+                <motion.div 
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className={`text-sm max-w-[85%] rounded-2xl p-4 md:p-5 shadow-sm leading-relaxed ${
+                    msg.role === 'user' 
+                      ? 'bg-[var(--primary-light)] text-[var(--text-main)] rounded-tr-none border border-[var(--primary)]/10 font-semibold' 
+                      : 'bg-[var(--bg-sub)] text-[var(--text-main)] rounded-tl-none border border-[var(--border)]'
+                  }`}
+                >
+                  {msg.role === 'user' ? (
+                    <div className="whitespace-pre-wrap">{msg.content}</div>
+                  ) : (
+                    <SafeMarkdown className="markdown-prose text-[var(--text-main)]" content={msg.content} />
+                  )}
+                </motion.div>
+              </div>
+            ))}
+
+            {/* Typing Indicator */}
+            {sending && (
+              <div className="flex flex-col items-start">
+                <div className="flex items-center gap-1.5 mb-1.5 px-1">
+                  <div className="w-6 h-6 rounded-lg flex items-center justify-center text-xs bg-gradient-to-tr from-violet-500 to-indigo-500 text-white">
+                    <FiCpu size={12} />
+                  </div>
+                  <span className="text-[9px] text-[var(--text-light)] font-black uppercase tracking-wider">Coach typing</span>
+                </div>
+                
+                <div className="bg-[var(--bg-sub)] rounded-2xl rounded-tl-none border border-[var(--border)] p-4 flex items-center gap-1.5 shadow-sm">
+                  <div className="w-2.5 h-2.5 bg-[var(--primary)] rounded-full animate-bounce shrink-0"></div>
+                  <div className="w-2.5 h-2.5 bg-[var(--primary)] rounded-full animate-bounce shrink-0" style={{animationDelay: '0.15s'}}></div>
+                  <div className="w-2.5 h-2.5 bg-[var(--primary)] rounded-full animate-bounce shrink-0" style={{animationDelay: '0.3s'}}></div>
+                </div>
+              </div>
+            )}
+            
+            <div ref={messagesEndRef} />
+          </div>
+
+          {/* Quick reply actions/Prompts */}
+          <div className="px-6 py-3 border-t border-[var(--border)] bg-[var(--bg-sub)]/50 flex flex-wrap gap-2">
+            {suggestedPrompts.map((prompt, i) => (
               <button 
                 key={i} 
-                onClick={() => setInput(q)}
-                className="text-xs bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white px-3 py-1.5 rounded-full border border-slate-700 transition-colors"
+                onClick={() => handleSend(prompt.text)}
+                disabled={sending}
+                className="text-[10px] font-black uppercase bg-[var(--bg-card)] text-[var(--text-muted)] hover:text-[var(--primary)] hover:border-[var(--primary)] border border-[var(--border)] px-3 py-1.5 rounded-full transition-all flex items-center gap-1 shadow-sm shrink-0"
               >
-                {q}
+                <FiCompass size={12} /> {prompt.label}
               </button>
             ))}
           </div>
-        )}
 
-        {/* Input Area */}
-        <div className="p-4 bg-[#0a0a0f]/80 border-t border-slate-700/50">
-          <form onSubmit={handleSend} className="flex gap-2">
-            <input
-              type="text"
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              placeholder="Ask for guidance, project ideas, or roadmaps..."
-              className="flex-1 bg-slate-800/50 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-indigo-500 transition-colors"
-              disabled={sending}
-            />
-            <button 
-              type="submit" 
-              disabled={!input.trim() || sending}
-              className={`w-12 h-12 rounded-xl flex items-center justify-center transition-colors ${!input.trim() || sending ? 'bg-slate-800 text-slate-500 cursor-not-allowed' : 'bg-indigo-500 text-white hover:bg-indigo-600'}`}
+          {/* Chat Interactive Input Bar */}
+          <div className="p-4 bg-[var(--bg-card)] border-t border-[var(--border)]">
+            <form 
+              onSubmit={(e) => {
+                e.preventDefault();
+                handleSend();
+              }} 
+              className="flex gap-3"
             >
-              <FiSend />
-            </button>
-          </form>
+              <input
+                type="text"
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                placeholder="Ask your coach anything about logic templates, interview prep..."
+                className="flex-1 bg-[var(--bg-sub)] border border-[var(--border)] rounded-xl px-4 py-3 text-sm text-[var(--text-main)] placeholder-[var(--text-light)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)] transition-all font-semibold"
+                disabled={sending}
+              />
+              <button 
+                type="submit" 
+                disabled={!input.trim() || sending}
+                className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all shrink-0 ${
+                  !input.trim() || sending 
+                    ? 'bg-[var(--bg-sub)] text-[var(--text-light)] border border-[var(--border)] cursor-not-allowed' 
+                    : 'bg-[var(--primary)] text-white hover:bg-[var(--primary-hover)] shadow-md shadow-indigo-500/20'
+                }`}
+              >
+                <FiSend size={16} />
+              </button>
+            </form>
+          </div>
+
         </div>
+
       </div>
+
     </div>
   );
 };

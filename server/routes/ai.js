@@ -5,6 +5,7 @@ const { protect } = require('../middleware/auth');
 
 router.post('/chat', protect, c.chat);
 router.post('/generate-roadmap', protect, c.generateRoadmap);
+router.get('/performance-insights', protect, c.getPerformanceInsights);
 router.get('/history', protect, c.getChatHistory);
 router.delete('/history', protect, c.clearHistory);
 

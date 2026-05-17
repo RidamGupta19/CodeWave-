@@ -2,31 +2,286 @@ const ChatMessage = require('../models/ChatMessage');
 const User = require('../models/User');
 const Domain = require('../models/Domain');
 const Phase = require('../models/Phase');
+const Topic = require('../models/Topic');
 
-// Mock AI responses when no API key is configured
-const generateMockResponse = (userMessage, context) => {
+// @desc    Calculate performance insights dynamically for a user
+const calculatePerformanceInsights = async (userId) => {
+  const user = await User.findById(userId)
+    .populate('selectedDomain')
+    .populate('completedTopics.topicId');
+
+  if (!user) return null;
+
+  const domain = user.selectedDomain?.name || 'No domain selected';
+  const domainSlug = user.selectedDomain?.slug || 'web-development';
+  const xp = user.xp || 0;
+  const streak = user.dailyStreak || 0;
+  const progress = user.overallProgress || 0;
+  const phase = user.currentPhase || 0;
+  const completedCount = user.completedTopics?.length || 0;
+  
+  // Programming Language preference
+  const preferredLang = user.profile?.onboardingAnswers?.dsa_language || 
+                        (user.profile?.onboardingAnswers?.technologies && user.profile.onboardingAnswers.technologies.length > 0 ? user.profile.onboardingAnswers.technologies[0] : 'JavaScript');
+
+  // 1. Weak Topics Identification
+  let weakTopics = [];
+  if (user.dsaStats?.weakestTopic) {
+    weakTopics.push(user.dsaStats.weakestTopic);
+  }
+  
+  user.completedTopics.forEach(t => {
+    if ((t.confidenceLevel <= 2 || t.difficultyFeedback === 'hard' || t.revisionNeeded) && t.topicId?.title) {
+      if (!weakTopics.includes(t.topicId.title)) {
+        weakTopics.push(t.topicId.title);
+      }
+    }
+  });
+
+  if (weakTopics.length === 0) {
+    if (domainSlug === 'dsa') {
+      weakTopics.push('Recursion Foundations');
+    } else {
+      weakTopics.push('Flexbox & Grid Alignment');
+    }
+  }
+
+  // 2. Strong Topics Identification
+  let strongTopics = [];
+  if (user.dsaStats?.strongestTopic) {
+    strongTopics.push(user.dsaStats.strongestTopic);
+  }
+  
+  user.completedTopics.forEach(t => {
+    if ((t.confidenceLevel >= 4 || t.difficultyFeedback === 'easy') && t.topicId?.title) {
+      if (!strongTopics.includes(t.topicId.title)) {
+        strongTopics.push(t.topicId.title);
+      }
+    }
+  });
+
+  if (strongTopics.length === 0) {
+    if (domainSlug === 'dsa') {
+      strongTopics.push('Array Traversal');
+    } else {
+      strongTopics.push('HTML Structure');
+    }
+  }
+
+  // 3. Consistency Index based on active log
+  const activeDaysLast14 = user.activityLog?.filter(log => {
+    if (!log.date) return false;
+    const logDate = new Date(log.date);
+    const diffTime = Math.abs(new Date() - logDate);
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return diffDays <= 14;
+  }).length || 0;
+
+  let consistency = 'Needs Focus';
+  if (activeDaysLast14 >= 5) consistency = 'Exceptional';
+  else if (activeDaysLast14 >= 3) consistency = 'Moderate';
+
+  // 4. Assessment Standing
+  const tests = user.testResults || [];
+  const passedTests = tests.filter(t => t.passed).length;
+  const totalTestsAttempted = tests.length;
+  const avgScore = totalTestsAttempted > 0 
+    ? Math.round(tests.reduce((acc, curr) => acc + curr.score, 0) / totalTestsAttempted) 
+    : 0;
+
+  // 5. Internship / Job Readiness %
+  let readinessPercent = Math.round((progress * 0.5) + (passedTests * 12) + (streak * 2));
+  if (domainSlug === 'dsa') {
+    const solved = user.dsaStats?.totalProblemsSolved || 0;
+    readinessPercent = Math.round((progress * 0.4) + (Math.min(solved, 100) / 100 * 30) + (passedTests * 10) + (streak * 2));
+  }
+  readinessPercent = Math.min(Math.max(readinessPercent, 15), 98); // bounds 15% to 98%
+
+  // 6. Actionable recommendations & insights
+  const recommendations = [];
+  const insights = [];
+
+  if (domainSlug === 'dsa') {
+    const solved = user.dsaStats?.totalProblemsSolved || 0;
+    if (solved < 15) {
+      recommendations.push("Solve at least 2 basic Array/String problems daily to build basic pattern memory.");
+      insights.push("You're strongest in Arrays");
+    } else {
+      recommendations.push(`Incredible progress with ${solved} problems! Tackle advanced Stack/Queue operations next.`);
+      insights.push(`You're progressing faster than expected in Algorithm logic.`);
+    }
+
+    if (weakTopics.includes('Recursion Foundations') || weakTopics.includes('Recursion')) {
+      recommendations.push("Draw out recursive trees on paper for small inputs (e.g. fibonacci of 4) to trace stack frames.");
+      insights.push("Recursion needs revision");
+    } else {
+      insights.push(`${weakTopics[0]} needs targeted revision this week.`);
+    }
+  } else {
+    if (completedCount < 4) {
+      recommendations.push("Complete HTML grid structure lessons to master standard viewport layouts.");
+      insights.push("Focus on consistency this week");
+    } else {
+      recommendations.push("Initiate reusable Component architectures using custom UI variables.");
+      insights.push("You're progressing faster than expected in styling layouts.");
+    }
+    
+    if (weakTopics.length > 0) {
+      insights.push(`${weakTopics[0]} needs revision`);
+    }
+  }
+
+  if (streak < 3) {
+    recommendations.push("Set a quick micro-goal: spend just 15 minutes today printing simple statements to restore your daily streak.");
+  } else {
+    insights.push(`Streak is burning bright at ${streak} days!`);
+  }
+
+  insights.push(`You are ${readinessPercent}% closer to internship readiness`);
+
+  return {
+    domain,
+    domainSlug,
+    xp,
+    streak,
+    progress,
+    phase,
+    completedCount,
+    preferredLang,
+    strongestTopic: strongTopics[0],
+    weakestTopic: weakTopics[0],
+    consistency,
+    activeDaysLast14,
+    avgScore,
+    totalTestsAttempted,
+    readinessPercent,
+    insights,
+    recommendations
+  };
+};
+
+// Generate highly custom, data-driven answers when no real AI keys are configured
+const generateMockResponse = (userMessage, ins) => {
   const lowerMsg = userMessage.toLowerCase();
-  const domain = context.domain || 'your selected domain';
-  const progress = context.progress || 0;
-  const phase = context.currentPhase || 1;
 
-  if (lowerMsg.includes('roadmap') || lowerMsg.includes('path') || lowerMsg.includes('plan')) {
-    return `Great question! Based on your profile, here's my suggestion for ${domain}:\n\n📋 **Your Personalized Roadmap:**\n1. You're currently in Phase ${phase} - keep pushing through!\n2. Your progress is at ${progress}% - ${progress < 30 ? "you're just getting started, focus on fundamentals" : progress < 60 ? "you're making good progress, start working on projects" : "you're almost there! Focus on advanced topics and portfolio"}\n3. **Next Steps:** Complete all topics in your current phase before moving to assessments\n4. **Daily Goal:** Dedicate at least 2 hours of focused study\n5. **Weekly Goal:** Complete at least 3-4 topics and one mini-project\n\n💡 **Pro Tip:** Don't just read - practice! Build small projects after each phase.`;
+  // 1. Analyze performance / Weak topics
+  if (lowerMsg.includes('weak') || lowerMsg.includes('improve') || lowerMsg.includes('performance') || lowerMsg.includes('analyze')) {
+    return `### 📊 Dynamic Performance Analysis
+
+Hello! Here is your personalized mentor diagnostic board for **${ins.domain}**:
+
+* **Strongest Area:** You are currently strongest in **${ins.strongestTopic}**. You completed these lessons with high self-confidence parameters!
+* **Revision Needed:** **${ins.weakestTopic}** is currently flagged as your primary area for review. You flagged this topic due to high complexity or low confidence.
+* **Consistency Index:** **${ins.consistency}** (Active days in past 2 weeks: \`${ins.activeDaysLast14}\` days).
+* **Test Performance:** Average score of \`${ins.avgScore}%\` across \`${ins.totalTestsAttempted}\` assessments.
+
+#### 💡 Mentor Blueprint Suggestions:
+1. Re-open the **${ins.weakestTopic}** lecture page. Go through the optimal boilerplate, and try copying the source code to zero-to-coding to execute custom print outputs.
+2. Build a mini project targeting **${ins.strongestTopic}** to solidify your pattern recognition.
+3. Dedicate just 15-20 minutes daily. Consistency yields interview readiness far quicker than heavy cram sessions!`;
   }
 
-  if (lowerMsg.includes('weak') || lowerMsg.includes('improve') || lowerMsg.includes('struggle')) {
-    return `Let me analyze your learning pattern for ${domain}:\n\n🔍 **Areas to Improve:**\n1. Focus on hands-on practice - theory alone won't cut it\n2. Take the phase assessments seriously - they reveal gaps\n3. Revisit fundamentals if advanced topics feel overwhelming\n\n📚 **Recommended Actions:**\n- Practice on HackerRank/LeetCode daily\n- Build mini-projects for each phase\n- Join online communities for peer learning\n- Watch YouTube tutorials for visual learning\n\n🎯 **Remember:** Everyone struggles - it's part of the learning process!`;
+  // 2. What should I learn next
+  if (lowerMsg.includes('learn next') || lowerMsg.includes('next step') || lowerMsg.includes('what should i learn')) {
+    return `### 🗺️ Next Expedition Target
+
+Based on your current progress in **Phase ${ins.phase}** of the **${ins.domain}** roadmap:
+
+* **Current Progress:** You have completed \`${ins.completedCount}\` lessons.
+* **Current standing:** Level \`${ins.phase}\` Architect.
+* **Next Action:** 
+  1. Open the [Mission Map](file:///roadmap). Check if the active node contains unlocked topics.
+  2. If you have active topics pending, click on the start challenge link to master it.
+  3. If you have finished all topics in Level \`${ins.phase}\`, navigate to [Assessments](file:///assessments) and attempt the phase quiz to unlock the next level badge!
+
+*🎯 **Mentorship Tip:** Always log your study time accurately. This updates our dynamic calendar tracking so I can adjust your learning pace recommendations!*`;
   }
 
-  if (lowerMsg.includes('job') || lowerMsg.includes('intern') || lowerMsg.includes('career')) {
-    return `Here's career advice for ${domain}:\n\n💼 **Career Opportunities:**\n1. Complete your roadmap to build a solid foundation\n2. Build 3-5 portfolio projects\n3. Get HackerRank certifications listed in your domain\n4. Contribute to open source for visibility\n\n📝 **Resume Tips:**\n- Highlight projects over coursework\n- Include certifications and badges\n- Quantify your achievements\n\n🔗 **Resources:**\n- LinkedIn optimization\n- GitHub profile polish\n- Practice mock interviews\n\nYou're at ${progress}% completion - ${progress >= 70 ? "you're almost job-ready!" : "keep learning and building!"}`;
+  // 3. Weekly study plan / Schedule
+  if (lowerMsg.includes('weekly') || lowerMsg.includes('plan') || lowerMsg.includes('schedule')) {
+    return `### 📅 Your Adaptive Weekly Coaching Blueprint
+
+Here is your high-impact study plan tailored for BTech students working in **${ins.preferredLang}**:
+
+* **Monday - Tuesday (Fundamental Repair):**
+  * Spend 30 minutes reading the theory sheets for **${ins.weakestTopic}**.
+  * Trace at least 2 small diagrams of the logic using standard pen and paper.
+* **Wednesday - Thursday (Core Skill Push):**
+  * Complete 1 new topic in Phase ${ins.phase} of **${ins.domain}**.
+  * Re-write the code examples from scratch.
+* **Friday (Assessment Prep):**
+  * Try a custom mock quiz. Revise any questions you got wrong.
+* **Saturday - Sunday (Project Assembly):**
+  * Draft a small portfolio utility using **${ins.strongestTopic}**. Commit it to your GitHub portfolio!
+
+*Daily Commitment Estimate: **${ins.progress > 50 ? '60 mins' : '45 mins'} / day***`;
   }
 
-  if (lowerMsg.includes('resource') || lowerMsg.includes('learn') || lowerMsg.includes('study')) {
-    return `Here are curated resources for ${domain}:\n\n📖 **Learning Strategy:**\n1. **Theory:** GeeksforGeeks articles for concepts\n2. **Video:** YouTube search-based playlists\n3. **Practice:** HackerRank challenges\n4. **Projects:** Build real-world applications\n\n⏰ **Study Plan:**\n- Morning: Theory & concepts (1 hour)\n- Afternoon: Coding practice (1.5 hours)\n- Evening: Project work (1 hour)\n\n🏆 **Certifications:** Check your domain's recommended HackerRank certifications!\n\n💡 Don't forget to check the Cloud Credits section for free tools and services!`;
+  // 4. Suggest a project
+  if (lowerMsg.includes('project') || lowerMsg.includes('suggest a project')) {
+    if (ins.domainSlug === 'dsa') {
+      return `### 🛠️ Portfolio Projects: Algorithmic Engineering
+
+Since you are practicing DSA in **${ins.preferredLang}**, here are hands-on implementation projects to stand out to interviewers:
+
+1. **Visual Recursion & Call-Stack Emulator (Medium):**
+   * Build a console/web runner that prints step-by-step depth logs when computing recursion trees (like Fibonacci or N-Queens).
+   * Highlights mastery in: **${ins.weakestTopic}** and Stack management.
+2. **LeetCode Analytics Dashboard (Advanced):**
+   * Build an app that parses your solved problem metrics to display strongest vs weakest sections.
+   * Highlights mastery in: **${ins.strongestTopic}** and JSON schemas.
+
+*Would you like me to draft step-by-step architecture files for one of these? Just type "Draft Call-Stack Emulator architecture"!*`;
+    } else {
+      return `### 🎨 Frontend/Full-Stack Project Recommendations
+
+To show recruiters your mastery in **${ins.domain}**, build these beautiful applications:
+
+1. **Dynamic HSL Theme Customizer dashboard (Intermediate):**
+   * Build a landing workspace featuring soft glassmorphism, responsive grids, and instant dark/light themes using custom CSS property tokens.
+   * Highlights mastery in: **${ins.strongestTopic}** and DOM styling.
+2. **Interactive Career Map Board (Advanced):**
+   * Build a web timeline where students can log milestone cards and see visual glowing lines for connected levels.
+   * Highlights mastery in: **${ins.weakestTopic}** and State management.`;
+    }
   }
 
-  return `Thanks for your question about "${userMessage}"! 🤖\n\nHere's what I can help you with for ${domain}:\n\n📊 **Your Current Status:**\n- Domain: ${domain}\n- Phase: ${phase}\n- Progress: ${progress}%\n- Keep up the momentum!\n\n🎯 **Quick Suggestions:**\n1. Focus on completing your current phase topics\n2. Practice coding daily on HackerRank\n3. Build small projects to reinforce learning\n4. Take assessments when you're ready\n\n💬 **Ask me about:**\n- Career roadmap planning\n- Weak area identification\n- Job/internship preparation\n- Study resources & schedule\n- Specific technical topics\n\nI'm here to guide your career journey! 🚀`;
+  // 5. Internship readiness
+  if (lowerMsg.includes('readiness') || lowerMsg.includes('internship') || lowerMsg.includes('job')) {
+    return `### 💼 BTech Placement & Internship Readiness Audit
+
+Here is your calculated standing:
+
+* **Placement Readiness Score:** \`${ins.readinessPercent}%\`
+* **Roadmap standing:** Phase ${ins.phase} Completed topics: \`${ins.completedCount}\`.
+* **Coding Strength:** **${ins.strongestTopic}**
+* **Consistency status:** **${ins.consistency}**
+
+#### 📈 Strategic Strategy to hit 85%+:
+1. ** DSA solved problem baseline:** Attempt at least 25 additional problems in **${ins.preferredLang}**.
+2. **Phase Assessments:** Clear the upcoming level assessments to secure official badges.
+3. **Daily Habit:** Spend 15 minutes daily on the console so your streak is constantly blazing.
+
+*You're making incredible progress, keep pushing the boundaries daily! 🚀*`;
+  }
+
+  // 6. Default/Fallback
+  return `### ⚡ CareerForge AI Adaptive Mentor Board
+
+Welcome! I've run a deep diagnostic on your progress:
+
+* **Target Domain:** \`${ins.domain}\`
+* **Study Pace:** Level ${ins.phase} (XP: \`${ins.xp}\` | Streak: \`${ins.streak}\` days)
+* **Strongest topic:** **${ins.strongestTopic}**
+* **Needs focus:** **${ins.weakestTopic}**
+
+#### 💬 High-Impact Prompt Shortcuts:
+* Ask me: **"Analyze my DSA performance"** to see weak vs strong areas.
+* Ask me: **"Create my weekly plan"** to generate a study blueprint.
+* Ask me: **"Suggest a project for my level"** to see tailored projects.
+* Ask me: **"How close am I to internship readiness?"** to run a job audit.
+
+How can I coach you to success today? 🚀`;
 };
 
 // @desc    Chat with AI career agent
@@ -34,27 +289,17 @@ const generateMockResponse = (userMessage, context) => {
 exports.chat = async (req, res) => {
   try {
     const { message } = req.body;
-    const user = await User.findById(req.user._id).populate('selectedDomain');
+    const user = await User.findById(req.user._id);
+
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
 
     // Save user message
     await ChatMessage.create({ userId: req.user._id, role: 'user', content: message });
 
-    // Build context
-    const context = {
-      domain: user.selectedDomain?.name || 'No domain selected',
-      progress: user.overallProgress || 0,
-      currentPhase: user.currentPhase || 1,
-      completedTopics: user.completedTopics?.length || 0,
-      testsPassed: user.testResults?.filter(t => t.passed)?.length || 0,
-      dailyStreak: user.dailyStreak || 0,
-      skillLevel: user.profile?.currentSkillLevel || 'beginner',
-      goal: user.profile?.goal || 'job',
-      dsaStats: {
-        solved: user.dsaStats?.totalProblemsSolved || 0,
-        strongest: user.dsaStats?.strongestTopic || 'N/A',
-        weakest: user.dsaStats?.weakestTopic || 'N/A'
-      }
-    };
+    // Calculate actual data-driven performance insights
+    const insights = await calculatePerformanceInsights(req.user._id);
 
     let aiResponse;
 
@@ -67,19 +312,35 @@ exports.chat = async (req, res) => {
         let body;
         let headers = { 'Content-Type': 'application/json' };
 
+        const systemInstructions = `You are CareerForge AI, a premium personalized coding mentor and adaptive learning coach for engineering students.
+        
+        You NEVER generate generic chatbot responses. You speak directly to the student's actual performance.
+        
+        Here is the student's real-time diagnostic performance metrics:
+        - Domain: ${insights.domain}
+        - Current Phase: ${insights.phase}
+        - Current XP: ${insights.xp}
+        - Streak: ${insights.streak} days
+        - Roadmap Progress: ${insights.progress}%
+        - Completed Lessons: ${insights.completedCount}
+        - Preferred Language: ${insights.preferredLang}
+        - Strongest Area: ${insights.strongestTopic}
+        - Needs Revision: ${insights.weakestTopic}
+        - Consistency standing: ${insights.consistency}
+        - Internship Readiness Percentile: ${insights.readinessPercent}%
+        
+        Guidelines:
+        1. Adapt your tone: Be humanized, highly encouraging, practical, and highly data-driven.
+        2. Reference their actual metrics. If they ask about next steps, guide them to Phase ${insights.phase}.
+        3. If they are weak at "${insights.weakestTopic}", suggest specific actionable code approaches or tracing strategies.
+        4. Render your response beautifully in GitHub-flavored markdown with clean list metrics, code blocks, bold headers, and supportive emojis. Keep it concise but highly valuable.`;
+
         if (isGemini) {
           url = `${process.env.AI_API_URL}?key=${process.env.AI_API_KEY}`;
           body = JSON.stringify({
             contents: [{
               parts: [{
-                text: `You are CareerForge AI, a career guidance agent for BTech/engineering students. 
-                User context: Domain=${context.domain}, Progress=${context.progress}%, Phase=${context.currentPhase}, 
-                CompletedTopics=${context.completedTopics}, TestsPassed=${context.testsPassed}, 
-                Streak=${context.dailyStreak}days, SkillLevel=${context.skillLevel}, Goal=${context.goal}.
-                DSA Performance: Solved=${context.dsaStats.solved}, Strongest=${context.dsaStats.strongest}, Weakest=${context.dsaStats.weakest}.
-                Provide personalized, actionable career advice. Be encouraging and specific. If they struggle with their "weakest" topic, give them specific study tips for that area.
-                
-                User Message: ${message}`
+                text: `${systemInstructions}\n\nUser Message: ${message}`
               }]
             }],
             generationConfig: {
@@ -92,15 +353,7 @@ exports.chat = async (req, res) => {
           body = JSON.stringify({
             model: process.env.AI_MODEL || 'gpt-3.5-turbo',
             messages: [
-              {
-                role: 'system',
-                content: `You are CareerForge AI, a career guidance agent for BTech/engineering students. 
-                User context: Domain=${context.domain}, Progress=${context.progress}%, Phase=${context.currentPhase}, 
-                CompletedTopics=${context.completedTopics}, TestsPassed=${context.testsPassed}, 
-                Streak=${context.dailyStreak}days, SkillLevel=${context.skillLevel}, Goal=${context.goal}.
-                DSA Performance: Solved=${context.dsaStats.solved}, Strongest=${context.dsaStats.strongest}, Weakest=${context.dsaStats.weakest}.
-                Provide personalized, actionable career advice. Be encouraging and specific. If they struggle with their "weakest" topic, give them specific study tips for that area.`
-              },
+              { role: 'system', content: systemInstructions },
               { role: 'user', content: message }
             ],
             max_tokens: 800,
@@ -117,16 +370,16 @@ exports.chat = async (req, res) => {
         const data = await response.json();
         
         if (isGemini) {
-          aiResponse = data.candidates?.[0]?.content?.parts?.[0]?.text || generateMockResponse(message, context);
+          aiResponse = data.candidates?.[0]?.content?.parts?.[0]?.text || generateMockResponse(message, insights);
         } else {
-          aiResponse = data.choices?.[0]?.message?.content || generateMockResponse(message, context);
+          aiResponse = data.choices?.[0]?.message?.content || generateMockResponse(message, insights);
         }
       } catch (apiError) {
         console.log('AI API error, using mock:', apiError.message);
-        aiResponse = generateMockResponse(message, context);
+        aiResponse = generateMockResponse(message, insights);
       }
     } else {
-      aiResponse = generateMockResponse(message, context);
+      aiResponse = generateMockResponse(message, insights);
     }
 
     // Save AI response
@@ -134,10 +387,24 @@ exports.chat = async (req, res) => {
       userId: req.user._id,
       role: 'assistant',
       content: aiResponse,
-      metadata: { domainContext: context.domain, progressContext: `${context.progress}%` }
+      metadata: { domainContext: insights.domain, progressContext: `${insights.progress}%` }
     });
 
     res.json({ success: true, data: { message: aiResponse } });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// @desc    Get real-time dynamic performance analysis dashboard
+// @route   GET /api/ai/performance-insights
+exports.getPerformanceInsights = async (req, res) => {
+  try {
+    const insights = await calculatePerformanceInsights(req.user._id);
+    if (!insights) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+    res.json({ success: true, data: insights });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
@@ -157,7 +424,7 @@ exports.generateRoadmap = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Onboarding answers are required' });
     }
 
-    // 1. Determine Starting Level (Rule-Based)
+    // Determine Starting Level (Rule-Based)
     const user = await User.findById(userId).populate('selectedDomain');
     const domainSlug = user.selectedDomain?.slug || 'web-development';
 
@@ -172,13 +439,13 @@ exports.generateRoadmap = async (req, res) => {
       const language = answers.dsa_language || 'cpp';
 
       if (complexity === 'advanced' && recursion === 'advanced') {
-        startingLevel = 5; // Stack & Queue Master
+        startingLevel = 5;
         unlockedLevels = [0, 1, 2, 3, 4, 5];
       } else if (complexity !== 'none' || recursion !== 'none') {
-        startingLevel = 1; // Arrays Explorer
+        startingLevel = 1;
         unlockedLevels = [0, 1];
       } else {
-        startingLevel = 0; // Programming Foundations
+        startingLevel = 0;
         unlockedLevels = [0];
       }
     } else {
@@ -189,13 +456,13 @@ exports.generateRoadmap = async (req, res) => {
       const knowsJS = techs.includes('js');
       
       if (knowsHTML && knowsCSS && knowsJS) {
-        startingLevel = 4; // Skip to Logic Legend (JS) / Version Vanguard (Git)
+        startingLevel = 4;
         unlockedLevels = [0, 1, 2, 3, 4];
       } else if (knowsHTML && knowsCSS) {
-        startingLevel = 3; // Style Sorcerer / Logic Legend
+        startingLevel = 3;
         unlockedLevels = [0, 1, 2, 3];
       } else if (knowsHTML) {
-        startingLevel = 1; // Structure Sensei
+        startingLevel = 1;
         unlockedLevels = [0, 1];
       } else if (experience === 'basic' || experience === 'projects') {
         startingLevel = 1;
