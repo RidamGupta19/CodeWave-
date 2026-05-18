@@ -49,6 +49,7 @@ const Login = () => {
                   type="email" 
                   required
                   className="input-field pl-10" 
+                  style={{ paddingLeft: '2.75rem' }}
                   placeholder="name@company.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
@@ -68,6 +69,7 @@ const Login = () => {
                   type="password" 
                   required
                   className="input-field pl-10" 
+                  style={{ paddingLeft: '2.75rem' }}
                   placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}

@@ -8,6 +8,8 @@ router.post('/start-topic', protect, c.startTopic);
 router.post('/complete-topic', protect, c.completeTopic);
 router.post('/submit-assessment', protect, c.submitAssessment);
 router.post('/study-time', protect, c.addStudyTime);
+router.post('/submit-code', protect, c.submitCode);
+router.get('/submissions/:topicId', protect, c.getSubmissions);
 router.get('/dashboard', protect, c.getDashboard);
 router.get('/heatmap', protect, c.getHeatmap);
 

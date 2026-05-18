@@ -122,7 +122,7 @@ const Roadmap = () => {
     cpp: 'C++',
     java: 'Java',
     python: 'Python',
-    js: 'JavaScript'
+    javascript: 'JavaScript'
   };
 
   return (

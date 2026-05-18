@@ -359,3 +359,75 @@ exports.addStudyTime = async (req, res) => {
     res.status(500).json({ success: false, message: error.message });
   }
 };
+
+// @desc    Submit code playground attempt
+// @route   POST /api/progress/submit-code
+exports.submitCode = async (req, res) => {
+  try {
+    const { topicId, code, language, status, passedCount, totalCount, runtime } = req.body;
+    const user = await User.findById(req.user._id);
+
+    if (!user.codeSubmissions) {
+      user.codeSubmissions = [];
+    }
+
+    const newSubmission = {
+      topicId,
+      code,
+      language,
+      status,
+      passedCount,
+      totalCount,
+      runtime: runtime || Math.round(Math.random() * 50 + 10), // mock runtime in ms
+      submittedAt: new Date()
+    };
+
+    user.codeSubmissions.push(newSubmission);
+
+    // If status is 'Accepted', reward 100 XP and mark the topic as completed in database
+    if (status === 'Accepted') {
+      const alreadyCompleted = user.completedTopics.find(t => t.topicId.toString() === topicId);
+      if (!alreadyCompleted) {
+        user.completedTopics.push({
+          topicId,
+          completedAt: new Date(),
+          studyTimeMinutes: 15,
+          notes: 'Solved via LeetCode IDE playground!',
+          difficultyFeedback: 'medium',
+          confidenceLevel: 4,
+          revisionNeeded: false
+        });
+
+        // Increment DSA Stats
+        user.dsaStats.totalProblemsSolved += 1;
+        user.dsaStats.lastSolvedAt = new Date();
+        user.xp = (user.xp || 0) + 100; // 100 XP coding award!
+      } else {
+        // Just add 10 XP for re-submitting correct solution
+        user.xp = (user.xp || 0) + 10;
+      }
+    }
+
+    await user.save();
+    res.json({ success: true, message: status === 'Accepted' ? 'Expedition Mastered!' : 'Keep refining your code!', data: newSubmission });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// @desc    Get code submissions for a specific topic
+// @route   GET /api/progress/submissions/:topicId
+exports.getSubmissions = async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id);
+    const submissions = (user.codeSubmissions || []).filter(
+      sub => sub.topicId.toString() === req.params.topicId
+    );
+    res.json({ 
+      success: true, 
+      data: submissions.sort((a, b) => new Date(b.submittedAt) - new Date(a.submittedAt)) 
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};

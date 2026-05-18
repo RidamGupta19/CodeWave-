@@ -65,6 +65,7 @@ const Signup = () => {
                   name="fullName" 
                   required 
                   className="input-field pl-10" 
+                  style={{ paddingLeft: '2.75rem' }}
                   placeholder="John Doe" 
                   value={formData.fullName}
                   onChange={handleChange} 
@@ -82,6 +83,7 @@ const Signup = () => {
                   name="email" 
                   required 
                   className="input-field pl-10" 
+                  style={{ paddingLeft: '2.75rem' }}
                   placeholder="name@company.com" 
                   value={formData.email}
                   onChange={handleChange} 
@@ -100,6 +102,7 @@ const Signup = () => {
                     name="password" 
                     required 
                     className="input-field pl-10" 
+                    style={{ paddingLeft: '2.75rem' }}
                     placeholder="••••••••" 
                     minLength="6" 
                     value={formData.password}
@@ -118,6 +121,7 @@ const Signup = () => {
                     name="confirmPassword" 
                     required 
                     className="input-field pl-10" 
+                    style={{ paddingLeft: '2.75rem' }}
                     placeholder="••••••••" 
                     value={formData.confirmPassword}
                     onChange={handleChange} 

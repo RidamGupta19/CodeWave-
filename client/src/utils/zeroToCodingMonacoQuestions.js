@@ -27,44 +27,42 @@ In programming, we output text to the console so users can read it. Let's see ho
 using namespace std;
 
 int main() {
-    // Write your code below
-    cout << "Hello World!";
+    // Write your code below to print "Hello World!" to the console
     
     return 0;
 }`,
       java: `public class Main {
     public static void main(String[] args) {
-        // Write your code below
-        System.out.println("Hello World!");
+        // Write your code below to print "Hello World!" to the console
+        
     }
 }`,
-      python: `# Write your code below
-print("Hello World!")
+      python: `# Write your code below to print "Hello World!" to the console
 `,
-      javascript: `// Write your code below
-console.log("Hello World!");
+      javascript: `// Write your code below to print "Hello World!" to the console
 `
     },
     testCases: [
       { id: 1, input: "", expected: "Hello World!" }
     ],
     validationFn: (code, lang) => {
-      const clean = code.replace(/\s+/g, '');
+      const codeWithoutComments = code.replace(/\/\/.*$/gm, '').replace(/\/\*[\s\S]*?\*\//g, '').replace(/#.*$/gm, '');
+      const clean = codeWithoutComments.replace(/\s+/g, '');
       if (lang === 'cpp') {
-        if (!code.includes('cout')) return { success: false, error: "Syntax Error: C++ uses 'cout <<' to direct outputs. Did you miss 'cout'?" };
-        if (!code.includes('<<')) return { success: false, error: "Syntax Error: Did you forget the '<<' insertion operator after 'cout'?" };
-        if (!code.includes(';')) return { success: false, error: "Compilation Error: Semicolon ';' expected at the end of the statement." };
-        if (!code.includes('"Hello World!"') && !code.includes("'Hello World!'")) return { success: false, error: "Output Error: Make sure your text matches 'Hello World!' exactly." };
+        if (!codeWithoutComments.includes('cout')) return { success: false, error: "Syntax Error: C++ uses 'cout <<' to direct outputs. Did you miss 'cout'?" };
+        if (!codeWithoutComments.includes('<<')) return { success: false, error: "Syntax Error: Did you forget the '<<' insertion operator after 'cout'?" };
+        if (!codeWithoutComments.includes(';')) return { success: false, error: "Compilation Error: Semicolon ';' expected at the end of the statement." };
+        if (!codeWithoutComments.includes('"Hello World!"') && !codeWithoutComments.includes("'Hello World!'")) return { success: false, error: "Output Error: Make sure your text matches 'Hello World!' exactly." };
       } else if (lang === 'java') {
-        if (!code.includes('System.out.print')) return { success: false, error: "Syntax Error: Java uses 'System.out.println()' to print. Did you miss it?" };
-        if (!code.includes(';')) return { success: false, error: "Compilation Error: Semicolon ';' expected at the end of the statement." };
-        if (!code.includes('"Hello World!"')) return { success: false, error: "Output Error: Make sure your text matches 'Hello World!' inside double quotes." };
+        if (!codeWithoutComments.includes('System.out.print')) return { success: false, error: "Syntax Error: Java uses 'System.out.println()' to print. Did you miss it?" };
+        if (!codeWithoutComments.includes(';')) return { success: false, error: "Compilation Error: Semicolon ';' expected at the end of the statement." };
+        if (!codeWithoutComments.includes('"Hello World!"')) return { success: false, error: "Output Error: Make sure your text matches 'Hello World!' inside double quotes." };
       } else if (lang === 'python') {
-        if (!code.includes('print(')) return { success: false, error: "Syntax Error: Python uses the print() function. Did you misspell or miss parentheses?" };
-        if (!code.includes('Hello World!')) return { success: false, error: "Output Error: Make sure your text matches 'Hello World!' inside print()." };
+        if (!codeWithoutComments.includes('print(')) return { success: false, error: "Syntax Error: Python uses the print() function. Did you misspell or miss parentheses?" };
+        if (!codeWithoutComments.includes('Hello World!')) return { success: false, error: "Output Error: Make sure your text matches 'Hello World!' inside print()." };
       } else if (lang === 'javascript') {
-        if (!code.includes('console.log')) return { success: false, error: "Syntax Error: JavaScript uses 'console.log()' to output to console. Did you miss it?" };
-        if (!code.includes('Hello World!')) return { success: false, error: "Output Error: Make sure your text matches 'Hello World!' exactly." };
+        if (!codeWithoutComments.includes('console.log')) return { success: false, error: "Syntax Error: JavaScript uses 'console.log()' to output to console. Did you miss it?" };
+        if (!codeWithoutComments.includes('Hello World!')) return { success: false, error: "Output Error: Make sure your text matches 'Hello World!' exactly." };
       }
       return { success: true, output: "Hello World!" };
     },
@@ -99,44 +97,38 @@ To transition to a new line:
 using namespace std;
 
 int main() {
-    // Write your code below
-    cout << "Hello" << endl;
-    cout << "World";
+    // Write your code below to print "Hello" and "World" on separate lines
     
     return 0;
 }`,
       java: `public class Main {
     public static void main(String[] args) {
-        // Write your code below
-        System.out.println("Hello");
-        System.out.println("World");
+        // Write your code below to print "Hello" and "World" on separate lines
+        
     }
 }`,
-      python: `# Write your code below
-print("Hello")
-print("World")
+      python: `# Write your code below to print "Hello" and "World" on separate lines
 `,
-      javascript: `// Write your code below
-console.log("Hello");
-console.log("World");
+      javascript: `// Write your code below to print "Hello" and "World" on separate lines
 `
     },
     testCases: [
       { id: 1, input: "", expected: "Hello\nWorld" }
     ],
     validationFn: (code, lang) => {
-      const clean = code.replace(/\s+/g, '');
+      const codeWithoutComments = code.replace(/\/\/.*$/gm, '').replace(/\/\*[\s\S]*?\*\//g, '').replace(/#.*$/gm, '');
+      const clean = codeWithoutComments.replace(/\s+/g, '');
       if (lang === 'cpp') {
-        if (!code.includes('endl') && !code.includes('\\n')) return { success: false, error: "Syntax Error: To transition to the next line, you must output 'endl' or '\\n'." };
-        if (!code.includes('Hello') || !code.includes('World')) return { success: false, error: "Structure Error: Ensure 'Hello' and 'World' are printed in sequence." };
+        if (!codeWithoutComments.includes('endl') && !codeWithoutComments.includes('\\n')) return { success: false, error: "Syntax Error: To transition to the next line, you must output 'endl' or '\\n'." };
+        if (!codeWithoutComments.includes('Hello') || !codeWithoutComments.includes('World')) return { success: false, error: "Structure Error: Ensure 'Hello' and 'World' are printed in sequence." };
       } else if (lang === 'java') {
-        if (!code.includes('println')) return { success: false, error: "Syntax Error: Use 'println' instead of 'print' to automatically add a new line after Hello." };
+        if (!codeWithoutComments.includes('println')) return { success: false, error: "Syntax Error: Use 'println' instead of 'print' to automatically add a new line after Hello." };
       } else if (lang === 'python') {
-        const occurrences = (code.match(/print/g) || []).length;
-        if (occurrences < 2 && !code.includes('\\n')) return { success: false, error: "Logic Error: Use two print statements, or a newline character '\\n' to separate lines." };
+        const occurrences = (codeWithoutComments.match(/print/g) || []).length;
+        if (occurrences < 2 && !codeWithoutComments.includes('\\n')) return { success: false, error: "Logic Error: Use two print statements, or a newline character '\\n' to separate lines." };
       } else if (lang === 'javascript') {
-        const occurrences = (code.match(/console.log/g) || []).length;
-        if (occurrences < 2 && !code.includes('\\n')) return { success: false, error: "Logic Error: Use multiple console.log calls or newline '\\n'." };
+        const occurrences = (codeWithoutComments.match(/console.log/g) || []).length;
+        if (occurrences < 2 && !codeWithoutComments.includes('\\n')) return { success: false, error: "Logic Error: Use multiple console.log calls or newline '\\n'." };
       }
       return { success: true, output: "Hello\nWorld" };
     },
@@ -172,33 +164,27 @@ Variables store information that your code can use later.
 using namespace std;
 
 int main() {
-    // Write your code below
-    int age = 20;
-    cout << age;
+    // Declare an integer variable named "age" set to 20, and print it below
     
     return 0;
 }`,
       java: `public class Main {
     public static void main(String[] args) {
-        // Write your code below
-        int age = 20;
-        System.out.println(age);
+        // Declare an integer variable named "age" set to 20, and print it below
+        
     }
 }`,
-      python: `# Write your code below
-age = 20
-print(age)
+      python: `# Declare a variable named "age" set to 20, and print it below
 `,
-      javascript: `// Write your code below
-let age = 20;
-console.log(age);
+      javascript: `// Declare a variable named "age" set to 20, and print it below
 `
     },
     testCases: [
       { id: 1, input: "", expected: "20" }
     ],
     validationFn: (code, lang) => {
-      const clean = code.replace(/\s+/g, '');
+      const codeWithoutComments = code.replace(/\/\/.*$/gm, '').replace(/\/\*[\s\S]*?\*\//g, '').replace(/#.*$/gm, '');
+      const clean = codeWithoutComments.replace(/\s+/g, '');
       if (lang === 'cpp' || lang === 'java') {
         if (!clean.includes('intage=20') && !clean.includes('intage;age=20')) return { success: false, error: "Declaration Error: Declare 'int age = 20;' exactly." };
         if (clean.includes('"age"') || clean.includes("'age'")) return { success: false, error: "Output Error: Print the variable 'age' directly without quotes, otherwise it prints the word 'age' instead of its value." };
@@ -248,9 +234,7 @@ using namespace std;
 
 int main() {
     int userCode;
-    // Write your code below to read from 'cin'
-    cin >> userCode;
-    cout << "Code is: " << userCode;
+    // Write your code below to read 'userCode' from cin and print "Code is: " followed by it
     
     return 0;
 }`,
@@ -259,18 +243,13 @@ int main() {
 public class Main {
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
-        // Write your code below to read next integer
-        int userCode = scanner.nextInt();
-        System.out.println("Code is: " + userCode);
+        // Write your code below to read an integer into 'userCode' and print "Code is: " followed by it
+        
     }
 }`,
-      python: `# Write your code below to read input
-userCode = int(input())
-print("Code is:", userCode)
+      python: `# Write your code below to read an integer into 'userCode' and print "Code is: " followed by it
 `,
-      javascript: `// Write your code below (uses a global readline() function for tests)
-let userCode = Number(readline());
-console.log("Code is: " + userCode);
+      javascript: `// Write your code below to read an integer (using readline()) into 'userCode' and print "Code is: " followed by it
 `
     },
     testCases: [
@@ -278,17 +257,18 @@ console.log("Code is: " + userCode);
       { id: 2, input: "100", expected: "Code is: 100" }
     ],
     validationFn: (code, lang, inputVal) => {
-      const clean = code.replace(/\s+/g, '');
+      const codeWithoutComments = code.replace(/\/\/.*$/gm, '').replace(/\/\*[\s\S]*?\*\//g, '').replace(/#.*$/gm, '');
+      const clean = codeWithoutComments.replace(/\s+/g, '');
       const numInput = inputVal || "42";
       if (lang === 'cpp') {
         if (!clean.includes('cin>>userCode')) return { success: false, error: "Input Error: Use 'cin >> userCode;' to read the console input." };
         if (!clean.includes('Codeis:')) return { success: false, error: "Output Error: Make sure you print 'Code is: ' before the variable." };
       } else if (lang === 'java') {
-        if (!code.includes('scanner.next') && !code.includes('sc.next')) return { success: false, error: "Input Error: Use the scanner object to read the integer." };
+        if (!codeWithoutComments.includes('scanner.next') && !codeWithoutComments.includes('sc.next')) return { success: false, error: "Input Error: Use the scanner object to read the integer." };
       } else if (lang === 'python') {
-        if (!code.includes('input(')) return { success: false, error: "Input Error: Use the input() function to read inputs in Python." };
+        if (!codeWithoutComments.includes('input(')) return { success: false, error: "Input Error: Use the input() function to read inputs in Python." };
       } else if (lang === 'javascript') {
-        if (!code.includes('readline')) return { success: false, error: "Input Error: Use the readline() function to capture inputs in JavaScript." };
+        if (!codeWithoutComments.includes('readline')) return { success: false, error: "Input Error: Use the readline() function to capture inputs in JavaScript." };
       }
       return { success: true, output: `Code is: ${numInput}` };
     },
@@ -328,51 +308,34 @@ if (condition) {
 using namespace std;
 
 int main() {
-    // Write your code below
     int age = 19;
-    if (age >= 18) {
-        cout << "Can Vote";
-    } else {
-        cout << "Cannot Vote";
-    }
+    // Write your code below to print "Can Vote" if age >= 18, otherwise "Cannot Vote"
     
     return 0;
 }`,
       java: `public class Main {
     public static void main(String[] args) {
-        // Write your code below
         int age = 19;
-        if (age >= 18) {
-            System.out.println("Can Vote");
-        } else {
-            System.out.println("Cannot Vote");
-        }
+        // Write your code below to print "Can Vote" if age >= 18, otherwise "Cannot Vote"
+        
     }
 }`,
-      python: `# Write your code below
+      python: `# Write your code below to print "Can Vote" if age >= 18, otherwise "Cannot Vote"
 age = 19
-if age >= 18:
-    print("Can Vote")
-else:
-    print("Cannot Vote")
 `,
-      javascript: `// Write your code below
+      javascript: `// Write your code below to print "Can Vote" if age >= 18, otherwise "Cannot Vote"
 let age = 19;
-if (age >= 18) {
-    console.log("Can Vote");
-} else {
-    console.log("Cannot Vote");
-}
 `
     },
     testCases: [
       { id: 1, input: "", expected: "Can Vote" }
     ],
     validationFn: (code, lang) => {
-      const clean = code.replace(/\s+/g, '');
+      const codeWithoutComments = code.replace(/\/\/.*$/gm, '').replace(/\/\*[\s\S]*?\*\//g, '').replace(/#.*$/gm, '');
+      const clean = codeWithoutComments.replace(/\s+/g, '');
       if (!clean.includes('age=19')) return { success: false, error: "Variable Error: Set 'age' to 19 first." };
-      if (!code.includes('if') || !code.includes('else')) return { success: false, error: "Logic Error: You must include both 'if' and 'else' branches." };
-      if (!code.includes('Can Vote') || !code.includes('Cannot Vote')) return { success: false, error: "Value Error: Double check spelling and capitalization for 'Can Vote' and 'Cannot Vote'." };
+      if (!codeWithoutComments.includes('if') || !codeWithoutComments.includes('else')) return { success: false, error: "Logic Error: You must include both 'if' and 'else' branches." };
+      if (!codeWithoutComments.includes('Can Vote') || !codeWithoutComments.includes('Cannot Vote')) return { success: false, error: "Value Error: Double check spelling and capitalization for 'Can Vote' and 'Cannot Vote'." };
       return { success: true, output: "Can Vote" };
     },
     hints: [
@@ -406,45 +369,36 @@ Loops repeat commands automatically so you don't have to copy-paste.
 using namespace std;
 
 int main() {
-    // Write your code below
-    for (int i = 1; i <= 3; i++) {
-        cout << i << " ";
-    }
+    // Write your 'for' loop below to print numbers from 1 to 3 followed by a space
     
     return 0;
 }`,
       java: `public class Main {
     public static void main(String[] args) {
-        // Write your code below
-        for (int i = 1; i <= 3; i++) {
-            System.out.print(i + " ");
-        }
+        // Write your 'for' loop below to print numbers from 1 to 3 followed by a space
+        
     }
 }`,
-      python: `# Write your code below
-for i in range(1, 4):
-    print(i, end=" ")
+      python: `# Write your loop below to print numbers from 1 to 3 followed by a space
 `,
-      javascript: `// Write your code below
-for (let i = 1; i <= 3; i++) {
-    process.stdout.write(i + " ");
-}
+      javascript: `// Write your loop below to print numbers from 1 to 3 followed by a space
 `
     },
     testCases: [
       { id: 1, input: "", expected: "1 2 3 " }
     ],
     validationFn: (code, lang) => {
-      const clean = code.replace(/\s+/g, '');
+      const codeWithoutComments = code.replace(/\/\/.*$/gm, '').replace(/\/\*[\s\S]*?\*\//g, '').replace(/#.*$/gm, '');
+      const clean = codeWithoutComments.replace(/\s+/g, '');
       if (lang === 'python') {
-        if (!code.includes('range(1, 4)') && !code.includes('range(1,4)')) {
-          if (code.includes('range(1, 3)') || code.includes('range(1,3)')) {
+        if (!codeWithoutComments.includes('range(1, 4)') && !codeWithoutComments.includes('range(1,4)')) {
+          if (codeWithoutComments.includes('range(1, 3)') || codeWithoutComments.includes('range(1,3)')) {
             return { success: false, error: "Range Error: range(1, 3) only goes from 1 to 2! Use range(1, 4) to include 3." };
           }
         }
-        if (!code.includes('end=')) return { success: false, error: "Syntax Hint: In Python, use print(i, end=' ') to print numbers on the same line with a space." };
+        if (!codeWithoutComments.includes('end=')) return { success: false, error: "Syntax Hint: In Python, use print(i, end=' ') to print numbers on the same line with a space." };
       } else {
-        if (!code.includes('i <= 3') && !code.includes('i < 4') && !clean.includes('i<=3')) return { success: false, error: "Loop Error: Make sure your loop continues while 'i <= 3' or 'i < 4'." };
+        if (!codeWithoutComments.includes('i <= 3') && !codeWithoutComments.includes('i < 4') && !clean.includes('i<=3')) return { success: false, error: "Loop Error: Make sure your loop continues while 'i <= 3' or 'i < 4'." };
       }
       return { success: true, output: "1 2 3 " };
     },
@@ -479,49 +433,28 @@ The outer loop should run 2 times. The inner loop should print stars based on th
 using namespace std;
 
 int main() {
-    // Write your code below
-    for (int r = 1; r <= 2; r++) {
-        for (int c = 1; c <= r; c++) {
-            cout << "*";
-        }
-        cout << endl;
-    }
+    // Write your nested loops below to print the stair staircase pattern
     
     return 0;
 }`,
       java: `public class Main {
     public static void main(String[] args) {
-        // Write your code below
-        for (int r = 1; r <= 2; r++) {
-            for (int c = 1; c <= r; c++) {
-                System.out.print("*");
-            }
-            System.out.println();
-        }
+        // Write your nested loops below to print the stair staircase pattern
+        
     }
 }`,
-      python: `# Write your code below
-for r in range(1, 3):
-    for c in range(1, r + 1):
-        print("*", end="")
-    print()
+      python: `# Write your nested loops below to print the stair staircase pattern
 `,
-      javascript: `// Write your code below
-for (let r = 1; r <= 2; r++) {
-    let rowStr = "";
-    for (let c = 1; c <= r; c++) {
-        rowStr += "*";
-    }
-    console.log(rowStr);
-}
+      javascript: `// Write your nested loops below to print the stair staircase pattern
 `
     },
     testCases: [
       { id: 1, input: "", expected: "*\n**" }
     ],
     validationFn: (code, lang) => {
-      if (!code.includes('for')) return { success: false, error: "Structure Error: You must use loops to construct this pattern dynamically." };
-      if (!code.includes('*')) return { success: false, error: "Output Error: Make sure your print outputs star characters '*'." };
+      const codeWithoutComments = code.replace(/\/\/.*$/gm, '').replace(/\/\*[\s\S]*?\*\//g, '').replace(/#.*$/gm, '');
+      if (!codeWithoutComments.includes('for')) return { success: false, error: "Structure Error: You must use loops to construct this pattern dynamically." };
+      if (!codeWithoutComments.includes('*')) return { success: false, error: "Output Error: Make sure your print outputs star characters '*'." };
       return { success: true, output: "*\n**" };
     },
     hints: [

@@ -267,6 +267,17 @@ const ZeroToCoding = () => {
     }
   };
 
+  // Load Fira Code dynamic Google Font on mount for premium coding ligatures
+  useEffect(() => {
+    const link = document.createElement('link');
+    link.href = 'https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;700&display=swap';
+    link.rel = 'stylesheet';
+    document.head.appendChild(link);
+    return () => {
+      document.head.removeChild(link);
+    };
+  }, []);
+
   // Save code local persistence
   const handleSaveCode = () => {
     triggerSoundEffect('click');
@@ -310,6 +321,35 @@ const ZeroToCoding = () => {
     }
 
     setTerminalLogs(compileLogs);
+
+    // Generic semicolon validation check for C++ and Java
+    if (selectedLang === 'cpp' || selectedLang === 'java') {
+      const lines = editorCode.split('\n');
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i].trim();
+        if (!line) continue;
+        if (line.startsWith('#') || line.startsWith('//') || line.startsWith('/*') || line.endsWith('*/')) continue;
+        if (line.endsWith('{') || line.endsWith('}') || line.endsWith(';')) continue;
+        if (line.startsWith('class ') || line.startsWith('public:') || line.startsWith('private:') || line.startsWith('protected:')) continue;
+        if (line.startsWith('if') || line.startsWith('else') || line.startsWith('for') || line.startsWith('while') || line.startsWith('switch')) continue;
+        if (line.startsWith('int main') || line.startsWith('void main') || line.startsWith('using namespace') || line.startsWith('public class')) continue;
+        
+        if (line.includes('cout') || line.includes('return') || line.includes('print') || line.includes('=') || line.includes('System.out') || line.includes('cin')) {
+          const err = `expected ';' at end of statement on line ${i + 1}`;
+          setTimeout(() => {
+            setCompilerStatus('error');
+            setCompilationError(err);
+            setTerminalLogs([
+              ...compileLogs,
+              "❌ Compilation Failed.",
+              `🛑 Error: ${err}`
+            ]);
+            triggerSoundEffect('error');
+          }, 800);
+          return;
+        }
+      }
+    }
 
     setTimeout(() => {
       // Validate code inputs
@@ -488,14 +528,14 @@ const ZeroToCoding = () => {
 
   return (
     <div className={`h-screen flex flex-col font-sans transition-colors duration-300 relative overflow-hidden select-none ${
-      theme === 'dark' ? 'bg-[#09090b] text-[#f4f4f5] dark-mode' : 'bg-[#f8fafc] text-[#0f172a] light-mode'
+      theme === 'dark' ? 'bg-[#1a1a1a] text-[#f4f4f5] dark-mode' : 'bg-[#f0f0f0] text-[#0f172a] light-mode'
     }`}>
       
       {/* Background Orbs in Dark Mode */}
       {theme === 'dark' && (
         <>
-          <div className="absolute top-[-25%] left-[-10%] w-[600px] h-[600px] bg-violet-600/5 rounded-full blur-[140px] pointer-events-none"></div>
-          <div className="absolute bottom-[-25%] right-[-10%] w-[600px] h-[600px] bg-cyan-600/5 rounded-full blur-[140px] pointer-events-none"></div>
+          <div className="absolute top-[-25%] left-[-10%] w-[600px] h-[600px] bg-amber-500/5 rounded-full blur-[140px] pointer-events-none"></div>
+          <div className="absolute bottom-[-25%] right-[-10%] w-[600px] h-[600px] bg-indigo-600/5 rounded-full blur-[140px] pointer-events-none"></div>
         </>
       )}
 
@@ -529,95 +569,72 @@ const ZeroToCoding = () => {
         </div>
       )}
 
-      {/* HEADER / NAVIGATION BAR */}
-      <header className={`h-16 flex items-center justify-between px-6 border-b shrink-0 transition-colors duration-300 ${
-        theme === 'dark' ? 'bg-[#09090b] border-zinc-800' : 'bg-white border-slate-200'
+      {/* HEADER / NAVIGATION BAR (Sleek LeetCode h-11 toolbar style) */}
+      <header className={`h-11 flex items-center justify-between px-4 border-b shrink-0 transition-colors duration-300 ${
+        theme === 'dark' ? 'bg-[#282828] border-[#3e3e3e]' : 'bg-white border-slate-200'
       }`}>
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3">
           <button 
             onClick={handleBackToDashboard}
-            className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+            className={`flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-bold transition-all ${
               theme === 'dark' ? 'text-zinc-400 hover:text-white hover:bg-zinc-800' : 'text-slate-500 hover:text-slate-800 hover:bg-slate-100'
             }`}
           >
-            <ArrowLeft size={16} /> Back to Dashboard
+            <ArrowLeft size={14} /> Back to Dashboard
           </button>
           
-          <div className="h-4 w-px bg-slate-300 dark:bg-zinc-800"></div>
+          <div className="h-4 w-px bg-slate-300 dark:bg-zinc-700"></div>
 
           {/* Level Switcher */}
           <div className="flex items-center gap-2">
-            <span className={`px-2.5 py-1 rounded-md text-xs font-bold border ${getDifficultyColor(activeLevel.difficulty)}`}>
+            <span className={`px-2 py-0.5 rounded text-[10px] font-bold border ${getDifficultyColor(activeLevel.difficulty)}`}>
               Lvl {activeLevel.id}
             </span>
-            <span className={`text-sm font-extrabold ${theme === 'dark' ? 'text-white' : 'text-slate-800'}`}>
+            <span className={`text-xs font-bold ${theme === 'dark' ? 'text-white' : 'text-slate-800'}`}>
               {activeLevel.title}
             </span>
           </div>
         </div>
 
-        {/* CONTROLS: Language Switcher, Sound, Mode, Fullscreen */}
-        <div className="flex items-center gap-3">
-          {/* Language Switcher */}
-          <div className="flex items-center gap-1.5 bg-slate-100 dark:bg-zinc-900 p-1 rounded-lg border border-slate-200 dark:border-zinc-800">
-            {['cpp', 'java', 'python', 'javascript'].map((lang) => (
-              <button
-                key={lang}
-                onClick={() => {
-                  setSelectedLang(lang);
-                  localStorage.setItem('editor_lang', lang);
-                  triggerSoundEffect('click');
-                }}
-                className={`px-2.5 py-1 rounded-md text-xs font-black uppercase transition-all ${
-                  selectedLang === lang 
-                    ? 'bg-indigo-600 text-white shadow' 
-                    : theme === 'dark' ? 'text-zinc-400 hover:text-zinc-200' : 'text-slate-500 hover:text-slate-800'
-                }`}
-              >
-                {lang === 'cpp' ? 'C++' : lang === 'javascript' ? 'JS' : lang}
-              </button>
-            ))}
-          </div>
-
-          <div className="h-4 w-px bg-slate-300 dark:bg-zinc-800"></div>
-
+        {/* CONTROLS: Sound, Mode, Fullscreen */}
+        <div className="flex items-center gap-2">
           {/* Sound Toggle */}
           <button
             onClick={() => setIsMuted(!isMuted)}
-            className={`p-2 rounded-lg border transition-all ${
+            className={`p-1.5 rounded transition-all ${
               theme === 'dark' 
-                ? 'border-zinc-800 hover:bg-zinc-800 text-zinc-400' 
-                : 'border-slate-200 hover:bg-slate-100 text-slate-500'
+                ? 'hover:bg-zinc-800 text-zinc-400' 
+                : 'hover:bg-slate-100 text-slate-500'
             }`}
             title={isMuted ? "Unmute sounds" : "Mute sounds"}
           >
-            {isMuted ? <VolumeX size={16} /> : <Volume2 size={16} />}
+            {isMuted ? <VolumeX size={14} /> : <Volume2 size={14} />}
           </button>
 
           {/* Dark / Light Toggle */}
           <button
             onClick={toggleTheme}
-            className={`p-2 rounded-lg border transition-all ${
+            className={`p-1.5 rounded transition-all ${
               theme === 'dark' 
-                ? 'border-zinc-800 hover:bg-zinc-800 text-zinc-400' 
-                : 'border-slate-200 hover:bg-slate-100 text-slate-500'
+                ? 'hover:bg-zinc-800 text-zinc-400' 
+                : 'hover:bg-slate-100 text-slate-500'
             }`}
             title="Toggle color theme"
           >
-            {theme === 'dark' ? <Sun size={16} className="text-amber-400" /> : <Moon size={16} className="text-slate-600" />}
+            {theme === 'dark' ? <Sun size={14} className="text-amber-400" /> : <Moon size={14} className="text-slate-600" />}
           </button>
 
           {/* Fullscreen Toggle */}
           <button
             onClick={toggleFullscreen}
-            className={`p-2 rounded-lg border transition-all ${
+            className={`p-1.5 rounded transition-all ${
               theme === 'dark' 
-                ? 'border-zinc-800 hover:bg-zinc-800 text-zinc-400' 
-                : 'border-slate-200 hover:bg-slate-100 text-slate-500'
+                ? 'hover:bg-zinc-800 text-zinc-400' 
+                : 'hover:bg-slate-100 text-slate-500'
             }`}
             title="Toggle fullscreen mode"
           >
-            {isFullscreen ? <Minimize2 size={16} /> : <Maximize2 size={16} />}
+            {isFullscreen ? <Minimize2 size={14} /> : <Maximize2 size={14} />}
           </button>
         </div>
       </header>
@@ -631,12 +648,12 @@ const ZeroToCoding = () => {
         <section 
           style={{ width: `${leftWidth}%` }}
           className={`h-full flex flex-col border-r transition-colors duration-300 select-text overflow-hidden shrink-0 ${
-            theme === 'dark' ? 'bg-[#0c0a09]/80 border-zinc-800' : 'bg-white border-slate-200'
+            theme === 'dark' ? 'bg-[#1e1e1e] border-[#2e2e2e]' : 'bg-white border-slate-200'
           }`}
         >
           {/* Header tabs */}
           <div className={`flex items-center px-4 border-b shrink-0 ${
-            theme === 'dark' ? 'bg-zinc-900/50 border-zinc-800' : 'bg-slate-50 border-slate-200'
+            theme === 'dark' ? 'bg-[#282828] border-[#3e3e3e]' : 'bg-slate-50 border-slate-200'
           }`}>
             {[
               { id: 'description', label: 'Problem Description', icon: FileCode },
@@ -649,13 +666,13 @@ const ZeroToCoding = () => {
                   setLeftTab(tab.id);
                   triggerSoundEffect('click');
                 }}
-                className={`flex items-center gap-2 px-4 py-3.5 text-xs font-bold transition-all border-b-2 -mb-px ${
+                className={`flex items-center gap-2 px-4 py-3 text-xs font-bold transition-all border-b-2 -mb-px ${
                   leftTab === tab.id
-                    ? 'border-indigo-600 text-indigo-600'
-                    : 'border-transparent text-slate-500 hover:text-slate-800 dark:text-zinc-400 dark:hover:text-zinc-200'
+                    ? 'border-[#ffa116] text-[#ffa116] dark:text-[#ffa116]'
+                    : 'border-transparent text-slate-500 hover:text-[#262626] dark:text-zinc-400 dark:hover:text-zinc-200'
                 }`}
               >
-                <tab.icon size={14} /> {tab.label}
+                <tab.icon size={13} /> {tab.label}
               </button>
             ))}
           </div>
@@ -917,18 +934,42 @@ const ZeroToCoding = () => {
           <div 
             style={{ height: `${100 - bottomHeight}%` }}
             className={`flex flex-col overflow-hidden transition-all relative ${
-              theme === 'dark' ? 'bg-[#0f0e0d]' : 'bg-[#fafafa]'
+              theme === 'dark' ? 'bg-[#1e1e1e]' : 'bg-white'
             }`}
           >
             {/* Editor Sub-header */}
             <div className={`h-11 px-4 border-b flex items-center justify-between shrink-0 ${
-              theme === 'dark' ? 'bg-[#0c0a09]/50 border-zinc-800' : 'bg-slate-50 border-slate-200'
+              theme === 'dark' ? 'bg-[#282828] border-[#3e3e3e]' : 'bg-slate-50 border-slate-200'
             }`}>
-              <div className="flex items-center gap-2">
-                <FileCode size={14} className="text-indigo-500" />
-                <span className="text-xs font-mono font-bold text-slate-500 dark:text-zinc-400">
-                  {selectedLang === 'cpp' ? 'main.cpp' : selectedLang === 'java' ? 'Main.java' : selectedLang === 'python' ? 'solution.py' : 'index.js'}
-                </span>
+              <div className="flex items-center gap-4">
+                {/* LeetCode style language select dropdown */}
+                <select
+                  value={selectedLang}
+                  onChange={(e) => {
+                    setSelectedLang(e.target.value);
+                    localStorage.setItem('editor_lang', e.target.value);
+                    triggerSoundEffect('click');
+                  }}
+                  className={`text-[11px] font-bold py-1 px-2.5 rounded border outline-none cursor-pointer transition-all ${
+                    theme === 'dark'
+                      ? 'bg-zinc-800 border-zinc-700 text-zinc-300 hover:bg-zinc-750'
+                      : 'bg-white border-slate-300 text-slate-700 hover:bg-slate-50'
+                  }`}
+                >
+                  <option value="cpp">C++</option>
+                  <option value="java">Java</option>
+                  <option value="python">Python 3</option>
+                  <option value="javascript">JavaScript</option>
+                </select>
+
+                <div className="h-4 w-px bg-slate-300 dark:bg-zinc-700"></div>
+
+                <div className="flex items-center gap-1.5">
+                  <FileCode size={13} className="text-[#ffa116]" />
+                  <span className="text-xs font-mono font-bold text-slate-500 dark:text-zinc-400">
+                    {selectedLang === 'cpp' ? 'main.cpp' : selectedLang === 'java' ? 'Main.java' : selectedLang === 'python' ? 'solution.py' : 'index.js'}
+                  </span>
+                </div>
               </div>
 
               {/* Reset, Save Buttons */}
@@ -959,14 +1000,16 @@ const ZeroToCoding = () => {
                 value={editorCode}
                 onChange={handleEditorChange}
                 options={{
-                  fontSize: 14,
-                  fontFamily: 'Fira Code, Monaco, Courier New, monospace',
+                  fontSize: 13,
+                  fontFamily: "'Fira Code', 'JetBrains Mono', 'Source Code Pro', Menlo, Monaco, Consolas, 'Courier New', monospace",
+                  fontLigatures: true,
                   minimap: { enabled: false },
                   scrollBeyondLastLine: false,
                   lineNumbers: 'on',
                   automaticLayout: true,
-                  padding: { top: 16, bottom: 16 },
+                  padding: { top: 12, bottom: 12 },
                   renderLineHighlight: 'all',
+                  lineHeight: 21,
                   scrollbar: {
                     vertical: 'visible',
                     horizontal: 'visible'
@@ -997,12 +1040,12 @@ const ZeroToCoding = () => {
           <div 
             style={{ height: `${bottomHeight}%` }}
             className={`flex flex-col border-t shrink-0 overflow-hidden relative ${
-              theme === 'dark' ? 'bg-[#09090b] border-zinc-800' : 'bg-white border-slate-200'
+              theme === 'dark' ? 'bg-[#1e1e1e] border-[#2e2e2e]' : 'bg-white border-slate-200'
             }`}
           >
             {/* Terminal Tab Bar */}
             <div className={`flex items-center px-4 border-b shrink-0 justify-between ${
-              theme === 'dark' ? 'bg-zinc-900/50 border-zinc-800' : 'bg-slate-50 border-slate-200'
+              theme === 'dark' ? 'bg-[#282828] border-[#3e3e3e]' : 'bg-slate-50 border-slate-200'
             }`}>
               <div className="flex gap-2">
                 {[
@@ -1017,9 +1060,9 @@ const ZeroToCoding = () => {
                       setActiveTab(tab.id);
                       triggerSoundEffect('click');
                     }}
-                    className={`flex items-center gap-1.5 px-3 py-3 text-xs font-black transition-all border-b-2 -mb-px ${
+                    className={`flex items-center gap-1.5 px-3 py-3 text-xs font-bold transition-all border-b-2 -mb-px ${
                       activeTab === tab.id
-                        ? 'border-indigo-600 text-indigo-600'
+                        ? 'border-[#ffa116] text-[#ffa116] dark:text-[#ffa116]'
                         : 'border-transparent text-slate-500 hover:text-slate-800 dark:text-zinc-400 dark:hover:text-zinc-200'
                     }`}
                   >
@@ -1033,12 +1076,12 @@ const ZeroToCoding = () => {
                 <button
                   onClick={() => runCode(false)}
                   disabled={compilerStatus === 'compiling'}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-black border uppercase tracking-wider flex items-center gap-1.5 transition-all ${
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 transition-all ${
                     compilerStatus === 'compiling'
                       ? 'opacity-50 cursor-not-allowed'
                       : theme === 'dark'
-                        ? 'bg-zinc-850 hover:bg-zinc-800 border-zinc-700 text-white'
-                        : 'bg-white hover:bg-slate-50 border-slate-300 text-slate-700'
+                        ? 'bg-zinc-800 hover:bg-zinc-700 border-transparent text-zinc-200'
+                        : 'bg-slate-100 hover:bg-slate-200 border-transparent text-slate-700'
                   }`}
                 >
                   <Play size={12} fill="currentColor" /> Run Code
@@ -1047,7 +1090,7 @@ const ZeroToCoding = () => {
                 <button
                   onClick={() => runCode(true)}
                   disabled={compilerStatus === 'compiling'}
-                  className="px-4 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-black uppercase tracking-wider shadow-sm flex items-center gap-1.5 hover:-translate-y-0.5 active:translate-y-0 transition-all disabled:opacity-50"
+                  className="px-4 py-1.5 bg-[#2cbb5d] hover:bg-[#229c4c] text-white rounded-lg text-xs font-black uppercase tracking-wider shadow-sm flex items-center gap-1.5 hover:-translate-y-0.5 active:translate-y-0 transition-all disabled:opacity-50"
                 >
                   <Sparkles size={12} /> Submit Solution
                 </button>

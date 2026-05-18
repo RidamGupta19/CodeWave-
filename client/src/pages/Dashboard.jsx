@@ -99,12 +99,18 @@ const Dashboard = () => {
         <div className="flex items-center gap-6 bg-[var(--bg-card)] border border-[var(--border)] p-5 rounded-2xl shadow-sm">
           <div className="text-center border-r border-[var(--border)] pr-6">
             <div className="text-[9px] text-[var(--text-light)] uppercase font-black tracking-widest mb-1">XP Earned</div>
-            <div className="text-2xl font-black text-[var(--text-main)]">{user.xp || 0}</div>
+            <div className="text-2xl font-black text-[var(--text-main)]">
+              {parseInt(localStorage.getItem('dsa_total_xp') || '0', 10) > 0 
+                ? parseInt(localStorage.getItem('dsa_total_xp') || '0', 10) 
+                : (user.xp || 0)}
+            </div>
           </div>
           <div className="text-center">
             <div className="text-[9px] text-[var(--text-light)] uppercase font-black tracking-widest mb-1">Streak</div>
             <div className="text-2xl font-black text-amber-500 flex items-center gap-1.5">
-              <FiZap fill="currentColor" /> {user.dailyStreak || 0}
+              <FiZap fill="currentColor" /> {parseInt(localStorage.getItem('dsa_streak') || '0', 10) > 0 
+                ? parseInt(localStorage.getItem('dsa_streak') || '0', 10) 
+                : (user.dailyStreak || 0)}
             </div>
           </div>
         </div>
@@ -294,7 +300,11 @@ const Dashboard = () => {
               <FiStar />
             </div>
             <div>
-              <div className="text-2xl font-black text-[var(--text-main)]">{user.xp || 0}</div>
+              <div className="text-2xl font-black text-[var(--text-main)]">
+                {parseInt(localStorage.getItem('dsa_total_xp') || '0', 10) > 0 
+                  ? parseInt(localStorage.getItem('dsa_total_xp') || '0', 10) 
+                  : (user.xp || 0)}
+              </div>
               <div className="text-[9px] text-[var(--text-light)] font-black uppercase tracking-widest">Current XP</div>
             </div>
           </motion.div>

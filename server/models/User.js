@@ -81,6 +81,18 @@ const userSchema = new mongoose.Schema({
     attemptNumber: { type: Number, default: 1 }
   }],
 
+  // Code submissions for playground/editor challenges
+  codeSubmissions: [{
+    topicId: { type: mongoose.Schema.Types.ObjectId, ref: 'Topic' },
+    code: { type: String, required: true },
+    language: { type: String, required: true },
+    status: { type: String, enum: ['Accepted', 'Wrong Answer', 'Runtime Error', 'Pending'], default: 'Pending' },
+    passedCount: { type: Number, default: 0 },
+    totalCount: { type: Number, default: 0 },
+    runtime: { type: Number },
+    submittedAt: { type: Date, default: Date.now }
+  }],
+
   // Badges earned
   earnedBadges: [{
     badgeId: { type: mongoose.Schema.Types.ObjectId, ref: 'Badge' },

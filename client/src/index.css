@@ -7,14 +7,15 @@
   --bg-card: #FFFFFF;
   --bg-sub: #EEF2FF;
   
-  --primary: #6366F1; /* Indigo */
-  --secondary: #8B5CF6; /* Purple */
-  --accent: #06B6D4; /* Cyan */
-  --success: #10B981; /* Emerald */
+  --primary: #1E40AF; /* Deep Cobalt */
+  --secondary: #0D9488; /* Teal */
+  --accent: #4F46E5; /* Indigo */
+  --success: #059669; /* Emerald */
   --warning: #F59E0B; /* Amber */
+  --error: #DC2626; /* Crimson Error */
   
-  --primary-light: #EEF2FF;
-  --primary-hover: #4F46E5;
+  --primary-light: #EFF6FF;
+  --primary-hover: #1D4ED8;
   
   --border: #E2E8F0;
   --border-light: #F1F5F9;
@@ -24,8 +25,8 @@
   --text-light: #94A3B8;
   
   --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.04);
-  --shadow-md: 0 4px 12px rgba(99, 102, 241, 0.05);
-  --shadow-lg: 0 12px 30px rgba(99, 102, 241, 0.08);
+  --shadow-md: 0 4px 12px rgba(30, 64, 175, 0.05);
+  --shadow-lg: 0 12px 30px rgba(30, 64, 175, 0.08);
   
   --glass-bg: rgba(255, 255, 255, 0.7);
   --glass-border: rgba(226, 232, 240, 0.8);
@@ -33,31 +34,32 @@
 
 .dark {
   /* Color Palette - Premium Dark Mode (Optional) */
-  --bg-main: #0F172A;
-  --bg-card: #111827;
+  --bg-main: #0B0F19;
+  --bg-card: #161B26;
   --bg-sub: #1E293B;
   
-  --primary: #6366F1;
-  --secondary: #8B5CF6;
-  --accent: #06B6D4;
-  --success: #10B981;
-  --warning: #F59E0B;
+  --primary: #60A5FA; /* Sky Blue */
+  --secondary: #2DD4BF; /* Bright Teal */
+  --accent: #818CF8; /* Accent Indigo */
+  --success: #34D399; /* Success Green */
+  --warning: #FBBF24; /* Amber Warning */
+  --error: #F87171; /* Coral Red Error */
   
   --primary-light: #1E293B;
-  --primary-hover: #4F46E5;
+  --primary-hover: #3B82F6;
   
   --border: #334155;
   --border-light: #1E293B;
   
   --text-main: #F8FAFC;
-  --text-muted: #CBD5E1;
+  --text-muted: #94A3B8;
   --text-light: #64748B;
   
   --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.2);
   --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.3);
   --shadow-lg: 0 12px 30px rgba(0, 0, 0, 0.4);
   
-  --glass-bg: rgba(17, 24, 39, 0.7);
+  --glass-bg: rgba(22, 27, 38, 0.7);
   --glass-border: rgba(51, 65, 85, 0.8);
 }
 
