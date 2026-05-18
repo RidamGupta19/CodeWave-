@@ -68,9 +68,61 @@ const topicData = {
     { title: 'Basic Math for DSA', description: 'Count digits, Reverse number, Palindrome, GCD, Armstrong', instructor: 'Striver', difficulty: 'beginner', estimatedTime: '2 hours', order: 4, youtubeLink: 'https://www.youtube.com/watch?v=1xNbjMdrlGY', theoryLink: 'https://takeuforward.org/data-structure/count-digits-in-a-number/', practiceLink: 'https://leetcode.com/problemset/all/?search=basic+math' }
   ],
   'dsa:1': [
-    { title: 'Easy Array Problems', description: 'Largest, Second Largest, Check Sorted, Remove Duplicates, Rotate Array', instructor: 'Striver', difficulty: 'beginner', estimatedTime: '4 hours', order: 1, youtubeLink: 'https://www.youtube.com/watch?v=37E9ckMDdTk', theoryLink: 'https://takeuforward.org/data-structure/arrays-easy-problems/', practiceLink: 'https://leetcode.com/tag/array/' },
-    { title: 'Medium Array Problems', description: 'Two Sum, Sort 0s 1s 2s, Kadane\'s Algorithm, Stock Buy & Sell', instructor: 'Striver', difficulty: 'intermediate', estimatedTime: '6 hours', order: 2, youtubeLink: 'https://www.youtube.com/watch?v=tp8JIuCXBaU', theoryLink: 'https://takeuforward.org/data-structure/arrays-medium-problems/', practiceLink: 'https://leetcode.com/tag/array/' },
-    { title: 'Hard Array Problems', description: 'Pascal\'s Triangle, 3 Sum, 4 Sum, Majority Element II, Merge Intervals', instructor: 'Striver', difficulty: 'advanced', estimatedTime: '8 hours', order: 3, youtubeLink: 'https://www.youtube.com/watch?v=9S_p4M7h9Dk', theoryLink: 'https://takeuforward.org/data-structure/arrays-hard-problems/', practiceLink: 'https://leetcode.com/tag/array/' }
+    { 
+      title: 'Easy Arrays: Fundamentals & Shift Operations', 
+      description: 'Find Largest & Second Largest, Check if Sorted, Remove Duplicates, Left Rotate by One and D Places, Move Zeros to End', 
+      instructor: 'Striver', 
+      difficulty: 'beginner', 
+      estimatedTime: '3 hours', 
+      order: 1, 
+      youtubeLink: 'https://www.youtube.com/playlist?list=PLgUwDviBIf0rENwdL0nEH0uGom9no0nyB', 
+      theoryLink: 'https://takeuforward.org/data-structure/arrays-easy-problems/', 
+      practiceLink: 'https://leetcode.com/tag/array/' 
+    },
+    { 
+      title: 'Easy Arrays: Searching & Two-Pointer Union', 
+      description: 'Linear Search, Union & Intersection of Sorted Arrays, Find Missing Number, Max Consecutive Ones, Number Appears Once', 
+      instructor: 'Striver', 
+      difficulty: 'beginner', 
+      estimatedTime: '3 hours', 
+      order: 2, 
+      youtubeLink: 'https://www.youtube.com/playlist?list=PLgUwDviBIf0rENwdL0nEH0uGom9no0nyB', 
+      theoryLink: 'https://takeuforward.org/data-structure/arrays-easy-problems/', 
+      practiceLink: 'https://leetcode.com/tag/array/' 
+    },
+    { 
+      title: 'Medium Arrays: Core Algorithms & Partitioning', 
+      description: 'Two Sum Problem, Dutch National Flag (Sort 0s 1s 2s), Majority Element (>N/2), Stock Buy and Sell, Rearrange Array Elements by Sign', 
+      instructor: 'Striver', 
+      difficulty: 'intermediate', 
+      estimatedTime: '4 hours', 
+      order: 3, 
+      youtubeLink: 'https://www.youtube.com/playlist?list=PLgUwDviBIf0rENwdL0nEH0uGom9no0nyB', 
+      theoryLink: 'https://takeuforward.org/data-structure/arrays-medium-problems/', 
+      practiceLink: 'https://leetcode.com/tag/array/' 
+    },
+    { 
+      title: 'Medium Arrays: Subarrays & Matrix Rotations', 
+      description: 'Kadane\'s Algorithm (Max Subarray), Next Permutation, Leaders in Array, Longest Consecutive Sequence, Set Matrix Zeros, Rotate Matrix 90°, Spiral Traversal, Subarray Sum Equals K', 
+      instructor: 'Striver', 
+      difficulty: 'intermediate', 
+      estimatedTime: '4 hours', 
+      order: 4, 
+      youtubeLink: 'https://www.youtube.com/playlist?list=PLgUwDviBIf0rENwdL0nEH0uGom9no0nyB', 
+      theoryLink: 'https://takeuforward.org/data-structure/arrays-medium-problems/', 
+      practiceLink: 'https://leetcode.com/tag/array/' 
+    },
+    { 
+      title: 'Hard Arrays: Advanced Partitioning & Intervals', 
+      description: 'Pascal\'s Triangle, Majority Element II (>N/3), 3-Sum & 4-Sum, Subarrays with XOR Sum K, Merge Overlapping Intervals, Merge Sorted Arrays, Repeating & Missing, Count Inversions, Reverse Pairs, Max Product Subarray', 
+      instructor: 'Striver', 
+      difficulty: 'advanced', 
+      estimatedTime: '6 hours', 
+      order: 5, 
+      youtubeLink: 'https://www.youtube.com/playlist?list=PLgUwDviBIf0rENwdL0nEH0uGom9no0nyB', 
+      theoryLink: 'https://takeuforward.org/data-structure/arrays-hard-problems/', 
+      practiceLink: 'https://leetcode.com/tag/array/' 
+    }
   ],
   'dsa:2': [
     { title: 'Hashing Basics', description: 'Introduction to Hashing, Number and Character hashing', instructor: 'Striver', difficulty: 'beginner', estimatedTime: '3 hours', order: 1, youtubeLink: 'https://www.youtube.com/watch?v=KEs5UyBJ39g', theoryLink: 'https://takeuforward.org/data-structure/hashing-basics-for-dsa/', practiceLink: 'https://www.geeksforgeeks.org/hashing-data-structure/' },

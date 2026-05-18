@@ -303,6 +303,9 @@ const TopicDetail = () => {
   const langContent = isDsaDomain ? getDsaLanguageContent(topic?.title, selectedLang, activeDifficulty, useStriverAdvanced) : null;
 
   const activeVideoEmbedUrl = useMemo(() => {
+    if (langContent?.youtubePlaylistId) {
+      return `https://www.youtube.com/embed/videoseries?list=${langContent.youtubePlaylistId}`;
+    }
     if (langContent?.youtubeVideoId) {
       if (langContent.youtubeVideoId.length === 11) {
         return `https://www.youtube.com/embed/${langContent.youtubeVideoId}?rel=0&modestbranding=1&showinfo=0`;

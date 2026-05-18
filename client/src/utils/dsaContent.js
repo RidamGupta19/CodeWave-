@@ -35,6 +35,47 @@ export const getDsaLanguageContent = (topicTitle, languageKey = 'cpp', difficult
     trie:       'dBGUmUQhjaM',
   };
 
+  // ─── STRIVER A2Z TOPIC-SPECIFIC PLAYLIST MAP ──────────────────────────────
+  const striverPlaylists = {
+    basics:     'PLgUwDviBHe0oF1vOXpxS_5t8s_D3E9A9_', // Learn the Basics / Foundations
+    patterns:   'PLgUwDviBHe0oF1vOXpxS_5t8s_D3E9A9_',
+    math:       'PLgUwDviBHe0oF1vOXpxS_5t8s_D3E9A9_',
+    stl:        'PLgUwDviBHe0oF1vOXpxS_5t8s_D3E9A9_',
+    array:      'PLgUwDviBIf0rENwdL0nEH0uGom9no0nyB', // Dedicated Arrays Playlist
+    hashing:    'PLgUwDviBHe0oF1vOXpxS_5t8s_D3E9A9_',
+    recursion:  'PLgUwDviBHe0rGlzUA9SfOviYLgNgGdO9B', // Dedicated Recursion & Backtracking Playlist
+    backtrack:  'PLgUwDviBHe0rGlzUA9SfOviYLgNgGdO9B',
+    ll:         'PLgUwDviBHe0rAuz8tVcM0AymmTRyGpCYc', // Dedicated Linked List Playlist
+    stack_q:    'PLgUwDviBHe0pOd51giiqQL1c08xHdyIM_', // Dedicated Stack & Queue Playlist
+    tree:       'PLgUwDviBHe0qAstgDqgPT2WAHE5-Xlhly', // Dedicated Binary Trees / BST Playlist
+    graph:      'PLgUwDviBHe0oE3gA41TKO2H5bUpdZwGrY', // Dedicated Graphs Playlist
+    dp:         'PLgUwDviBHe0qGDkClgDcMbFV85fs-4iGP', // Dedicated DP Playlist
+    greedy:     'PLgUwDviBHe0rFrFrA8HqYkQz24Q_l94vA', // Dedicated Greedy Algorithms Playlist
+    bitmanip:   'PLgUwDviBHe0rV2mP7r4yIu46B708Gg5b2', // Dedicated Bit Manipulation Playlist
+    heap:       'PLgUwDviBHe0oX5J_N-eJd85WvSnU-P4k4', // Dedicated Heap/Priority Queue/Trie Playlist
+    trie:       'PLgUwDviBHe0oX5J_N-eJd85WvSnU-P4k4',
+  };
+
+  const getPlaylist = () => {
+    if (t.includes('basics') || t.includes('foundation') || t.includes('thinking')) return striverPlaylists.basics;
+    if (t.includes('pattern')) return striverPlaylists.patterns;
+    if (t.includes('math')) return striverPlaylists.math;
+    if (t.includes('stl') || t.includes('collection')) return striverPlaylists.stl;
+    if (t.includes('array')) return striverPlaylists.array;
+    if (t.includes('hash')) return striverPlaylists.hashing;
+    if (t.includes('backtrack') || t.includes('recursion') || t.includes('fibonacci') || t.includes('subsequence')) return striverPlaylists.recursion;
+    if (t.includes('linked list') || t.includes('introduction to ll') || t.includes('ll warrior') || t.includes('reverse ll')) return striverPlaylists.ll;
+    if (t.includes('stack') || t.includes('queue') || t.includes('monotonic')) return striverPlaylists.stack_q;
+    if (t.includes('binary tree') || t.includes('tree traversal') || t.includes('bst') || t.includes('tree master') || t.includes('tree prop')) return striverPlaylists.tree;
+    if (t.includes('graph') || t.includes('bfs') || t.includes('dfs') || t.includes('topo') || t.includes('dsu') || t.includes('shortest') || t.includes('dijkstra')) return striverPlaylists.graph;
+    if (t.includes('dp') || t.includes('dynamic') || t.includes('grid') || t.includes('knapsack')) return striverPlaylists.dp;
+    if (t.includes('greedy')) return striverPlaylists.greedy;
+    if (t.includes('bit')) return striverPlaylists.bitmanip;
+    if (t.includes('heap')) return striverPlaylists.heap;
+    if (t.includes('trie')) return striverPlaylists.trie;
+    return striverPlaylists.basics;
+  };
+
   const getVideo = () => {
     if (t.includes('basics') || t.includes('foundation') || t.includes('thinking')) return striverVideos.basics;
     if (t.includes('pattern')) return striverVideos.patterns;
@@ -798,6 +839,7 @@ export const getDsaLanguageContent = (topicTitle, languageKey = 'cpp', difficult
 
   return {
     youtubeVideoId: getVideo(),
+    youtubePlaylistId: getPlaylist(),
     challengeDescription: q.desc,
     approach: q.approach,
     code: q.sol[lang] || '',
