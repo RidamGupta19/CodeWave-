@@ -37,12 +37,12 @@ export const getDsaLanguageContent = (topicTitle, languageKey = 'cpp', difficult
 
   // ─── STRIVER A2Z TOPIC-SPECIFIC PLAYLIST MAP ──────────────────────────────
   const striverPlaylists = {
-    basics:     'PLgUwDviBHe0oF1vOXpxS_5t8s_D3E9A9_', // Learn the Basics / Foundations
-    patterns:   'PLgUwDviBHe0oF1vOXpxS_5t8s_D3E9A9_',
-    math:       'PLgUwDviBHe0oF1vOXpxS_5t8s_D3E9A9_',
-    stl:        'PLgUwDviBHe0oF1vOXpxS_5t8s_D3E9A9_',
+    basics:     'PLgUwDviBIf0oF6QL8m22w1hIDC1vJ_BHz', // Learn the Basics / Foundations
+    patterns:   'PLgUwDviBIf0oF6QL8m22w1hIDC1vJ_BHz',
+    math:       'PLgUwDviBIf0oF6QL8m22w1hIDC1vJ_BHz',
+    stl:        'PLgUwDviBIf0oF6QL8m22w1hIDC1vJ_BHz',
     array:      'PLgUwDviBIf0rENwdL0nEH0uGom9no0nyB', // Dedicated Arrays Playlist
-    hashing:    'PLgUwDviBHe0oF1vOXpxS_5t8s_D3E9A9_',
+    hashing:    'PLgUwDviBIf0oF6QL8m22w1hIDC1vJ_BHz',
     recursion:  'PLgUwDviBHe0rGlzUA9SfOviYLgNgGdO9B', // Dedicated Recursion & Backtracking Playlist
     backtrack:  'PLgUwDviBHe0rGlzUA9SfOviYLgNgGdO9B',
     ll:         'PLgUwDviBHe0rAuz8tVcM0AymmTRyGpCYc', // Dedicated Linked List Playlist
@@ -208,7 +208,513 @@ export const getDsaLanguageContent = (topicTitle, languageKey = 'cpp', difficult
         }
       }
     },
-
+    printing: {
+      beginner: {
+        title: "Printing Basics",
+        desc: "Write a function that returns the string 'Hello, World!'. This helps you verify your environment setup and basic syntax.",
+        constraints: "None",
+        functionName: "printHello",
+        testCases: [{ input: "", expected: "Hello, World!" }],
+        hints: ["Simply return the exact string 'Hello, World!' including the comma and exclamation mark.", "Do not print directly inside the function; return the value."],
+        time: "O(1)", space: "O(1)",
+        approach: "Hinglish: Is problem me aapko standard string 'Hello, World!' return karni hai.",
+        bp: {
+          cpp: `#include <string>\nusing namespace std;\n\nstring printHello() {\n    // TODO: Return "Hello, World!"\n    \n}`,
+          java: `public class Solution {\n    public static String printHello() {\n        // TODO: Return "Hello, World!"\n        return "";\n    }\n}`,
+          python: `def printHello() -> str:\n    # TODO: Return "Hello, World!"\n    pass`,
+          javascript: `function printHello() {\n    // TODO: Return "Hello, World!"\n    \n}`
+        },
+        sol: {
+          cpp: `string printHello() { return "Hello, World!"; }`,
+          java: `public static String printHello() { return "Hello, World!"; }`,
+          python: `def printHello():\n    return "Hello, World!"`,
+          javascript: `function printHello() { return "Hello, World!"; }`
+        }
+      },
+      easy: {
+        title: "Welcome User",
+        desc: "Given a name string, return a welcome message like 'Hello, [name]!'. For example, if name is 'Alice', return 'Hello, Alice!'.",
+        constraints: "1 <= name.length <= 100",
+        functionName: "welcomeUser",
+        testCases: [
+          { input: '"Alice"', expected: "Hello, Alice!" },
+          { input: '"Tarun"', expected: "Hello, Tarun!" }
+        ],
+        hints: ["Concatenate the prefix 'Hello, ' with the name and the suffix '!'.", "Return the combined string."],
+        time: "O(1)", space: "O(1)",
+        approach: "Hinglish: String concatenation use karein: 'Hello, ' + name + '!' aur result return karein.",
+        bp: {
+          cpp: `#include <string>\nusing namespace std;\n\nstring welcomeUser(string name) {\n    // TODO: Return welcome message\n    \n}`,
+          java: `public class Solution {\n    public static String welcomeUser(String name) {\n        // TODO: Return welcome message\n        return "";\n    }\n}`,
+          python: `def welcomeUser(name: str) -> str:\n    # TODO: Return welcome message\n    pass`,
+          javascript: `function welcomeUser(name) {\n    // TODO: Return welcome message\n    \n}`
+        },
+        sol: {
+          cpp: `string welcomeUser(string name) { return "Hello, " + name + "!"; }`,
+          java: `public static String welcomeUser(String name) { return "Hello, " + name + "!"; }`,
+          python: `def welcomeUser(name):\n    return "Hello, " + name + "!"`,
+          javascript: `function welcomeUser(name) { return "Hello, " + name + "!"; }`
+        }
+      },
+      medium: {
+        title: "Format Output",
+        desc: "Given two integers a and b, return a string in the format 'a = [a], b = [b]'. E.g. for a=5, b=10, return 'a = 5, b = 10'.",
+        constraints: "-10^4 <= a, b <= 10^4",
+        functionName: "formatOutput",
+        testCases: [
+          { input: "5, 10", expected: "a = 5, b = 10" },
+          { input: "-1, 2", expected: "a = -1, b = 2" }
+        ],
+        hints: ["Convert a and b to strings and merge them with label strings.", "Make sure spaces match exactly."],
+        time: "O(1)", space: "O(1)",
+        approach: "Hinglish: String dynamic representation use karein aur variables a aur b ko format me merge karein.",
+        bp: {
+          cpp: `#include <string>\nusing namespace std;\n\nstring formatOutput(int a, int b) {\n    // TODO: Return formatted string\n    \n}`,
+          java: `public class Solution {\n    public static String formatOutput(int a, int b) {\n        // TODO: Return formatted string\n        return "";\n    }\n}`,
+          python: `def formatOutput(a: int, b: int) -> str:\n    # TODO: Return formatted string\n    pass`,
+          javascript: `function formatOutput(a, b) {\n    // TODO: Return formatted string\n    \n}`
+        },
+        sol: {
+          cpp: `string formatOutput(int a, int b) { return "a = " + to_string(a) + ", b = " + to_string(b); }`,
+          java: `public static String formatOutput(int a, int b) { return "a = " + a + ", b = " + b; }`,
+          python: `def formatOutput(a, b):\n    return f"a = {a}, b = {b}"`,
+          javascript: `function formatOutput(a, b) { return "a = " + a + ", b = " + b; }`
+        }
+      },
+      challenge: {
+        title: "Round Value Output",
+        desc: "Given a floating-point number double val, round it to the nearest integer and return as a formatted string: 'Result: [rounded_val]'. E.g. 5.67 returns 'Result: 6'.",
+        constraints: "-10^4 <= val <= 10^4",
+        functionName: "roundValue",
+        testCases: [
+          { input: "5.67", expected: "Result: 6" },
+          { input: "3.21", expected: "Result: 3" }
+        ],
+        hints: ["Round the value first using round functions.", "Concatenate with prefix 'Result: '."],
+        time: "O(1)", space: "O(1)",
+        approach: "Hinglish: Math.round() se value ko round karein aur 'Result: ' string ke sath return karein.",
+        bp: {
+          cpp: `#include <string>\nusing namespace std;\n\nstring roundValue(double val) {\n    // TODO: Round and format\n    \n}`,
+          java: `public class Solution {\n    public static String roundValue(double val) {\n        // TODO: Round and format\n        return "";\n    }\n}`,
+          python: `def roundValue(val: float) -> str:\n    # TODO: Round and format\n    pass`,
+          javascript: `function roundValue(val) {\n    // TODO: Round and format\n    \n}`
+        },
+        sol: {
+          cpp: `string roundValue(double val) { return "Result: " + to_string((int)Math.round(val)); }`,
+          java: `public static String roundValue(double val) { return "Result: " + (int)Math.round(val); }`,
+          python: `def roundValue(val):\n    return f"Result: {int(round(val))}"`,
+          javascript: `function roundValue(val) { return "Result: " + Math.round(val); }`
+        }
+      }
+    },
+    datatypes: {
+      beginner: {
+        title: "Multiply Two Numbers",
+        desc: "Given two integers a and b, return their product. This introduces variables and arithmetic operators.",
+        constraints: "-10^4 <= a, b <= 10^4",
+        functionName: "multiply",
+        testCases: [
+          { input: "5, 10", expected: "50" },
+          { input: "-3, 4", expected: "-12" }
+        ],
+        hints: ["Declare a variable to store the result of a multiplied by b.", "Use the '*' operator."],
+        time: "O(1)", space: "O(1)",
+        approach: "Hinglish: Do inputs 'a' aur 'b' ko '*' operator se multiply karein aur result return karein.",
+        bp: {
+          cpp: `int multiply(int a, int b) {\n    // TODO: Write code here\n    \n}`,
+          java: `public class Solution {\n    public static int multiply(int a, int b) {\n        // TODO: Write code here\n        return 0;\n    }\n}`,
+          python: `def multiply(a: int, b: int) -> int:\n    # TODO: Write code here\n    pass`,
+          javascript: `function multiply(a, b) {\n    // TODO: Write code here\n    \n}`
+        },
+        sol: {
+          cpp: `int multiply(int a, int b) { return a * b; }`,
+          java: `public static int multiply(int a, int b) { return a * b; }`,
+          python: `def multiply(a, b):\n    return a * b`,
+          javascript: `function multiply(a, b) { return a * b; }`
+        }
+      },
+      easy: {
+        title: "Celsius to Fahrenheit",
+        desc: "Convert Celsius to Fahrenheit. The formula is F = (C * 9/5) + 32. Return the temperature rounded to the nearest integer.",
+        constraints: "-273 <= celsius <= 10^4",
+        functionName: "convertTemp",
+        testCases: [
+          { input: "0", expected: "32" },
+          { input: "37", expected: "99" }
+        ],
+        hints: ["Apply the formula: multiply celsius by 9, divide by 5, then add 32.", "Use Math.round() or standard integer casts to round off."],
+        time: "O(1)", space: "O(1)",
+        approach: "Hinglish: Formula apply karein: (celsius * 9/5) + 32 aur value ko nearest integer value pe round/cast karein.",
+        bp: {
+          cpp: `int convertTemp(int celsius) {\n    // TODO: Apply conversion formula\n    \n}`,
+          java: `public class Solution {\n    public static int convertTemp(int celsius) {\n        // TODO: Apply conversion formula\n        return 0;\n    }\n}`,
+          python: `def convertTemp(celsius: int) -> int:\n    # TODO: Apply conversion formula\n    pass`,
+          javascript: `function convertTemp(celsius) {\n    // TODO: Apply conversion formula\n    \n}`
+        },
+        sol: {
+          cpp: `int convertTemp(int celsius) { return (int)Math.round((celsius * 9.0 / 5.0) + 32); }`,
+          java: `public static int convertTemp(int celsius) { return (int)Math.round((celsius * 9.0 / 5.0) + 32); }`,
+          python: `def convertTemp(celsius):\n    return int(round((celsius * 9 / 5) + 32))`,
+          javascript: `function convertTemp(celsius) { return Math.round((celsius * 9 / 5) + 32); }`
+        }
+      },
+      medium: {
+        title: "ASCII Value of Character",
+        desc: "Given a character c, return its ASCII integer value. E.g. 'A' returns 65.",
+        constraints: "Any valid character",
+        functionName: "charToAscii",
+        testCases: [
+          { input: "'A'", expected: "65" },
+          { input: "'a'", expected: "97" }
+        ],
+        hints: ["Cast the character to an integer directly in strongly-typed languages.", "Use charCodeAt(0) in Javascript/Python."],
+        time: "O(1)", space: "O(1)",
+        approach: "Hinglish: Character ko integer me cast karein ya charCodeAt(0) method/ord() function call karein.",
+        bp: {
+          cpp: `int charToAscii(char c) {\n    // TODO: Return ASCII code\n    \n}`,
+          java: `public class Solution {\n    public static int charToAscii(char c) {\n        // TODO: Return ASCII code\n        return 0;\n    }\n}`,
+          python: `def charToAscii(c: str) -> int:\n    # TODO: Return ASCII code\n    pass`,
+          javascript: `function charToAscii(c) {\n    // TODO: Return ASCII code\n    \n}`
+        },
+        sol: {
+          cpp: `int charToAscii(char c) { return (int)c; }`,
+          java: `public static int charToAscii(char c) { return (int)c; }`,
+          python: `def charToAscii(c):\n    return ord(c)`,
+          javascript: `function charToAscii(c) { return c.charCodeAt(0); }`
+        }
+      },
+      challenge: {
+        title: "Size of Datatypes",
+        desc: "Given a string indicating a datatype ('Integer', 'Float', 'Double', or 'Character'), return its size in bytes (C++ standard: Integer=4, Float=4, Double=8, Character=1).",
+        constraints: "Type string matching one of the four types",
+        functionName: "datatypeSize",
+        testCases: [
+          { input: '"Integer"', expected: "4" },
+          { input: '"Double"', expected: "8" }
+        ],
+        hints: ["Use conditional statements (if-else or switch) to match the string name.", "Return standard sizes: Integer=4, Float=4, Double=8, Character=1."],
+        time: "O(1)", space: "O(1)",
+        approach: "Hinglish: String input match karein if-else structure me, aur default standard memory sizes return karein.",
+        bp: {
+          cpp: `#include <string>\nusing namespace std;\n\nint datatypeSize(string type) {\n    // TODO: Return byte size\n    \n}`,
+          java: `public class Solution {\n    public static int datatypeSize(String type) {\n        // TODO: Return byte size\n        return 0;\n    }\n}`,
+          python: `def datatypeSize(type: str) -> int:\n    # TODO: Return byte size\n    pass`,
+          javascript: `function datatypeSize(type) {\n    // TODO: Return byte size\n    \n}`
+        },
+        sol: {
+          cpp: `int datatypeSize(string type) { if(type == "Integer" || type == "Float") return 4; if(type == "Double") return 8; return 1; }`,
+          java: `public static int datatypeSize(String type) { if(type.equals("Integer") || type.equals("Float")) return 4; if(type.equals("Double")) return 8; return 1; }`,
+          python: `def datatypeSize(type):\n    return 8 if type == "Double" else 4 if type in ("Integer", "Float") else 1`,
+          javascript: `function datatypeSize(type) { if(type === "Integer" || type === "Float") return 4; if(type === "Double") return 8; return 1; }`
+        }
+      }
+    },
+    conditions: {
+      beginner: {
+        title: "Decision Making (If-Else / Switch)",
+        desc: "Write a function eligibleForVote(age) that returns 'Eligible' if age >= 18, and 'Not Eligible' otherwise.",
+        constraints: "1 <= age <= 150",
+        functionName: "eligibleForVote",
+        testCases: [
+          { input: "20", expected: "Eligible" },
+          { input: "16", expected: "Not Eligible" }
+        ],
+        hints: ["Use an 'if' statement to check if the age is greater than or equal to 18.", "Return strings exactly: 'Eligible' or 'Not Eligible'."],
+        time: "O(1)", space: "O(1)",
+        approach: "Hinglish: Age condition check karein: age >= 18 hone par 'Eligible' else 'Not Eligible' return karein.",
+        bp: {
+          cpp: `#include <string>\nusing namespace std;\n\nstring eligibleForVote(int age) {\n    // TODO: Write conditional logic\n    \n}`,
+          java: `public class Solution {\n    public static String eligibleForVote(int age) {\n        // TODO: Write conditional logic\n        return "";\n    }\n}`,
+          python: `def eligibleForVote(age: int) -> str:\n    # TODO: Write conditional logic\n    pass`,
+          javascript: `function eligibleForVote(age) {\n    // TODO: Write conditional logic\n    \n}`
+        },
+        sol: {
+          cpp: `string eligibleForVote(int age) { return age >= 18 ? "Eligible" : "Not Eligible"; }`,
+          java: `public static String eligibleForVote(int age) { return age >= 18 ? "Eligible" : "Not Eligible"; }`,
+          python: `def eligibleForVote(age):\n    return "Eligible" if age >= 18 else "Not Eligible"`,
+          javascript: `function eligibleForVote(age) { return age >= 18 ? "Eligible" : "Not Eligible"; }`
+        }
+      },
+      easy: {
+        title: "Even or Odd Check",
+        desc: "Given an integer n, return 'Even' if it is even, and 'Odd' if it is odd.",
+        constraints: "-10^5 <= n <= 10^5",
+        functionName: "checkEvenOdd",
+        testCases: [
+          { input: "4", expected: "Even" },
+          { input: "7", expected: "Odd" }
+        ],
+        hints: ["Use the remainder operator '%'. A number is even if n % 2 == 0."],
+        time: "O(1)", space: "O(1)",
+        approach: "Hinglish: Modulo operator % 2 check karein, agar zero hai to 'Even' else 'Odd'.",
+        bp: {
+          cpp: `#include <string>\nusing namespace std;\n\nstring checkEvenOdd(int n) {\n    // TODO: Even or odd\n    \n}`,
+          java: `public class Solution {\n    public static String checkEvenOdd(int n) {\n        // TODO: Even or odd\n        return "";\n    }\n}`,
+          python: `def checkEvenOdd(n: int) -> str:\n    # TODO: Even or odd\n    pass`,
+          javascript: `function checkEvenOdd(n) {\n    // TODO: Even or odd\n    \n}`
+        },
+        sol: {
+          cpp: `string checkEvenOdd(int n) { return n % 2 == 0 ? "Even" : "Odd"; }`,
+          java: `public static String checkEvenOdd(int n) { return n % 2 == 0 ? "Even" : "Odd"; }`,
+          python: `def checkEvenOdd(n):\n    return "Even" if n % 2 == 0 else "Odd"`,
+          javascript: `function checkEvenOdd(n) { return n % 2 === 0 ? "Even" : "Odd"; }`
+        }
+      },
+      medium: {
+        title: "Max of Three Integers",
+        desc: "Given three integers a, b, and c, return the maximum value.",
+        constraints: "-10^5 <= a,b,c <= 10^5",
+        functionName: "maxOfThree",
+        testCases: [
+          { input: "5, 12, 9", expected: "12" },
+          { input: "-10, -5, -20", expected: "-5" }
+        ],
+        hints: ["Use compound relational operators like '&&' or nesting 'if' checks."],
+        time: "O(1)", space: "O(1)",
+        approach: "Hinglish: Conditions check karein: if a >= b and a >= c return a, else if b >= c return b, else return c.",
+        bp: {
+          cpp: `int maxOfThree(int a, int b, int c) {\n    // TODO: Find max\n    \n}`,
+          java: `public class Solution {\n    public static int maxOfThree(int a, int b, int c) {\n        // TODO: Find max\n        return 0;\n    }\n}`,
+          python: `def maxOfThree(a: int, b: int, c: int) -> int:\n    # TODO: Find max\n    pass`,
+          javascript: `function maxOfThree(a, b, c) {\n    // TODO: Find max\n    \n}`
+        },
+        sol: {
+          cpp: `int maxOfThree(int a, int b, int c) { return max(a, max(b, c)); }`,
+          java: `public static int maxOfThree(int a, int b, int c) { return Math.max(a, Math.max(b, c)); }`,
+          python: `def maxOfThree(a, b, c):\n    return max(a, b, c)`,
+          javascript: `function maxOfThree(a, b, c) { return Math.max(a, b, c); }`
+        }
+      },
+      challenge: {
+        title: "Leap Year Checker",
+        desc: "Given a year, return 'Leap' if it is a leap year, and 'Not Leap' otherwise. (Divisible by 400, or divisible by 4 but not by 100).",
+        constraints: "1 <= year <= 9999",
+        functionName: "checkLeapYear",
+        testCases: [
+          { input: "2000", expected: "Leap" },
+          { input: "1900", expected: "Not Leap" }
+        ],
+        hints: ["Check divisible by 400 first: year % 400 == 0.", "Otherwise check if divisible by 4 AND NOT divisible by 100."],
+        time: "O(1)", space: "O(1)",
+        approach: "Hinglish: Condition apply karein: (year % 400 === 0) || (year % 4 === 0 && year % 100 !== 0) ? 'Leap' : 'Not Leap'.",
+        bp: {
+          cpp: `#include <string>\nusing namespace std;\n\nstring checkLeapYear(int year) {\n    // TODO: Leap check\n    \n}`,
+          java: `public class Solution {\n    public static String checkLeapYear(int year) {\n        // TODO: Leap check\n        return "";\n    }\n}`,
+          python: `def checkLeapYear(year: int) -> str:\n    # TODO: Leap check\n    pass`,
+          javascript: `function checkLeapYear(year) {\n    // TODO: Leap check\n    \n}`
+        },
+        sol: {
+          cpp: `string checkLeapYear(int year) { return (year % 400 == 0 || (year % 4 == 0 && year % 100 != 0)) ? "Leap" : "Not Leap"; }`,
+          java: `public static String checkLeapYear(int year) { return (year % 400 == 0 || (year % 4 == 0 && year % 100 != 0)) ? "Leap" : "Not Leap"; }`,
+          python: `def checkLeapYear(year):\n    return "Leap" if (year % 400 == 0 or (year % 4 == 0 and year % 100 != 0)) else "Not Leap"`,
+          javascript: `function checkLeapYear(year) { return (year % 400 === 0 || (year % 4 === 0 && year % 100 !== 0)) ? "Leap" : "Not Leap"; }`
+        }
+      }
+    },
+    loops: {
+      beginner: {
+        title: "Sum from 1 to N",
+        desc: "Given an integer n, calculate the sum of all integers from 1 to n.",
+        constraints: "1 <= n <= 10^4",
+        functionName: "sumToN",
+        testCases: [
+          { input: "5", expected: "15" },
+          { input: "100", expected: "5050" }
+        ],
+        hints: ["Initialize a sum accumulator to 0.", "Use a 'for' loop to iterate from 1 to n and add each value to the sum."],
+        time: "O(N)", space: "O(1)",
+        approach: "Hinglish: Ek loop chalaein 1 se n tak aur ek running total sum store karein.",
+        bp: {
+          cpp: `int sumToN(int n) {\n    // TODO: Loop sum\n    \n}`,
+          java: `public class Solution {\n    public static int sumToN(int n) {\n        // TODO: Loop sum\n        return 0;\n    }\n}`,
+          python: `def sumToN(n: int) -> int:\n    # TODO: Loop sum\n    pass`,
+          javascript: `function sumToN(n) {\n    // TODO: Loop sum\n    \n}`
+        },
+        sol: {
+          cpp: `int sumToN(int n) { int s = 0; for(int i=1; i<=n; i++) s += i; return s; }`,
+          java: `public static int sumToN(int n) { int s = 0; for(int i=1; i<=n; i++) s += i; return s; }`,
+          python: `def sumToN(n):\n    return sum(range(1, n+1))`,
+          javascript: `function sumToN(n) { let s = 0; for(let i=1; i<=n; i++) s += i; return s; }`
+        }
+      },
+      easy: {
+        title: "N-th Fibonacci Number",
+        desc: "Given an integer n, return the n-th Fibonacci number. E.g. fib(0)=0, fib(1)=1, fib(2)=1, fib(3)=2, fib(4)=3, etc.",
+        constraints: "0 <= n <= 30",
+        functionName: "fibLoop",
+        testCases: [
+          { input: "4", expected: "3" },
+          { input: "6", expected: "8" }
+        ],
+        hints: ["Initialize two variables for the first two Fibonacci values.", "Use a loop to compute the next term up to n."],
+        time: "O(N)", space: "O(1)",
+        approach: "Hinglish: Iterative approach (a = 0, b = 1) check karein. Loop chala kar numbers shift karein.",
+        bp: {
+          cpp: `int fibLoop(int n) {\n    // TODO: Loop Fibonacci\n    \n}`,
+          java: `public class Solution {\n    public static int fibLoop(int n) {\n        // TODO: Loop Fibonacci\n        return 0;\n    }\n}`,
+          python: `def fibLoop(n: int) -> int:\n    # TODO: Loop Fibonacci\n    pass`,
+          javascript: `function fibLoop(n) {\n    // TODO: Loop Fibonacci\n    \n}`
+        },
+        sol: {
+          cpp: `int fibLoop(int n) { if(n <= 1) return n; int a=0, b=1; for(int i=2; i<=n; i++) { int c=a+b; a=b; b=c; } return b; }`,
+          java: `public static int fibLoop(int n) { if(n <= 1) return n; int a=0, b=1; for(int i=2; i<=n; i++) { int c=a+b; a=b; b=c; } return b; }`,
+          python: `def fibLoop(n):\n    if n<=1: return n\n    a, b = 0, 1\n    for _ in range(2, n+1): a, b = b, a+b\n    return b`,
+          javascript: `function fibLoop(n) { if(n <= 1) return n; let a=0, b=1; for(let i=2; i<=n; i++) { let c=a+b; a=b; b=c; } return b; }`
+        }
+      },
+      medium: {
+        title: "Print Multiples of Three",
+        desc: "Given n, return a string containing all positive multiples of 3 up to n, separated by commas. E.g. for n=10, return '3,6,9'.",
+        constraints: "1 <= n <= 100",
+        functionName: "multiplesOfThree",
+        testCases: [
+          { input: "10", expected: "3,6,9" },
+          { input: "15", expected: "3,6,9,12,15" }
+        ],
+        hints: ["Loop with steps of 3: i = 3, i += 3.", "Join the values with commas. Make sure there is no trailing comma at the end."],
+        time: "O(N)", space: "O(N)",
+        approach: "Hinglish: Multiples of 3 loop karein (3, 6, 9) aur unhe comma concat string me bind karein.",
+        bp: {
+          cpp: `#include <string>\nusing namespace std;\n\nstring multiplesOfThree(int n) {\n    // TODO: Multiples of 3\n    \n}`,
+          java: `public class Solution {\n    public static String multiplesOfThree(int n) {\n        // TODO: Multiples of 3\n        return "";\n    }\n}`,
+          python: `def multiplesOfThree(n: int) -> str:\n    # TODO: Multiples of 3\n    pass`,
+          javascript: `function multiplesOfThree(n) {\n    // TODO: Multiples of 3\n    \n}`
+        },
+        sol: {
+          cpp: `string multiplesOfThree(int n) { string s = ""; for(int i=3; i<=n; i+=3) { if(s!="") s+=","; s+=to_string(i); } return s; }`,
+          java: `public static String multiplesOfThree(int n) { StringBuilder sb = new StringBuilder(); for(int i=3; i<=n; i+=3) { if(sb.length() > 0) sb.append(","); sb.append(i); } return sb.toString(); }`,
+          python: `def multiplesOfThree(n):\n    return ",".join(str(i) for i in range(3, n+1, 3))`,
+          javascript: `function multiplesOfThree(n) { let res = []; for(let i=3; i<=n; i+=3) res.push(i); return res.join(","); }`
+        }
+      },
+      challenge: {
+        title: "Check Prime Number",
+        desc: "Given an integer n, return 'Prime' if n is a prime number, and 'Not Prime' otherwise.",
+        constraints: "1 <= n <= 10^5",
+        functionName: "checkPrime",
+        testCases: [
+          { input: "7", expected: "Prime" },
+          { input: "12", expected: "Not Prime" }
+        ],
+        hints: ["Numbers <= 1 are not prime.", "Check divisibility from 2 to sqrt(n). If divisible, return 'Not Prime'."],
+        time: "O(sqrt(N))", space: "O(1)",
+        approach: "Hinglish: Prime checking limit loop `i * i <= n` tak chalaein. Agar divisible ho to directly return. Special case: <=1 invalid.",
+        bp: {
+          cpp: `#include <string>\nusing namespace std;\n\nstring checkPrime(int n) {\n    // TODO: Prime logic\n    \n}`,
+          java: `public class Solution {\n    public static String checkPrime(int n) {\n        // TODO: Prime logic\n        return "";\n    }\n}`,
+          python: `def checkPrime(n: int) -> str:\n    # TODO: Prime logic\n    pass`,
+          javascript: `function checkPrime(n) {\n    // TODO: Prime logic\n    \n}`
+        },
+        sol: {
+          cpp: `string checkPrime(int n) { if(n<=1) return "Not Prime"; for(int i=2; i*i<=n; i++) { if(n%i==0) return "Not Prime"; } return "Prime"; }`,
+          java: `public static String checkPrime(int n) { if(n<=1) return "Not Prime"; for(int i=2; i*i<=n; i++) { if(n%i==0) return "Not Prime"; } return "Prime"; }`,
+          python: `def checkPrime(n):\n    if n<=1: return "Not Prime"\n    for i in range(2, int(n**0.5)+1):\n        if n%i==0: return "Not Prime"\n    return "Prime"`,
+          javascript: `function checkPrime(n) { if(n<=1) return "Not Prime"; for(let i=2; i*i<=n; i++) { if(n%i===0) return "Not Prime"; } return "Prime"; }`
+        }
+      }
+    },
+    functions: {
+      beginner: {
+        title: "Simple Addition Function",
+        desc: "Implement a function that adds two numbers. The starter structure defines the parameters. Return their sum.",
+        constraints: "-10^4 <= a, b <= 10^4",
+        functionName: "addNumbers",
+        testCases: [
+          { input: "3, 5", expected: "8" },
+          { input: "-10, 40", expected: "30" }
+        ],
+        hints: ["Simply use the '+' operator on a and b.", "Return the result."],
+        time: "O(1)", space: "O(1)",
+        approach: "Hinglish: Simple function declaration check karein aur argument input values sum return karein.",
+        bp: {
+          cpp: `int addNumbers(int a, int b) {\n    // TODO: Return sum\n    \n}`,
+          java: `public class Solution {\n    public static int addNumbers(int a, int b) {\n        // TODO: Return sum\n        return 0;\n    }\n}`,
+          python: `def addNumbers(a: int, b: int) -> int:\n    # TODO: Return sum\n    pass`,
+          javascript: `function addNumbers(a, b) {\n    // TODO: Return sum\n    \n}`
+        },
+        sol: {
+          cpp: `int addNumbers(int a, int b) { return a + b; }`,
+          java: `public static int addNumbers(int a, int b) { return a + b; }`,
+          python: `def addNumbers(a, b):\n    return a + b`,
+          javascript: `function addNumbers(a, b) { return a + b; }`
+        }
+      },
+      easy: {
+        title: "Calculate Area of Rectangle",
+        desc: "Implement a function rectangleArea(l, w) that returns the area of a rectangle. If length or width is <= 0, return -1.",
+        constraints: "-100 <= l, w <= 10^4",
+        functionName: "rectangleArea",
+        testCases: [
+          { input: "5, 10", expected: "50" },
+          { input: "-2, 5", expected: "-1" }
+        ],
+        hints: ["Check if length <= 0 or width <= 0 first. If so, return -1.", "Otherwise, return l * w."],
+        time: "O(1)", space: "O(1)",
+        approach: "Hinglish: Conditions check parameters: if length <= 0 or width <= 0 return -1, otherwise length * width return karein.",
+        bp: {
+          cpp: `int rectangleArea(int l, int w) {\n    // TODO: Return area\n    \n}`,
+          java: `public class Solution {\n    public static int rectangleArea(int l, int w) {\n        // TODO: Return area\n        return 0;\n    }\n}`,
+          python: `def rectangleArea(l: int, w: int) -> int:\n    # TODO: Return area\n    pass`,
+          javascript: `function rectangleArea(l, w) {\n    // TODO: Return area\n    \n}`
+        },
+        sol: {
+          cpp: `int rectangleArea(int l, int w) { if(l<=0 || w<=0) return -1; return l * w; }`,
+          java: `public static int rectangleArea(int l, int w) { if(l<=0 || w<=0) return -1; return l * w; }`,
+          python: `def rectangleArea(l, w):\n    if l<=0 or w<=0: return -1\n    return l * w`,
+          javascript: `function rectangleArea(l, w) { if(l<=0 || w<=0) return -1; return l * w; }`
+        }
+      },
+      medium: {
+        title: "Convert Hours to Minutes",
+        desc: "Implement a function hoursToMinutes(hours) that converts hours to minutes.",
+        constraints: "0 <= hours <= 1000",
+        functionName: "hoursToMinutes",
+        testCases: [
+          { input: "2", expected: "120" },
+          { input: "0.5", expected: "30" }
+        ],
+        hints: ["Multiply hours by 60.", "Return the result."],
+        time: "O(1)", space: "O(1)",
+        approach: "Hinglish: Input hours ko 60 float decimal se multiply karein aur minutes return check logic build karein.",
+        bp: {
+          cpp: `double hoursToMinutes(double hours) {\n    // TODO: Convert hours\n    \n}`,
+          java: `public class Solution {\n    public static double hoursToMinutes(double hours) {\n        // TODO: Convert hours\n        return 0.0;\n    }\n}`,
+          python: `def hoursToMinutes(hours: float) -> float:\n    # TODO: Convert hours\n    pass`,
+          javascript: `function hoursToMinutes(hours) {\n    // TODO: Convert hours\n    \n}`
+        },
+        sol: {
+          cpp: `double hoursToMinutes(double hours) { return hours * 60.0; }`,
+          java: `public static double hoursToMinutes(double hours) { return hours * 60.0; }`,
+          python: `def hoursToMinutes(hours):\n    return hours * 60.0`,
+          javascript: `function hoursToMinutes(hours) { return hours * 60.0; }`
+        }
+      },
+      challenge: {
+        title: "Exponent Power Calculator",
+        desc: "Implement a function power(base, exp) that calculates base raised to the power exp (base^exp). E.g. power(2,3) = 8.",
+        constraints: "1 <= base <= 20, 0 <= exp <= 10",
+        functionName: "powerCalc",
+        testCases: [
+          { input: "2, 3", expected: "8" },
+          { input: "5, 0", expected: "1" }
+        ],
+        hints: ["Loop from 1 to exp and multiply base iteratively, or use language exponent functions.", "E.g. Math.pow in Java/JS, pow in C++, ** in Python."],
+        time: "O(log(exp))", space: "O(1)",
+        approach: "Hinglish: Math power operations return check: base ** exp in python or Math.pow(base, exp) in JS.",
+        bp: {
+          cpp: `int powerCalc(int base, int exp) {\n    // TODO: Power\n    \n}`,
+          java: `public class Solution {\n    public static int powerCalc(int base, int exp) {\n        // TODO: Power\n        return 0;\n    }\n}`,
+          python: `def powerCalc(base: int, exp: int) -> int:\n    # TODO: Power\n    pass`,
+          javascript: `function powerCalc(base, exp) {\n    // TODO: Power\n    \n}`
+        },
+        sol: {
+          cpp: `#include <cmath>\nint powerCalc(int base, int exp) { return (int)pow(base, exp); }`,
+          java: `public static int powerCalc(int base, int exp) { return (int)Math.pow(base, exp); }`,
+          python: `def powerCalc(base, exp):\n    return base ** exp`,
+          javascript: `function powerCalc(base, exp) { return Math.pow(base, exp); }`
+        }
+      }
+    },
     // 2. BUILD-UP LOGICAL THINKING (Patterns)
     patterns: {
       beginner: {
@@ -821,7 +1327,17 @@ export const getDsaLanguageContent = (topicTitle, languageKey = 'cpp', difficult
 
   // ─── CATEGORY MATCHING ────────────────────────────────────────────────────
   let category = 'basics';
-  if (t.includes('logical') || t.includes('pattern')) {
+  if (t.includes('printing') || t.includes('variable')) {
+    category = 'printing';
+  } else if (t.includes('data type') || t.includes('i/o') || t.includes('input') || t.includes('operator')) {
+    category = 'datatypes';
+  } else if (t.includes('condition') || t.includes('logic') || t.includes('decision') || t.includes('if')) {
+    category = 'conditions';
+  } else if (t.includes('loop') || t.includes('iteration') || t.includes('while') || t.includes('for')) {
+    category = 'loops';
+  } else if (t.includes('function')) {
+    category = 'functions';
+  } else if (t.includes('logical') || t.includes('pattern')) {
     category = 'patterns';
   } else if (t.includes('math')) {
     category = 'math';

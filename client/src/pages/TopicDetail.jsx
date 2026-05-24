@@ -303,14 +303,18 @@ const TopicDetail = () => {
   const langContent = isDsaDomain ? getDsaLanguageContent(topic?.title, selectedLang, activeDifficulty, useStriverAdvanced) : null;
 
   const activeVideoEmbedUrl = useMemo(() => {
-    if (langContent?.youtubePlaylistId) {
-      return `https://www.youtube.com/embed/videoseries?list=${langContent.youtubePlaylistId}`;
-    }
     if (langContent?.youtubeVideoId) {
       if (langContent.youtubeVideoId.length === 11) {
-        return `https://www.youtube.com/embed/${langContent.youtubeVideoId}?rel=0&modestbranding=1&showinfo=0`;
+        let url = `https://www.youtube.com/embed/${langContent.youtubeVideoId}?rel=0&modestbranding=1&showinfo=0`;
+        if (langContent.youtubePlaylistId && langContent.youtubePlaylistId !== 'PLgUwDviBHe0oF1vOXpxS_5t8s_D3E9A9_') {
+          url += `&list=${langContent.youtubePlaylistId}`;
+        }
+        return url;
       }
       return getYouTubeEmbedUrl(langContent.youtubeVideoId);
+    }
+    if (langContent?.youtubePlaylistId) {
+      return `https://www.youtube.com/embed/videoseries?list=${langContent.youtubePlaylistId}`;
     }
     if (topic?.youtubeLink) {
       return getYouTubeEmbedUrl(topic.youtubeLink);
@@ -376,16 +380,17 @@ const TopicDetail = () => {
       js = js.replace(/class\s+(\w+):/g, 'class $1 {');
       
       // Remove type annotations in parameter lists and functions
-      js = js.replace(/def\s+(\w+)\(([^)]*)\)\s*(->\s*[\w[\]]+)?:/g, (match, name, params) => {
+      js = js.replace(/^(\s*)def\s+(\w+)\(([^)]*)\)\s*(->\s*[\w[\]]+)?:/gm, (match, indent, name, params) => {
         const cleanParams = params.split(',').map(p => {
           const parts = p.split(':');
           return parts[0].replace('self', '').trim();
         }).filter(Boolean).join(', ');
         
+        const isStandalone = indent.length === 0;
         if (name === '__init__') {
-          return `constructor(${cleanParams}) {`;
+          return `${indent}constructor(${cleanParams}) {`;
         }
-        return `${name}(${cleanParams}) {`;
+        return isStandalone ? `${indent}function ${name}(${cleanParams}) {` : `${indent}${name}(${cleanParams}) {`;
       });
 
       // Replace Python syntax and logic keywords
@@ -439,12 +444,21 @@ const TopicDetail = () => {
       // Division conversions
       js = js.replace(/(\w+)\s*\/\/\s*(\w+)/g, 'Math.floor($1 / $2)');
       js = js.replace(/(\w+)\s*\/\/=\s*(\w+)/g, '$1 = Math.floor($1 / $2)');
+
+      // Strip class Solution if it was transpiled into the output
+      if (js.includes('class Solution')) {
+        js = js.replace(/class\s+Solution\s*\{/, '');
+        const lastBraceIdx = js.lastIndexOf('}');
+        if (lastBraceIdx !== -1) {
+          js = js.slice(0, lastBraceIdx) + js.slice(lastBraceIdx + 1);
+        }
+      }
     }
 
     if (lang === 'cpp' || lang === 'java') {
       // Safe outer Solution class stripping for Java/C++ LeetCode style
       if (js.includes('class Solution')) {
-        js = js.replace(/class\s+Solution\s*\{/, '');
+        js = js.replace(/(?:public\s+)?class\s+Solution\s*\{/, '');
         const lastBraceIdx = js.lastIndexOf('}');
         if (lastBraceIdx !== -1) {
           js = js.slice(0, lastBraceIdx) + js.slice(lastBraceIdx + 1);
@@ -455,12 +469,19 @@ const TopicDetail = () => {
       js = js.replace(/#include\s+<\w+>/g, '');
       js = js.replace(/using\s+namespace\s+\w+;/g, '');
       js = js.replace(/\bstd::/g, '');
-      js = js.replace(/public\s+class\s+\w+\s*\{/g, ''); // strip outer wrapper class
+      js = js.replace(/(?:public\s+)?class\s+\w+\s*\{/g, ''); // strip outer wrapper class
       js = js.replace(/public\s+static\s+/g, '');
       js = js.replace(/private\s+/g, '');
+      js = js.replace(/\b(public|private|protected)\s*:/g, ''); // C++ label modifiers
       
-      // Remove strong-typing constructs
-      js = js.replace(/\b(int|bool|double|void|float|long|long\s+long|string|char|vector<int>&|vector<int>|int\[\]|TreeNode\*|ListNode\*|TreeNode|ListNode)\b/g, '');
+      // Remove complex types (vectors, pointers, arrays, references) without trailing word boundary
+      js = js.replace(/\b(vector<int>&|vector<string>&|vector<double>&|vector<int>|vector<string>|vector<double>|TreeNode\*|ListNode\*|int\*|char\*|double\*|int\[\]|string\[\]|double\[\]|float\[\]|const)(?:\b)?/g, '');
+      
+      // Remove standard primitive types with word boundaries
+      js = js.replace(/\b(int|bool|double|void|float|long|long\s+long|string|char|TreeNode|ListNode)\b/g, '');
+      
+      // Strip any stray C++ reference/pointer symbols and const keywords inside parameter declarations
+      js = js.replace(/([,\(]\s*)[&*]/g, '$1');
       
       // Convert pointer arrows and nullptrs
       js = js.replace(/->/g, '.');
