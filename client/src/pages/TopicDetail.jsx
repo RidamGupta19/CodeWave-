@@ -1248,8 +1248,8 @@ const TopicDetail = () => {
         } catch (err) {
           setCompilerStatus('compile_error');
           if (err.message.includes('Maximum call stack size exceeded')) {
-            setConsoleLogs(prev => [...prev, `💥 AI MENTOR: Stack Overflow Detected! You missed a base case or your recursive call isn't reducing the problem size.`]);
-            toast.error('AI Mentor: Stack Overflow! Check your base case.');
+            setConsoleLogs(prev => [...prev, `💥 CODE GURU: Stack Overflow Detected! You missed a base case or your recursive call isn't reducing the problem size.`]);
+            toast.error('Code Guru: Stack Overflow! Check your base case.');
           } else {
             setConsoleLogs(prev => [...prev, `💥 Compilation Error: ${err.message}`]);
             toast.error('Compilation Error — check your syntax!');

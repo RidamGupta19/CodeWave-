@@ -403,8 +403,8 @@ const Dashboard = () => {
                 </div>
               )}
 
-              <Link to="/ai-mentor" className="flex items-center justify-center gap-2 w-full py-4 bg-[var(--primary)] hover:bg-[var(--primary-hover)] text-white rounded-xl text-xs font-black transition-all shadow-lg shadow-indigo-500/25">
-                Discuss Strategy with AI <FiArrowRight size={14} />
+              <Link to="/code-guru" className="flex items-center justify-center gap-2 w-full py-4 bg-[var(--primary)] hover:bg-[var(--primary-hover)] text-white rounded-xl text-xs font-black transition-all shadow-lg shadow-indigo-500/25">
+                Discuss Strategy with Code Guru <FiArrowRight size={14} />
               </Link>
             </div>
           </div>

@@ -16,8 +16,8 @@ const GlobalAiChat = () => {
   const [sending, setSending] = useState(false);
   const messagesEndRef = useRef(null);
 
-  // Hide the global chat bubble if the user is on the dedicated AI Mentor page
-  const isDedicatedChatPage = location.pathname === '/ai-mentor';
+  // Hide the global chat bubble if the user is on the dedicated Code Guru page
+  const isDedicatedChatPage = location.pathname === '/code-guru';
 
   useEffect(() => {
     if (isOpen && messages.length === 0) {
@@ -42,7 +42,7 @@ const GlobalAiChat = () => {
         setMessages([{
           _id: 'initial',
           role: 'assistant',
-          content: `Hi ${user?.fullName?.split(' ')[0] || 'there'}! 👋 I'm your AI Mentor.\n\nAsk me anything! Whether you want to know **where to start**, need help explaining a tricky coding logic, or want a daily study schedule, I'm here to support you! 🚀`
+          content: `Hi ${user?.fullName?.split(' ')[0] || 'there'}! 👋 I'm Code Guru.\n\nAsk me anything! Whether you want to know **where to start** or **what domain you should choose**, need help explaining a tricky coding logic, or want a daily study schedule, I'm here to support you! 🚀`
         }]);
       } else {
         setMessages(res.data.data);
@@ -95,8 +95,8 @@ const GlobalAiChat = () => {
                   <FiCpu className="text-white" />
                 </div>
                 <div>
-                  <div className="text-sm font-black tracking-tight leading-tight">CareerForge Coach</div>
-                  <div className="text-[9px] text-indigo-200 font-bold uppercase tracking-widest mt-0.5">Online AI Mentor</div>
+                  <div className="text-sm font-black tracking-tight leading-tight">Code Guru</div>
+                  <div className="text-[9px] text-indigo-200 font-bold uppercase tracking-widest mt-0.5">AI Coding Helper</div>
                 </div>
               </div>
               <button 
@@ -113,7 +113,7 @@ const GlobalAiChat = () => {
               {messages.map((msg) => (
                 <div key={msg._id} className={`flex flex-col ${msg.role === 'user' ? 'items-end' : 'items-start'}`}>
                   <span className="text-[8px] text-[var(--text-light)] font-bold uppercase tracking-wider mb-1 px-1">
-                    {msg.role === 'user' ? 'You' : 'Mentor'}
+                    {msg.role === 'user' ? 'You' : 'Code Guru'}
                   </span>
                   <div className={`text-xs max-w-[85%] rounded-2xl px-3.5 py-2.5 shadow-sm leading-relaxed ${
                     msg.role === 'user' 
@@ -134,7 +134,7 @@ const GlobalAiChat = () => {
               {/* Typing indicator */}
               {sending && (
                 <div className="flex flex-col items-start">
-                  <span className="text-[8px] text-[var(--text-light)] font-bold uppercase tracking-wider mb-1 px-1">Mentor typing</span>
+                  <span className="text-[8px] text-[var(--text-light)] font-bold uppercase tracking-wider mb-1 px-1">Code Guru typing</span>
                   <div className="bg-[var(--bg-card)] rounded-2xl rounded-tl-none border border-[var(--border)] px-4 py-2.5 flex items-center gap-1 shadow-sm">
                     <div className="w-2 h-2 bg-[var(--primary)] rounded-full animate-bounce"></div>
                     <div className="w-2 h-2 bg-[var(--primary)] rounded-full animate-bounce" style={{animationDelay: '0.15s'}}></div>
@@ -177,7 +177,7 @@ const GlobalAiChat = () => {
         whileTap={{ scale: 0.95 }}
         onClick={() => setIsOpen(!isOpen)}
         className="w-14 h-14 rounded-full bg-gradient-to-br from-violet-600 via-indigo-600 to-purple-600 text-white flex items-center justify-center shadow-lg hover:shadow-xl shadow-indigo-500/30 transition-all border border-white/15"
-        title="Chat with AI Mentor"
+        title="Chat with Code Guru"
       >
         {isOpen ? <FiX className="text-2xl" /> : <FiMessageSquare className="text-2xl" />}
       </motion.button>

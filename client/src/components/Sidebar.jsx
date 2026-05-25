@@ -25,7 +25,7 @@ const Sidebar = ({ isAdmin, isOpen, onClose }) => {
     { name: 'Assessments', path: '/assessments', icon: <FiCheckSquare /> },
     { name: 'Free Resources', path: '/resources', icon: <FiGift /> },
     { name: 'Career Guide', path: '/career-guide', icon: <FiBookOpen /> },
-    { name: 'AI Mentor', path: '/ai-mentor', icon: <FiMessageSquare /> },
+    { name: 'Code Guru', path: '/code-guru', icon: <FiMessageSquare /> },
   ];
 
   const adminLinks = [

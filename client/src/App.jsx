@@ -45,7 +45,7 @@ function App() {
               <Route path="/roadmap" element={<Roadmap />} />
               <Route path="/topic/:id" element={<TopicDetail />} />
               <Route path="/assessments" element={<Assessments />} />
-              <Route path="/ai-mentor" element={<AiChat />} />
+              <Route path="/code-guru" element={<AiChat />} />
               <Route path="/resources" element={<Resources />} />
               <Route path="/career-guide" element={<CareerGuide />} />
               <Route path="/zero-to-coding" element={<ZeroToCoding />} />

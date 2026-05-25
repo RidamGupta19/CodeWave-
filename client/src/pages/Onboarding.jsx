@@ -227,7 +227,7 @@ const Onboarding = () => {
         >
           <h2 className="text-2xl md:text-3xl font-black mb-1.5 leading-snug">{currentQuestion.question}</h2>
           <p className="text-xs text-[var(--text-light)] font-bold uppercase tracking-wider mb-8 flex items-center gap-2">
-            {isDsa ? <><FiMessageSquare /> AI DSA mentor is calibrating your first mission.</> : 'Tell us a bit about yourself so we can tailor your experience.'}
+            {isDsa ? <><FiMessageSquare /> Code Guru is calibrating your first mission.</> : 'Tell us a bit about yourself so we can tailor your experience.'}
           </p>
 
           <div className="space-y-3 max-h-[350px] overflow-y-auto pr-1 no-scrollbar">

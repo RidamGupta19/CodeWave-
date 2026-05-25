@@ -81,7 +81,7 @@ const AiChat = () => {
         setMessages([{
           _id: 'initial',
           role: 'assistant',
-          content: `Hi ${user.fullName.split(' ')[0]}! 👋 I'm your CareerForge Personalized Mentor.\n\nI've analyzed your progress, XP, completed lessons, and assessments to design your coaching blueprint. I can guide you on:\n\n* **Weak Topics:** Step-by-step revision strategies.\n* **Placement Audit:** Job & internship readiness advice.\n* **Learning Plan:** Crafting optimal weekly study schedules.\n* **Interactive Support:** Explaining complex systems & logic games.\n\nWhat should we tackle today? Choose a suggested question below or ask me anything! 🚀`
+          content: `Hi ${user.fullName.split(' ')[0]}! 👋 I am Code Guru, your personal coding helper!\n\nI can guide you on:\n\n* **Domain Selection:** Deciding what domain to choose (Web Development or DSA).\n* **Weak Topics:** Targeted revision and practice strategies.\n* **Weekly Plan:** Custom learning schedules built for your pace.\n* **Placement Audit:** Placement and internship readiness metrics.\n* **Concepts & Coding:** Explaining tricky programming syntax or logic.\n\nWhat should we tackle today? Choose a suggested question below or ask me anything! 🚀`
         }]);
       } else {
         setMessages(res.data.data);
@@ -125,7 +125,7 @@ const AiChat = () => {
       // Refresh insights dynamically after a question is asked to keep stats in sync!
       fetchInsights();
     } catch (err) {
-      toast.error('Failed to get mentor response');
+      toast.error('Failed to get response from Code Guru');
       setMessages(prev => prev.filter(m => m._id !== newMsg._id));
     } finally {
       setSending(false);
@@ -148,11 +148,11 @@ const AiChat = () => {
   };
 
   const suggestedPrompts = [
+    { label: "What domain should I choose?", text: "What domain should I choose?" },
     { label: "What should I learn next?", text: "What should I learn next in my roadmap?" },
     { label: "Analyze my performance", text: "Analyze my performance, what are my weak topics?" },
     { label: "Create my weekly plan", text: "Create my weekly study plan based on my pace" },
-    { label: "Suggest a project", text: "Suggest a project for my level and domain" },
-    { label: "How close is internship?", text: "How close am I to internship readiness?" }
+    { label: "Suggest a project", text: "Suggest a project for my level and domain" }
   ];
 
   if (loading) return (
@@ -169,9 +169,9 @@ const AiChat = () => {
         <div>
           <h1 className="text-3xl font-black text-[var(--text-main)] flex items-center gap-2.5">
             <span className="bg-gradient-to-r from-violet-500 to-indigo-500 text-white p-2 rounded-xl text-lg shadow-md shrink-0">🤖</span>
-            AI Personal <span className="text-gradient">Mentor & Coach</span>
+            <span className="text-gradient">Code Guru</span> AI Chat
           </h1>
-          <p className="text-xs text-[var(--text-light)] font-bold uppercase tracking-wider mt-1">Adaptive feedback based on your actual performance logs</p>
+          <p className="text-xs text-[var(--text-light)] font-bold uppercase tracking-wider mt-1">Your premium personal coding mentor, career coach, and assistant</p>
         </div>
         <button 
           onClick={handleClear} 
@@ -283,7 +283,7 @@ const AiChat = () => {
                   }`}>
                     {msg.role === 'user' ? <FiUser size={12} /> : <FiCpu size={12} />}
                   </div>
-                  <span className="text-[9px] text-[var(--text-light)] font-black uppercase tracking-wider">{msg.role === 'user' ? 'You' : 'Personal Coach'}</span>
+                  <span className="text-[9px] text-[var(--text-light)] font-black uppercase tracking-wider">{msg.role === 'user' ? 'You' : 'Code Guru'}</span>
                 </div>
                 
                 {/* Bubble Container */}
@@ -312,7 +312,7 @@ const AiChat = () => {
                   <div className="w-6 h-6 rounded-lg flex items-center justify-center text-xs bg-gradient-to-tr from-violet-500 to-indigo-500 text-white">
                     <FiCpu size={12} />
                   </div>
-                  <span className="text-[9px] text-[var(--text-light)] font-black uppercase tracking-wider">Coach typing</span>
+                  <span className="text-[9px] text-[var(--text-light)] font-black uppercase tracking-wider">Code Guru typing</span>
                 </div>
                 
                 <div className="bg-[var(--bg-sub)] rounded-2xl rounded-tl-none border border-[var(--border)] p-4 flex items-center gap-1.5 shadow-sm">
@@ -353,7 +353,7 @@ const AiChat = () => {
                 type="text"
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
-                placeholder="Ask your coach anything about logic templates, interview prep..."
+                placeholder="Ask Code Guru anything about code syntax, domain choices, career prep..."
                 className="flex-1 bg-[var(--bg-sub)] border border-[var(--border)] rounded-xl px-4 py-3 text-sm text-[var(--text-main)] placeholder-[var(--text-light)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)] transition-all font-semibold"
                 disabled={sending}
               />

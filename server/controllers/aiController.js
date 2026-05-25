@@ -169,14 +169,14 @@ const generateMockResponse = (userMessage, ins) => {
   if (lowerMsg.includes('weak') || lowerMsg.includes('improve') || lowerMsg.includes('performance') || lowerMsg.includes('analyze')) {
     return `### 📊 Dynamic Performance Analysis
 
-Hello! Here is your personalized mentor diagnostic board for **${ins.domain}**:
+Hello! Here is your personalized Code Guru diagnostic board for **${ins.domain}**:
 
 * **Strongest Area:** You are currently strongest in **${ins.strongestTopic}**. You completed these lessons with high self-confidence parameters!
 * **Revision Needed:** **${ins.weakestTopic}** is currently flagged as your primary area for review. You flagged this topic due to high complexity or low confidence.
 * **Consistency Index:** **${ins.consistency}** (Active days in past 2 weeks: \`${ins.activeDaysLast14}\` days).
 * **Test Performance:** Average score of \`${ins.avgScore}%\` across \`${ins.totalTestsAttempted}\` assessments.
 
-#### 💡 Mentor Blueprint Suggestions:
+#### 💡 Code Guru Blueprint Suggestions:
 1. Re-open the **${ins.weakestTopic}** lecture page. Go through the optimal boilerplate, and try copying the source code to zero-to-coding to execute custom print outputs.
 2. Build a mini project targeting **${ins.strongestTopic}** to solidify your pattern recognition.
 3. Dedicate just 15-20 minutes daily. Consistency yields interview readiness far quicker than heavy cram sessions!`;
@@ -195,7 +195,7 @@ Based on your current progress in **Phase ${ins.phase}** of the **${ins.domain}*
   2. If you have active topics pending, click on the start challenge link to master it.
   3. If you have finished all topics in Level \`${ins.phase}\`, navigate to [Assessments](file:///assessments) and attempt the phase quiz to unlock the next level badge!
 
-*🎯 **Mentorship Tip:** Always log your study time accurately. This updates our dynamic calendar tracking so I can adjust your learning pace recommendations!*`;
+*🎯 **Code Guru Tip:** Always log your study time accurately. This updates our dynamic calendar tracking so I can adjust your learning pace recommendations!*`;
   }
 
   // 3. Weekly study plan / Schedule
@@ -268,13 +268,16 @@ Here is your calculated standing:
 
   // 6. Where to start / Onboarding analysis
   if (lowerMsg.includes('start') || lowerMsg.includes('how to start') || lowerMsg.includes('where to start') || lowerMsg.includes('onboarding')) {
-    const skillLevel = ins.onboardingAnswers?.coding_experience || 'beginner';
-    const studyTime = ins.onboardingAnswers?.daily_time || '60';
-    const goal = ins.onboardingAnswers?.goal || 'placements';
-    const language = ins.preferredLang || 'JavaScript';
+    if (lowerMsg.includes('domain') || lowerMsg.includes('choose') || lowerMsg.includes('select') || lowerMsg.includes('which') || lowerMsg.includes('what')) {
+      // Will be handled by the domain section below
+    } else {
+      const skillLevel = ins.onboardingAnswers?.coding_experience || 'beginner';
+      const studyTime = ins.onboardingAnswers?.daily_time || '60';
+      const goal = ins.onboardingAnswers?.goal || 'placements';
+      const language = ins.preferredLang || 'JavaScript';
 
-    return `### 🚀 Welcome to your CareerForge Onboarding Blueprint!
-    
+      return `### 🚀 Welcome to your Code Guru Onboarding Blueprint!
+      
 I've analyzed the onboarding answers you chose when setting up your **${ins.domain}** domain. Let's get you aligned on exactly where and how to start:
 
 * **Onboarding Skill Level:** \`${skillLevel.toUpperCase()}\`
@@ -293,24 +296,51 @@ I've analyzed the onboarding answers you chose when setting up your **${ins.doma
 - **Solve Coding Checkpoints**: Once you unlock coding challenges, write your code directly in the Monaco editor and click **Run Code**. When all test cases pass, click **Complete Checkpoint** to earn **+50 XP** and unlock the next level!
 
 *Remember: I am incredibly proud of you for starting this journey! Learning coding is a marathon, and consistency is your superpower. Let's make today a great day of learning! 🌟*`;
+    }
+  }
+
+  // 6.5. Domain choice questions
+  if (lowerMsg.includes('domain') && (lowerMsg.includes('choose') || lowerMsg.includes('select') || lowerMsg.includes('which') || lowerMsg.includes('start') || lowerMsg.includes('what'))) {
+    return `### 🧭 Code Guru Domain Selection Guide
+    
+I would be absolutely delighted to help you choose the perfect domain! Selecting your learning path is a crucial milestone, and I'm here to ensure you feel confident and excited.
+
+Currently, we offer two high-impact domains on CareerForge:
+
+1. **Web Development (Frontend & Full-Stack Focus)**:
+   * **Best For**: Creative minds who want to build visual projects, landing pages, and interactive web applications.
+   * **Core Languages**: HTML, CSS, JavaScript.
+   * **Why Choose It**: It's highly visual, has a gentler learning curve, and is excellent for building a portfolio of client/freelance work quickly.
+
+2. **Data Structures & Algorithms (DSA - Interview Prep)**:
+   * **Best For**: Students targeting technical interviews at top product-based companies (FAANG/MAANG) and building deep problem-solving intuition.
+   * **Core Languages**: C++, Java, Python, or JavaScript.
+   * **Why Choose It**: It's the benchmark for competitive coding rounds, strengthening your fundamental computational logic.
+
+#### 💡 My Recommendation:
+- If you are a complete beginner who wants to see immediate, visual results, choose **Web Development**.
+- If you already know basic programming and want to focus heavily on placement coding rounds, select **DSA**.
+
+*Remember, you can always switch domains or explore both! To choose a domain, click on the **[Domains](file:///domains)** tab in the sidebar and click **Forge My Path** under your chosen domain. Let's start building something incredible! 🚀*`;
   }
 
   // 7. ChatGPT style fallback for general questions
   if (!lowerMsg.includes('weak') && !lowerMsg.includes('learn next') && !lowerMsg.includes('weekly') && !lowerMsg.includes('project') && !lowerMsg.includes('readiness') && !lowerMsg.includes('internship') && !lowerMsg.includes('job')) {
     if (lowerMsg.length < 10) {
-      return `### 👋 Hello! I'm your CareerForge Mentor!
+      return `### 👋 Hello! I'm Code Guru!
       
 I am absolutely thrilled to support your learning journey today! Your dedication to mastering **${ins.domain}** is super inspiring. 
 
 Tell me, what concepts or challenges are you exploring today? I can help you with:
 - Explaining tricky code syntax and design patterns.
 - Telling you **"where should I start?"** to review your onboarding plan.
+- Explaining **"what domain should I choose?"** if you are deciding between Web Dev and DSA.
 - Generating custom study schedules or placement tips.
 
 Let's smash your goals today! What's on your mind? 🚀`;
     }
 
-    return `### 💡 CareerForge Mentor Insights
+    return `### 💡 Code Guru Insights
     
 That is a brilliant question! I love your curiosity and commitment to learning. Here is some personalized guidance to help you navigate:
 
@@ -318,13 +348,13 @@ That is a brilliant question! I love your curiosity and commitment to learning. 
 2. **Celebrate the Small Wins**: Building a coding career is a step-by-step process. Appreciate how far you've come from choosing your **${ins.domain}** domain.
 3. **Targeted Commitment**: Dedicate 15-30 minutes of focused practice today. Daily consistency is worth far more than cramming over weekends.
 
-*Note: As your mentor, I want to appreciate your curiosity! Keep asking questions. If you hook up a valid API key, I will be able to answer any custom code questions with full ChatGPT capabilities.*
+*Note: As Code Guru, I want to appreciate your curiosity! Keep asking questions. If you hook up a valid API key, I will be able to answer any custom code questions with full ChatGPT capabilities.*
 
 What else would you like to explore next? I'm here to support you! 💪`;
   }
 
   // 8. Default fallback
-  return `### ⚡ CareerForge AI Adaptive Mentor Board
+  return `### ⚡ Code Guru Adaptive Dashboard
 
 Welcome! I've run a deep diagnostic on your progress:
 
@@ -339,6 +369,7 @@ Welcome! I've run a deep diagnostic on your progress:
 * Ask me: **"Suggest a project for my level"** to see tailored projects.
 * Ask me: **"How close am I to internship readiness?"** to run a job audit.
 * Ask me: **"Where should I start?"** to see your onboarding guide.
+* Ask me: **"What domain should I choose?"** to see a guide.
 
 How can I coach you to success today? 🚀`;
 };
@@ -378,9 +409,9 @@ exports.chat = async (req, res) => {
               .join('\n')
           : 'None provided';
 
-        const systemInstructions = `You are CareerForge AI, a premium personalized coding mentor and adaptive learning coach for engineering students.
+        const systemInstructions = `You are Code Guru, a premium personalized coding mentor, career coach, and programming assistant for engineering students on CareerForge.
         
-        You NEVER generate generic chatbot responses. You speak directly to the student's actual performance.
+        You speak directly to the student's needs, whether they are asking general programming/career questions or performance-related ones. You are a fully capable ChatGPT-style helper, and you can answer ANY general questions about programming, career prep, choosing a learning domain, software design, and engineering.
         
         Here is the student's real-time diagnostic performance metrics:
         - Domain: ${insights.domain}
@@ -400,10 +431,10 @@ exports.chat = async (req, res) => {
         
         Guidelines:
         1. Adapt your tone: Be humanized, extremely encouraging, practical, and highly data-driven. Always appreciate their efforts, celebrate small milestones, and motivate them to continue learning! Never demotivate them.
-        2. Reference their actual metrics and onboarding context (experience level, goals, daily study time). Tell them exactly where to start and how to start their learning path on CareerForge based on their current stage.
+        2. Reference their actual metrics and onboarding context (experience level, goals, daily study time) where relevant. Tell them exactly where to start and how to start their learning path on CareerForge based on their current stage.
         3. If they are weak at "${insights.weakestTopic}", suggest specific actionable code approaches or tracing strategies.
-        4. Render your response beautifully in GitHub-flavored markdown with clean list metrics, code blocks, bold headers, and supportive emojis. Keep it concise but highly valuable.
-        5. You are like ChatGPT — you can answer ANY general questions about programming, career prep, design, and software engineering. Do not restrict yourself to only performance reports.`;
+        4. Render your response beautifully in GitHub-flavored markdown with clean list metrics, code blocks, bold headers, and supportive emojis.
+        5. You act like ChatGPT — answer general queries (like "what should domain i choose") with deep, complete, and encouraging advice.`;
 
         if (isGemini) {
           url = `${process.env.AI_API_URL}?key=${process.env.AI_API_KEY}`;
@@ -414,8 +445,11 @@ exports.chat = async (req, res) => {
               }]
             }],
             generationConfig: {
-              maxOutputTokens: 800,
-              temperature: 0.7
+              maxOutputTokens: 2048,
+              temperature: 0.7,
+              thinkingConfig: {
+                thinkingBudget: 0
+              }
             }
           });
         } else {
@@ -426,7 +460,7 @@ exports.chat = async (req, res) => {
               { role: 'system', content: systemInstructions },
               { role: 'user', content: message }
             ],
-            max_tokens: 800,
+            max_tokens: 2048,
             temperature: 0.7
           });
         }
