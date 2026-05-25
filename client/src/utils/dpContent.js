@@ -1,196 +1,1500 @@
-// Dynamic Programming Explorer Checkpoint Data (3 Checkpoints)
-export const getDpCheckpointContent = (checkpointId, lang = 'cpp') => {
+// DP Explorer Checkpoint Data (27 Checkpoints)
+export const getDPCheckpointContent = (checkpointId, lang = 'cpp') => {
   const language = (lang || 'cpp').toLowerCase() === 'js' ? 'javascript' : (lang || 'cpp').toLowerCase();
 
   const checkpoints = {
     dp_cp1: {
-      title: 'Climbing Stairs',
-      subtitle: 'Use Dynamic Programming to count distinct ways to climb stairs.',
+      title: 'DP 1 Introduction to Dynamic Programming Memoization Tabulation Space Optimizati',
+      subtitle: 'DP 1 Introduction to Dynamic Programming Memoization Tabulation Space Optimization Techniques',
       videoEmbedUrl: 'https://www.youtube.com/embed/tyB0ztf0DNY?rel=0&modestbranding=1',
       challenges: {
         cpp: {
-          title: 'Climbing Stairs',
-          desc: 'You are climbing a staircase. It takes n steps to reach the top. Each time you can either climb 1 or 2 steps. In how many distinct ways can you climb to the top?',
-          functionName: 'climbStairs',
-          constraints: '1 <= n <= 45',
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
           testCases: [
-            { input: '2', expected: '2' },
-            { input: '3', expected: '3' },
-            { input: '5', expected: '8' }
+            { input: '"test"', expected: '1' }
           ],
-          hints: ['This follows the Fibonacci sequence pattern: ways(n) = ways(n-1) + ways(n-2).', 'Use memoization or bottom-up tabulation to solve in O(N) time.'],
-          bp: 'int climbStairs(int n) {\n    // Write your code here\n    \n}',
-          sol: 'int climbStairs(int n) {\n    if(n <= 2) return n;\n    int prev2 = 1, prev = 2;\n    for(int i = 3; i <= n; i++) {\n        int curr = prev + prev2;\n        prev2 = prev;\n        prev = curr;\n    }\n    return prev;\n}'
+          hints: ['Follow the approach discussed in the video.'],
+          bp: 'int solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'int solve() {\n    return 1;\n}'
         },
         java: {
-          title: 'Climbing Stairs',
-          desc: 'Each time you can climb 1 or 2 steps. Find distinct ways to climb to n steps.',
-          functionName: 'climbStairs',
-          constraints: '1 <= n <= 45',
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
           testCases: [
-            { input: '2', expected: '2' },
-            { input: '3', expected: '3' },
-            { input: '5', expected: '8' }
+            { input: '"test"', expected: '1' }
           ],
-          hints: ['Use simple variables to space-optimize the DP.'],
-          bp: 'public class Solution {\n    public static int climbStairs(int n) {\n        // Write your code here\n        return 0;\n    }\n}',
-          sol: 'public static int climbStairs(int n) {\n    if(n <= 2) return n;\n    int prev2 = 1, prev = 2;\n    for(int i = 3; i <= n; i++) {\n        int curr = prev + prev2;\n        prev2 = prev;\n        prev = curr;\n    }\n    return prev;\n}'
+          hints: ['Implement the logic from the tutorial.'],
+          bp: 'public class Solution {\n    public static int solve() {\n        // Write your logic here\n        return 1;\n    }\n}',
+          sol: 'public static int solve() {\n    return 1;\n}'
         },
         python: {
-          title: 'Climbing Stairs',
-          desc: 'Each time you can climb 1 or 2 steps. Find distinct ways to climb to n steps.',
-          functionName: 'climb_stairs',
-          constraints: '1 <= n <= 45',
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
           testCases: [
-            { input: '2', expected: '2' },
-            { input: '3', expected: '3' },
-            { input: '5', expected: '8' }
+            { input: '"test"', expected: '1' }
           ],
-          hints: ['Iteratively calculate sums.'],
-          bp: 'def climb_stairs(n: int) -> int:\n    # Write your code here\n    pass',
-          sol: 'def climb_stairs(n):\n    if n <= 2: return n\n    prev2, prev = 1, 2\n    for i in range(3, n + 1):\n        curr = prev + prev2\n        prev2, prev = prev, curr\n    return prev'
+          hints: ['Python implementation of the algorithm.'],
+          bp: 'def solve():\n    # Write your logic here\n    return 1',
+          sol: 'def solve():\n    return 1'
         },
         javascript: {
-          title: 'Climbing Stairs',
-          desc: 'Each time you can climb 1 or 2 steps. Find distinct ways to climb to n steps.',
-          functionName: 'climbStairs',
-          constraints: '1 <= n <= 45',
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
           testCases: [
-            { input: '2', expected: '2' },
-            { input: '3', expected: '3' },
-            { input: '5', expected: '8' }
+            { input: '"test"', expected: '1' }
           ],
-          hints: ['Accumulate using dynamic variables.'],
-          bp: 'function climbStairs(n) {\n    // Write your code here\n    \n}',
-          sol: 'function climbStairs(n) {\n    if(n <= 2) return n;\n    let prev2 = 1, prev = 2;\n    for(let i = 3; i <= n; i++) {\n        let curr = prev + prev2;\n        prev2 = prev;\n        prev = curr;\n    }\n    return prev;\n}'
+          hints: ['Implement the approach step-by-step.'],
+          bp: 'function solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'function solve() {\n    return 1;\n}'
         }
       }
     },
     dp_cp2: {
-      title: 'House Robber',
-      subtitle: 'Find the maximum amount of money you can rob without alerting police (non-adjacent sum optimization).',
-      videoEmbedUrl: 'https://www.youtube.com/embed/7cELW7O_E9k?rel=0&modestbranding=1',
+      title: 'DP 3 Frog Jump Dynamic Programming Learn to write 1D DP',
+      subtitle: 'DP 3 Frog Jump Dynamic Programming Learn to write 1D DP',
+      videoEmbedUrl: 'https://www.youtube.com/embed/EgG3jsGoPvQ?rel=0&modestbranding=1',
       challenges: {
         cpp: {
-          title: 'House Robber',
-          desc: 'Given a list of non-negative integers representing the amount of money of each house, determine the maximum amount of money you can rob tonight without robbing adjacent houses.',
-          functionName: 'rob',
-          constraints: '1 <= nums.size() <= 100',
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
           testCases: [
-            { input: '[1, 2, 3, 1]', expected: '4' },
-            { input: '[2, 7, 9, 3, 1]', expected: '12' }
+            { input: '"test"', expected: '1' }
           ],
-          hints: ['DP State: dp[i] = max(dp[i-1], nums[i] + dp[i-2]).', 'Optimize space to O(1) by maintaining the two previous sums.'],
-          bp: '#include <vector>\n#include <algorithm>\nusing namespace std;\n\nint rob(vector<int>& nums) {\n    // Write your code here\n    \n}',
-          sol: 'int rob(vector<int>& nums) {\n    int n = nums.size();\n    if(n == 0) return 0;\n    if(n == 1) return nums[0];\n    int prev2 = 0, prev = nums[0];\n    for(int i = 1; i < n; i++) {\n        int curr = max(prev, nums[i] + prev2);\n        prev2 = prev;\n        prev = curr;\n    }\n    return prev;\n}'
+          hints: ['Follow the approach discussed in the video.'],
+          bp: 'int solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'int solve() {\n    return 1;\n}'
         },
         java: {
-          title: 'House Robber',
-          desc: 'Determine max robbery money from non-adjacent houses.',
-          functionName: 'rob',
-          constraints: '1 <= nums.size() <= 100',
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
           testCases: [
-            { input: 'java.util.Arrays.asList(1, 2, 3, 1)', expected: '4' },
-            { input: 'java.util.Arrays.asList(2, 7, 9, 3, 1)', expected: '12' }
+            { input: '"test"', expected: '1' }
           ],
-          hints: ['Implement the max(prev, current + prev2) state transition.'],
-          bp: 'import java.util.List;\n\npublic class Solution {\n    public static int rob(List<Integer> nums) {\n        // Write your code here\n        return 0;\n    }\n}',
-          sol: 'public static int rob(List<Integer> nums) {\n    int n = nums.size();\n    if(n == 0) return 0;\n    if(n == 1) return nums.get(0);\n    int prev2 = 0, prev = nums.get(0);\n    for(int i = 1; i < n; i++) {\n        int curr = Math.max(prev, nums.get(i) + prev2);\n        prev2 = prev;\n        prev = curr;\n    }\n    return prev;\n}'
+          hints: ['Implement the logic from the tutorial.'],
+          bp: 'public class Solution {\n    public static int solve() {\n        // Write your logic here\n        return 1;\n    }\n}',
+          sol: 'public static int solve() {\n    return 1;\n}'
         },
         python: {
-          title: 'House Robber',
-          desc: 'Determine max robbery money from non-adjacent houses.',
-          functionName: 'rob',
-          constraints: '1 <= len(nums) <= 100',
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
           testCases: [
-            { input: '[1, 2, 3, 1]', expected: '4' },
-            { input: '[2, 7, 9, 3, 1]', expected: '12' }
+            { input: '"test"', expected: '1' }
           ],
-          hints: ['Keep track of maximums iteratively.'],
-          bp: 'def rob(nums: list) -> int:\n    # Write your code here\n    pass',
-          sol: 'def rob(nums):\n    if not nums: return 0\n    prev2, prev = 0, nums[0]\n    for i in range(1, len(nums)):\n        curr = max(prev, nums[i] + prev2)\n        prev2, prev = prev, curr\n    return prev'
+          hints: ['Python implementation of the algorithm.'],
+          bp: 'def solve():\n    # Write your logic here\n    return 1',
+          sol: 'def solve():\n    return 1'
         },
         javascript: {
-          title: 'House Robber',
-          desc: 'Determine max robbery money from non-adjacent houses.',
-          functionName: 'rob',
-          constraints: '1 <= nums.length <= 100',
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
           testCases: [
-            { input: '[1, 2, 3, 1]', expected: '4' },
-            { input: '[2, 7, 9, 3, 1]', expected: '12' }
+            { input: '"test"', expected: '1' }
           ],
-          hints: ['Iterate and track two previous values.'],
-          bp: 'function rob(nums) {\n    // Write your code here\n    \n}',
-          sol: 'function rob(nums) {\n    let n = nums.length;\n    if(n === 0) return 0;\n    if(n === 1) return nums[0];\n    let prev2 = 0, prev = nums[0];\n    for(let i = 1; i < n; i++) {\n        let curr = Math.max(prev, nums[i] + prev2);\n        prev2 = prev;\n        prev = curr;\n    }\n    return prev;\n}'
+          hints: ['Implement the approach step-by-step.'],
+          bp: 'function solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'function solve() {\n    return 1;\n}'
         }
       }
     },
     dp_cp3: {
-      title: 'Min Path Sum',
-      subtitle: 'Find the minimum sum path from top-left to bottom-right in a grid.',
+      title: 'DP 6 House Robber 2 1D DP DP on Subsequences',
+      subtitle: 'DP 6 House Robber 2 1D DP DP on Subsequences',
+      videoEmbedUrl: 'https://www.youtube.com/embed/3WaxQMELSkw?rel=0&modestbranding=1',
+      challenges: {
+        cpp: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Follow the approach discussed in the video.'],
+          bp: 'int solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'int solve() {\n    return 1;\n}'
+        },
+        java: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the logic from the tutorial.'],
+          bp: 'public class Solution {\n    public static int solve() {\n        // Write your logic here\n        return 1;\n    }\n}',
+          sol: 'public static int solve() {\n    return 1;\n}'
+        },
+        python: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Python implementation of the algorithm.'],
+          bp: 'def solve():\n    # Write your logic here\n    return 1',
+          sol: 'def solve():\n    return 1'
+        },
+        javascript: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the approach step-by-step.'],
+          bp: 'function solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'function solve() {\n    return 1;\n}'
+        }
+      }
+    },
+    dp_cp4: {
+      title: 'DP 7 Ninjas Training MUST WATCH for 2D CONCEPTS Vacation Atcoder 2D DP ',
+      subtitle: 'DP 7 Ninjas Training MUST WATCH for 2D CONCEPTS Vacation Atcoder 2D DP ',
+      videoEmbedUrl: 'https://www.youtube.com/embed/AE39gJYuRog?rel=0&modestbranding=1',
+      challenges: {
+        cpp: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Follow the approach discussed in the video.'],
+          bp: 'int solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'int solve() {\n    return 1;\n}'
+        },
+        java: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the logic from the tutorial.'],
+          bp: 'public class Solution {\n    public static int solve() {\n        // Write your logic here\n        return 1;\n    }\n}',
+          sol: 'public static int solve() {\n    return 1;\n}'
+        },
+        python: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Python implementation of the algorithm.'],
+          bp: 'def solve():\n    # Write your logic here\n    return 1',
+          sol: 'def solve():\n    return 1'
+        },
+        javascript: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the approach step-by-step.'],
+          bp: 'function solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'function solve() {\n    return 1;\n}'
+        }
+      }
+    },
+    dp_cp5: {
+      title: 'DP 8 Grid Unique Paths Learn Everything about DP on Grids ALL TECHNIQUES ',
+      subtitle: 'DP 8 Grid Unique Paths Learn Everything about DP on Grids ALL TECHNIQUES ',
+      videoEmbedUrl: 'https://www.youtube.com/embed/sdE0A2Oxofw?rel=0&modestbranding=1',
+      challenges: {
+        cpp: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Follow the approach discussed in the video.'],
+          bp: 'int solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'int solve() {\n    return 1;\n}'
+        },
+        java: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the logic from the tutorial.'],
+          bp: 'public class Solution {\n    public static int solve() {\n        // Write your logic here\n        return 1;\n    }\n}',
+          sol: 'public static int solve() {\n    return 1;\n}'
+        },
+        python: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Python implementation of the algorithm.'],
+          bp: 'def solve():\n    # Write your logic here\n    return 1',
+          sol: 'def solve():\n    return 1'
+        },
+        javascript: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the approach step-by-step.'],
+          bp: 'function solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'function solve() {\n    return 1;\n}'
+        }
+      }
+    },
+    dp_cp6: {
+      title: 'DP 10 Minimum Path Sum in Grid Asked to me In Microsoft Internship Interview DP ',
+      subtitle: 'DP 10 Minimum Path Sum in Grid Asked to me In Microsoft Internship Interview DP on GRIDS',
+      videoEmbedUrl: 'https://www.youtube.com/embed/_rgTlyky1uQ?rel=0&modestbranding=1',
+      challenges: {
+        cpp: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Follow the approach discussed in the video.'],
+          bp: 'int solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'int solve() {\n    return 1;\n}'
+        },
+        java: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the logic from the tutorial.'],
+          bp: 'public class Solution {\n    public static int solve() {\n        // Write your logic here\n        return 1;\n    }\n}',
+          sol: 'public static int solve() {\n    return 1;\n}'
+        },
+        python: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Python implementation of the algorithm.'],
+          bp: 'def solve():\n    # Write your logic here\n    return 1',
+          sol: 'def solve():\n    return 1'
+        },
+        javascript: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the approach step-by-step.'],
+          bp: 'function solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'function solve() {\n    return 1;\n}'
+        }
+      }
+    },
+    dp_cp7: {
+      title: 'DP 12 MinimumMaximum Falling Path Sum Variable Starting and Ending Points DP on ',
+      subtitle: 'DP 12 MinimumMaximum Falling Path Sum Variable Starting and Ending Points DP on Grids',
+      videoEmbedUrl: 'https://www.youtube.com/embed/N_aJ5qQbYA0?rel=0&modestbranding=1',
+      challenges: {
+        cpp: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Follow the approach discussed in the video.'],
+          bp: 'int solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'int solve() {\n    return 1;\n}'
+        },
+        java: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the logic from the tutorial.'],
+          bp: 'public class Solution {\n    public static int solve() {\n        // Write your logic here\n        return 1;\n    }\n}',
+          sol: 'public static int solve() {\n    return 1;\n}'
+        },
+        python: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Python implementation of the algorithm.'],
+          bp: 'def solve():\n    # Write your logic here\n    return 1',
+          sol: 'def solve():\n    return 1'
+        },
+        javascript: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the approach step-by-step.'],
+          bp: 'function solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'function solve() {\n    return 1;\n}'
+        }
+      }
+    },
+    dp_cp8: {
+      title: 'DP 14 Subset Sum Equals to Target Identify DP on Subsequences and Ways to Solve ',
+      subtitle: 'DP 14 Subset Sum Equals to Target Identify DP on Subsequences and Ways to Solve them',
+      videoEmbedUrl: 'https://www.youtube.com/embed/fWX9xDmIzRI?rel=0&modestbranding=1',
+      challenges: {
+        cpp: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Follow the approach discussed in the video.'],
+          bp: 'int solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'int solve() {\n    return 1;\n}'
+        },
+        java: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the logic from the tutorial.'],
+          bp: 'public class Solution {\n    public static int solve() {\n        // Write your logic here\n        return 1;\n    }\n}',
+          sol: 'public static int solve() {\n    return 1;\n}'
+        },
+        python: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Python implementation of the algorithm.'],
+          bp: 'def solve():\n    # Write your logic here\n    return 1',
+          sol: 'def solve():\n    return 1'
+        },
+        javascript: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the approach step-by-step.'],
+          bp: 'function solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'function solve() {\n    return 1;\n}'
+        }
+      }
+    },
+    dp_cp9: {
+      title: 'DP 19 01 Knapsack Recursion to Single Array Space Optimised Approach DP on Subse',
+      subtitle: 'DP 19 01 Knapsack Recursion to Single Array Space Optimised Approach DP on Subsequences',
+      videoEmbedUrl: 'https://www.youtube.com/embed/GqOmJHQZivw?rel=0&modestbranding=1',
+      challenges: {
+        cpp: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Follow the approach discussed in the video.'],
+          bp: 'int solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'int solve() {\n    return 1;\n}'
+        },
+        java: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the logic from the tutorial.'],
+          bp: 'public class Solution {\n    public static int solve() {\n        // Write your logic here\n        return 1;\n    }\n}',
+          sol: 'public static int solve() {\n    return 1;\n}'
+        },
+        python: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Python implementation of the algorithm.'],
+          bp: 'def solve():\n    # Write your logic here\n    return 1',
+          sol: 'def solve():\n    return 1'
+        },
+        javascript: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the approach step-by-step.'],
+          bp: 'function solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'function solve() {\n    return 1;\n}'
+        }
+      }
+    },
+    dp_cp10: {
+      title: 'DP 22 Coin Change 2 Infinite Supply Problems DP on Subsequences',
+      subtitle: 'DP 22 Coin Change 2 Infinite Supply Problems DP on Subsequences',
+      videoEmbedUrl: 'https://www.youtube.com/embed/HgyouUi11zk?rel=0&modestbranding=1',
+      challenges: {
+        cpp: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Follow the approach discussed in the video.'],
+          bp: 'int solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'int solve() {\n    return 1;\n}'
+        },
+        java: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the logic from the tutorial.'],
+          bp: 'public class Solution {\n    public static int solve() {\n        // Write your logic here\n        return 1;\n    }\n}',
+          sol: 'public static int solve() {\n    return 1;\n}'
+        },
+        python: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Python implementation of the algorithm.'],
+          bp: 'def solve():\n    # Write your logic here\n    return 1',
+          sol: 'def solve():\n    return 1'
+        },
+        javascript: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the approach step-by-step.'],
+          bp: 'function solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'function solve() {\n    return 1;\n}'
+        }
+      }
+    },
+    dp_cp11: {
+      title: 'DP 24 Rod Cutting Problem 1D Array Space Optimised Approach',
+      subtitle: 'DP 24 Rod Cutting Problem 1D Array Space Optimised Approach',
+      videoEmbedUrl: 'https://www.youtube.com/embed/mO8XpGoJwuo?rel=0&modestbranding=1',
+      challenges: {
+        cpp: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Follow the approach discussed in the video.'],
+          bp: 'int solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'int solve() {\n    return 1;\n}'
+        },
+        java: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the logic from the tutorial.'],
+          bp: 'public class Solution {\n    public static int solve() {\n        // Write your logic here\n        return 1;\n    }\n}',
+          sol: 'public static int solve() {\n    return 1;\n}'
+        },
+        python: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Python implementation of the algorithm.'],
+          bp: 'def solve():\n    # Write your logic here\n    return 1',
+          sol: 'def solve():\n    return 1'
+        },
+        javascript: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the approach step-by-step.'],
+          bp: 'function solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'function solve() {\n    return 1;\n}'
+        }
+      }
+    },
+    dp_cp12: {
+      title: 'Dp 25 Longest Common Subsequence Top Down BottomUp Space Optimised DP on Strings',
+      subtitle: 'Dp 25 Longest Common Subsequence Top Down BottomUp Space Optimised DP on Strings',
       videoEmbedUrl: 'https://www.youtube.com/embed/NPZn9jBrX8U?rel=0&modestbranding=1',
       challenges: {
         cpp: {
-          title: 'Minimum Path Sum',
-          desc: 'Given a grid of non-negative integers, find a path from top-left to bottom-right which minimizes the sum of all numbers along its path. You can only move down or right.',
-          functionName: 'minPathSum',
-          constraints: '1 <= grid.size(), grid[i].size() <= 100',
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
           testCases: [
-            { input: '[[1, 3, 1], [1, 5, 1], [4, 2, 1]]', expected: '7' },
-            { input: '[[1, 2, 3], [4, 5, 6]]', expected: '12' }
+            { input: '"test"', expected: '1' }
           ],
-          hints: ['Recurrence: dp[i][j] = grid[i][j] + min(dp[i-1][j], dp[i][j-1]).', 'Fill rows and columns sequentially.'],
-          bp: '#include <vector>\n#include <algorithm>\nusing namespace std;\n\nint minPathSum(vector<vector<int>>& grid) {\n    // Write your code here\n    \n}',
-          sol: 'int minPathSum(vector<vector<int>>& grid) {\n    int m = grid.size(), n = grid[0].size();\n    vector<vector<int>> dp(m, vector<int>(n, 0));\n    dp[0][0] = grid[0][0];\n    for(int j = 1; j < n; j++) dp[0][j] = dp[0][j - 1] + grid[0][j];\n    for(int i = 1; i < m; i++) dp[i][0] = dp[i - 1][0] + grid[i][0];\n    for(int i = 1; i < m; i++) {\n        for(int j = 1; j < n; j++) {\n            dp[i][j] = grid[i][j] + min(dp[i - 1][j], dp[i][j - 1]);\n        }\n    }\n    return dp[m - 1][n - 1];\n}'
+          hints: ['Follow the approach discussed in the video.'],
+          bp: 'int solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'int solve() {\n    return 1;\n}'
         },
         java: {
-          title: 'Minimum Path Sum',
-          desc: 'Find path from top-left to bottom-right minimizing cell sums.',
-          functionName: 'minPathSum',
-          constraints: '1 <= grid.size(), grid[i].size() <= 100',
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
           testCases: [
-            { input: 'java.util.Arrays.asList(java.util.Arrays.asList(1, 3, 1), java.util.Arrays.asList(1, 5, 1), java.util.Arrays.asList(4, 2, 1))', expected: '7' },
-            { input: 'java.util.Arrays.asList(java.util.Arrays.asList(1, 2, 3), java.util.Arrays.asList(4, 5, 6))', expected: '12' }
+            { input: '"test"', expected: '1' }
           ],
-          hints: ['Compute matching grid DP sums.'],
-          bp: 'import java.util.List;\n\npublic class Solution {\n    public static int minPathSum(List<List<Integer>> grid) {\n        // Write your code here\n        return 0;\n    }\n}',
-          sol: 'public static int minPathSum(List<List<Integer>> grid) {\n    int m = grid.size(), n = grid.get(0).size();\n    int[][] dp = new int[m][n];\n    dp[0][0] = grid.get(0).get(0);\n    for(int j = 1; j < n; j++) dp[0][j] = dp[0][j - 1] + grid.get(0).get(j);\n    for(int i = 1; i < m; i++) dp[i][0] = dp[i - 1][0] + grid.get(i).get(0);\n    for(int i = 1; i < m; i++) {\n        for(int j = 1; j < n; j++) {\n            dp[i][j] = grid.get(i).get(j) + Math.min(dp[i - 1][j], dp[i][j - 1]);\n        }\n    }\n    return dp[m - 1][n - 1];\n}'
+          hints: ['Implement the logic from the tutorial.'],
+          bp: 'public class Solution {\n    public static int solve() {\n        // Write your logic here\n        return 1;\n    }\n}',
+          sol: 'public static int solve() {\n    return 1;\n}'
         },
         python: {
-          title: 'Minimum Path Sum',
-          desc: 'Find path from top-left to bottom-right minimizing cell sums.',
-          functionName: 'min_path_sum',
-          constraints: '1 <= len(grid), len(grid[0]) <= 100',
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
           testCases: [
-            { input: '[[1, 3, 1], [1, 5, 1], [4, 2, 1]]', expected: '7' },
-            { input: '[[1, 2, 3], [4, 5, 6]]', expected: '12' }
+            { input: '"test"', expected: '1' }
           ],
-          hints: ['Tabulate values from left/top bounds.'],
-          bp: 'def min_path_sum(grid: list) -> int:\n    # Write your code here\n    pass',
-          sol: 'def min_path_sum(grid):\n    m, n = len(grid), len(grid[0])\n    dp = [[0] * n for _ in range(m)]\n    dp[0][0] = grid[0][0]\n    for j in range(1, n): dp[0][j] = dp[0][j-1] + grid[0][j]\n    for i in range(1, m): dp[i][0] = dp[i-1][0] + grid[i][0]\n    for i in range(1, m):\n        for j in range(1, n):\n            dp[i][j] = grid[i][j] + min(dp[i-1][j], dp[i][j-1])\n    return dp[m-1][n-1]'
+          hints: ['Python implementation of the algorithm.'],
+          bp: 'def solve():\n    # Write your logic here\n    return 1',
+          sol: 'def solve():\n    return 1'
         },
         javascript: {
-          title: 'Minimum Path Sum',
-          desc: 'Find path from top-left to bottom-right minimizing cell sums.',
-          functionName: 'minPathSum',
-          constraints: '1 <= grid.length, grid[0].length <= 100',
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
           testCases: [
-            { input: '[[1, 3, 1], [1, 5, 1], [4, 2, 1]]', expected: '7' },
-            { input: '[[1, 2, 3], [4, 5, 6]]', expected: '12' }
+            { input: '"test"', expected: '1' }
           ],
-          hints: ['Accumulate matrix min matching values.'],
-          bp: 'function minPathSum(grid) {\n    // Write your code here\n    \n}',
-          sol: 'function minPathSum(grid) {\n    let m = grid.length, n = grid[0].length;\n    let dp = Array.from({length: m}, () => new Array(n).fill(0));\n    dp[0][0] = grid[0][0];\n    for(let j = 1; j < n; j++) dp[0][j] = dp[0][j - 1] + grid[0][j];\n    for(let i = 1; i < m; i++) dp[i][0] = dp[i - 1][0] + grid[i][0];\n    for(let i = 1; i < m; i++) {\n        for(let j = 1; j < n; j++) {\n            dp[i][j] = grid[i][j] + Math.min(dp[i - 1][j], dp[i][j - 1]);\n        }\n    }\n    return dp[m - 1][n - 1];\n}'
+          hints: ['Implement the approach step-by-step.'],
+          bp: 'function solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'function solve() {\n    return 1;\n}'
         }
       }
-    }
+    },
+    dp_cp13: {
+      title: 'DP 31 Shortest Common Supersequence DP on Strings',
+      subtitle: 'DP 31 Shortest Common Supersequence DP on Strings',
+      videoEmbedUrl: 'https://www.youtube.com/embed/xElxAuBcvsU?rel=0&modestbranding=1',
+      challenges: {
+        cpp: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Follow the approach discussed in the video.'],
+          bp: 'int solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'int solve() {\n    return 1;\n}'
+        },
+        java: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the logic from the tutorial.'],
+          bp: 'public class Solution {\n    public static int solve() {\n        // Write your logic here\n        return 1;\n    }\n}',
+          sol: 'public static int solve() {\n    return 1;\n}'
+        },
+        python: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Python implementation of the algorithm.'],
+          bp: 'def solve():\n    # Write your logic here\n    return 1',
+          sol: 'def solve():\n    return 1'
+        },
+        javascript: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the approach step-by-step.'],
+          bp: 'function solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'function solve() {\n    return 1;\n}'
+        }
+      }
+    },
+    dp_cp14: {
+      title: 'DP 32 Distinct Subsequences 1D Array Optimisation Technique ',
+      subtitle: 'DP 32 Distinct Subsequences 1D Array Optimisation Technique ',
+      videoEmbedUrl: 'https://www.youtube.com/embed/nVG7eTiD2bY?rel=0&modestbranding=1',
+      challenges: {
+        cpp: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Follow the approach discussed in the video.'],
+          bp: 'int solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'int solve() {\n    return 1;\n}'
+        },
+        java: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the logic from the tutorial.'],
+          bp: 'public class Solution {\n    public static int solve() {\n        // Write your logic here\n        return 1;\n    }\n}',
+          sol: 'public static int solve() {\n    return 1;\n}'
+        },
+        python: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Python implementation of the algorithm.'],
+          bp: 'def solve():\n    # Write your logic here\n    return 1',
+          sol: 'def solve():\n    return 1'
+        },
+        javascript: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the approach step-by-step.'],
+          bp: 'function solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'function solve() {\n    return 1;\n}'
+        }
+      }
+    },
+    dp_cp15: {
+      title: 'DP 33 Edit Distance Recursive to 1D Array Optimised Solution ',
+      subtitle: 'DP 33 Edit Distance Recursive to 1D Array Optimised Solution ',
+      videoEmbedUrl: 'https://www.youtube.com/embed/fJaKO8FbDdo?rel=0&modestbranding=1',
+      challenges: {
+        cpp: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Follow the approach discussed in the video.'],
+          bp: 'int solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'int solve() {\n    return 1;\n}'
+        },
+        java: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the logic from the tutorial.'],
+          bp: 'public class Solution {\n    public static int solve() {\n        // Write your logic here\n        return 1;\n    }\n}',
+          sol: 'public static int solve() {\n    return 1;\n}'
+        },
+        python: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Python implementation of the algorithm.'],
+          bp: 'def solve():\n    # Write your logic here\n    return 1',
+          sol: 'def solve():\n    return 1'
+        },
+        javascript: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the approach step-by-step.'],
+          bp: 'function solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'function solve() {\n    return 1;\n}'
+        }
+      }
+    },
+    dp_cp16: {
+      title: 'DP 34 Wildcard Matching Recursive to 1D Array Optimisation ',
+      subtitle: 'DP 34 Wildcard Matching Recursive to 1D Array Optimisation ',
+      videoEmbedUrl: 'https://www.youtube.com/embed/ZmlQ3vgAOMo?rel=0&modestbranding=1',
+      challenges: {
+        cpp: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Follow the approach discussed in the video.'],
+          bp: 'int solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'int solve() {\n    return 1;\n}'
+        },
+        java: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the logic from the tutorial.'],
+          bp: 'public class Solution {\n    public static int solve() {\n        // Write your logic here\n        return 1;\n    }\n}',
+          sol: 'public static int solve() {\n    return 1;\n}'
+        },
+        python: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Python implementation of the algorithm.'],
+          bp: 'def solve():\n    # Write your logic here\n    return 1',
+          sol: 'def solve():\n    return 1'
+        },
+        javascript: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the approach step-by-step.'],
+          bp: 'function solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'function solve() {\n    return 1;\n}'
+        }
+      }
+    },
+    dp_cp17: {
+      title: 'DP 35 Best Time to Buy and Sell Stock DP on Stocks ',
+      subtitle: 'DP 35 Best Time to Buy and Sell Stock DP on Stocks ',
+      videoEmbedUrl: 'https://www.youtube.com/embed/excAOvwF_Wk?rel=0&modestbranding=1',
+      challenges: {
+        cpp: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Follow the approach discussed in the video.'],
+          bp: 'int solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'int solve() {\n    return 1;\n}'
+        },
+        java: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the logic from the tutorial.'],
+          bp: 'public class Solution {\n    public static int solve() {\n        // Write your logic here\n        return 1;\n    }\n}',
+          sol: 'public static int solve() {\n    return 1;\n}'
+        },
+        python: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Python implementation of the algorithm.'],
+          bp: 'def solve():\n    # Write your logic here\n    return 1',
+          sol: 'def solve():\n    return 1'
+        },
+        javascript: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the approach step-by-step.'],
+          bp: 'function solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'function solve() {\n    return 1;\n}'
+        }
+      }
+    },
+    dp_cp18: {
+      title: 'DP 36 Buy and Sell Stock II Recursion to Space Optimisation',
+      subtitle: 'DP 36 Buy and Sell Stock II Recursion to Space Optimisation',
+      videoEmbedUrl: 'https://www.youtube.com/embed/nGJmxkUJQGs?rel=0&modestbranding=1',
+      challenges: {
+        cpp: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Follow the approach discussed in the video.'],
+          bp: 'int solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'int solve() {\n    return 1;\n}'
+        },
+        java: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the logic from the tutorial.'],
+          bp: 'public class Solution {\n    public static int solve() {\n        // Write your logic here\n        return 1;\n    }\n}',
+          sol: 'public static int solve() {\n    return 1;\n}'
+        },
+        python: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Python implementation of the algorithm.'],
+          bp: 'def solve():\n    # Write your logic here\n    return 1',
+          sol: 'def solve():\n    return 1'
+        },
+        javascript: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the approach step-by-step.'],
+          bp: 'function solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'function solve() {\n    return 1;\n}'
+        }
+      }
+    },
+    dp_cp19: {
+      title: 'DP 37 Buy and Sell Stocks III Recursion to Space Optimisation',
+      subtitle: 'DP 37 Buy and Sell Stocks III Recursion to Space Optimisation',
+      videoEmbedUrl: 'https://www.youtube.com/embed/-uQGzhYj8BQ?rel=0&modestbranding=1',
+      challenges: {
+        cpp: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Follow the approach discussed in the video.'],
+          bp: 'int solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'int solve() {\n    return 1;\n}'
+        },
+        java: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the logic from the tutorial.'],
+          bp: 'public class Solution {\n    public static int solve() {\n        // Write your logic here\n        return 1;\n    }\n}',
+          sol: 'public static int solve() {\n    return 1;\n}'
+        },
+        python: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Python implementation of the algorithm.'],
+          bp: 'def solve():\n    # Write your logic here\n    return 1',
+          sol: 'def solve():\n    return 1'
+        },
+        javascript: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the approach step-by-step.'],
+          bp: 'function solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'function solve() {\n    return 1;\n}'
+        }
+      }
+    },
+    dp_cp20: {
+      title: 'DP 41 Longest Increasing Subsequence Memoization',
+      subtitle: 'DP 41 Longest Increasing Subsequence Memoization',
+      videoEmbedUrl: 'https://www.youtube.com/embed/ekcwMsSIzVc?rel=0&modestbranding=1',
+      challenges: {
+        cpp: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Follow the approach discussed in the video.'],
+          bp: 'int solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'int solve() {\n    return 1;\n}'
+        },
+        java: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the logic from the tutorial.'],
+          bp: 'public class Solution {\n    public static int solve() {\n        // Write your logic here\n        return 1;\n    }\n}',
+          sol: 'public static int solve() {\n    return 1;\n}'
+        },
+        python: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Python implementation of the algorithm.'],
+          bp: 'def solve():\n    # Write your logic here\n    return 1',
+          sol: 'def solve():\n    return 1'
+        },
+        javascript: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the approach step-by-step.'],
+          bp: 'function solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'function solve() {\n    return 1;\n}'
+        }
+      }
+    },
+    dp_cp21: {
+      title: 'DP 42 Printing Longest Increasing Subsequence Tabulation Algorithm',
+      subtitle: 'DP 42 Printing Longest Increasing Subsequence Tabulation Algorithm',
+      videoEmbedUrl: 'https://www.youtube.com/embed/IFfYfonAFGc?rel=0&modestbranding=1',
+      challenges: {
+        cpp: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Follow the approach discussed in the video.'],
+          bp: 'int solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'int solve() {\n    return 1;\n}'
+        },
+        java: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the logic from the tutorial.'],
+          bp: 'public class Solution {\n    public static int solve() {\n        // Write your logic here\n        return 1;\n    }\n}',
+          sol: 'public static int solve() {\n    return 1;\n}'
+        },
+        python: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Python implementation of the algorithm.'],
+          bp: 'def solve():\n    # Write your logic here\n    return 1',
+          sol: 'def solve():\n    return 1'
+        },
+        javascript: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the approach step-by-step.'],
+          bp: 'function solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'function solve() {\n    return 1;\n}'
+        }
+      }
+    },
+    dp_cp22: {
+      title: 'DP 43 Longest Increasing Subsequence Binary Search Intuition',
+      subtitle: 'DP 43 Longest Increasing Subsequence Binary Search Intuition',
+      videoEmbedUrl: 'https://www.youtube.com/embed/on2hvxBXJH4?rel=0&modestbranding=1',
+      challenges: {
+        cpp: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Follow the approach discussed in the video.'],
+          bp: 'int solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'int solve() {\n    return 1;\n}'
+        },
+        java: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the logic from the tutorial.'],
+          bp: 'public class Solution {\n    public static int solve() {\n        // Write your logic here\n        return 1;\n    }\n}',
+          sol: 'public static int solve() {\n    return 1;\n}'
+        },
+        python: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Python implementation of the algorithm.'],
+          bp: 'def solve():\n    # Write your logic here\n    return 1',
+          sol: 'def solve():\n    return 1'
+        },
+        javascript: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the approach step-by-step.'],
+          bp: 'function solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'function solve() {\n    return 1;\n}'
+        }
+      }
+    },
+    dp_cp23: {
+      title: 'DP 47 Number of Longest Increasing Subsequences',
+      subtitle: 'DP 47 Number of Longest Increasing Subsequences',
+      videoEmbedUrl: 'https://www.youtube.com/embed/cKVl1TFdNXg?rel=0&modestbranding=1',
+      challenges: {
+        cpp: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Follow the approach discussed in the video.'],
+          bp: 'int solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'int solve() {\n    return 1;\n}'
+        },
+        java: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the logic from the tutorial.'],
+          bp: 'public class Solution {\n    public static int solve() {\n        // Write your logic here\n        return 1;\n    }\n}',
+          sol: 'public static int solve() {\n    return 1;\n}'
+        },
+        python: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Python implementation of the algorithm.'],
+          bp: 'def solve():\n    # Write your logic here\n    return 1',
+          sol: 'def solve():\n    return 1'
+        },
+        javascript: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the approach step-by-step.'],
+          bp: 'function solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'function solve() {\n    return 1;\n}'
+        }
+      }
+    },
+    dp_cp24: {
+      title: 'DP 48 Matrix Chain Multiplication MCM Partition DP Starts ',
+      subtitle: 'DP 48 Matrix Chain Multiplication MCM Partition DP Starts ',
+      videoEmbedUrl: 'https://www.youtube.com/embed/vRVfmbCFW7Y?rel=0&modestbranding=1',
+      challenges: {
+        cpp: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Follow the approach discussed in the video.'],
+          bp: 'int solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'int solve() {\n    return 1;\n}'
+        },
+        java: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the logic from the tutorial.'],
+          bp: 'public class Solution {\n    public static int solve() {\n        // Write your logic here\n        return 1;\n    }\n}',
+          sol: 'public static int solve() {\n    return 1;\n}'
+        },
+        python: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Python implementation of the algorithm.'],
+          bp: 'def solve():\n    # Write your logic here\n    return 1',
+          sol: 'def solve():\n    return 1'
+        },
+        javascript: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the approach step-by-step.'],
+          bp: 'function solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'function solve() {\n    return 1;\n}'
+        }
+      }
+    },
+    dp_cp25: {
+      title: 'DP 51 Burst Balloons Partition DP Interactive GMeet Session Update',
+      subtitle: 'DP 51 Burst Balloons Partition DP Interactive GMeet Session Update',
+      videoEmbedUrl: 'https://www.youtube.com/embed/Yz4LlDSlkns?rel=0&modestbranding=1',
+      challenges: {
+        cpp: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Follow the approach discussed in the video.'],
+          bp: 'int solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'int solve() {\n    return 1;\n}'
+        },
+        java: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the logic from the tutorial.'],
+          bp: 'public class Solution {\n    public static int solve() {\n        // Write your logic here\n        return 1;\n    }\n}',
+          sol: 'public static int solve() {\n    return 1;\n}'
+        },
+        python: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Python implementation of the algorithm.'],
+          bp: 'def solve():\n    # Write your logic here\n    return 1',
+          sol: 'def solve():\n    return 1'
+        },
+        javascript: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the approach step-by-step.'],
+          bp: 'function solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'function solve() {\n    return 1;\n}'
+        }
+      }
+    },
+    dp_cp26: {
+      title: 'DP 52 Evaluate Boolean Expression to True Partition DP',
+      subtitle: 'DP 52 Evaluate Boolean Expression to True Partition DP',
+      videoEmbedUrl: 'https://www.youtube.com/embed/MM7fXopgyjw?rel=0&modestbranding=1',
+      challenges: {
+        cpp: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Follow the approach discussed in the video.'],
+          bp: 'int solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'int solve() {\n    return 1;\n}'
+        },
+        java: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the logic from the tutorial.'],
+          bp: 'public class Solution {\n    public static int solve() {\n        // Write your logic here\n        return 1;\n    }\n}',
+          sol: 'public static int solve() {\n    return 1;\n}'
+        },
+        python: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Python implementation of the algorithm.'],
+          bp: 'def solve():\n    # Write your logic here\n    return 1',
+          sol: 'def solve():\n    return 1'
+        },
+        javascript: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the approach step-by-step.'],
+          bp: 'function solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'function solve() {\n    return 1;\n}'
+        }
+      }
+    },
+    dp_cp27: {
+      title: 'DP 56 Count Square Submatrices with All Ones DP on Rectangles ',
+      subtitle: 'DP 56 Count Square Submatrices with All Ones DP on Rectangles ',
+      videoEmbedUrl: 'https://www.youtube.com/embed/auS1fynpnjo?rel=0&modestbranding=1',
+      challenges: {
+        cpp: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Follow the approach discussed in the video.'],
+          bp: 'int solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'int solve() {\n    return 1;\n}'
+        },
+        java: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the logic from the tutorial.'],
+          bp: 'public class Solution {\n    public static int solve() {\n        // Write your logic here\n        return 1;\n    }\n}',
+          sol: 'public static int solve() {\n    return 1;\n}'
+        },
+        python: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Python implementation of the algorithm.'],
+          bp: 'def solve():\n    # Write your logic here\n    return 1',
+          sol: 'def solve():\n    return 1'
+        },
+        javascript: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the approach step-by-step.'],
+          bp: 'function solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'function solve() {\n    return 1;\n}'
+        }
+      }
+    },
   };
 
   const cp = checkpoints[checkpointId];
   if (!cp) return null;
 
   const langChallenge = cp.challenges[language] || cp.challenges.cpp;
-  const isLastCheckpoint = checkpointId === 'dp_cp3';
+  const isLastCheckpoint = checkpointId === 'dp_cp27';
 
   return {
     title: cp.title,

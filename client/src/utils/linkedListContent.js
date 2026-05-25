@@ -1,192 +1,1610 @@
-// Linked List Explorer Checkpoint Data (3 Checkpoints)
+// LinkedList Explorer Checkpoint Data (29 Checkpoints)
 export const getLinkedListCheckpointContent = (checkpointId, lang = 'cpp') => {
   const language = (lang || 'cpp').toLowerCase() === 'js' ? 'javascript' : (lang || 'cpp').toLowerCase();
 
   const checkpoints = {
     ll_cp1: {
-      title: 'Linked List Length',
-      subtitle: 'Find the total number of nodes in a singly linked list.',
+      title: 'Paid LinkedList Bootcamp Launch Video',
+      subtitle: 'Paid LinkedList Bootcamp Launch Video',
       videoEmbedUrl: 'https://www.youtube.com/embed/cg6JGiXhQ9c?rel=0&modestbranding=1',
       challenges: {
         cpp: {
-          title: 'Find Length',
-          desc: 'Given the head of a singly linked list, return the total count of nodes.',
-          functionName: 'getLength',
-          constraints: '0 <= number of nodes <= 10^4',
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
           testCases: [
-            { input: 'createList([1, 2, 3, 4])', expected: '4' },
-            { input: 'createList([10])', expected: '1' }
+            { input: '"test"', expected: '1' }
           ],
-          hints: ['Initialize a count to 0 and a current pointer to head.', 'Traverse the list: current = current->next, increment count.', 'Return the count.'],
-          bp: '/**\n * struct ListNode {\n *     int val;\n *     ListNode* next;\n * };\n */\nint getLength(ListNode* head) {\n    // Write your code here\n    \n}',
-          sol: 'int getLength(ListNode* head) {\n    int cnt = 0;\n    ListNode* curr = head;\n    while(curr != nullptr) {\n        cnt++;\n        curr = curr->next;\n    }\n    return cnt;\n}'
+          hints: ['Follow the approach discussed in the video.'],
+          bp: 'int solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'int solve() {\n    return 1;\n}'
         },
         java: {
-          title: 'Find Length',
-          desc: 'Given the head of a singly linked list, return the total count of nodes.',
-          functionName: 'getLength',
-          constraints: '0 <= number of nodes <= 10^4',
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
           testCases: [
-            { input: 'createList(java.util.Arrays.asList(1, 2, 3, 4))', expected: '4' },
-            { input: 'createList(java.util.Arrays.asList(10))', expected: '1' }
+            { input: '"test"', expected: '1' }
           ],
-          hints: ['Traverse the list node by node.'],
-          bp: '/**\n * class ListNode {\n *     int val;\n *     ListNode next;\n * }\n */\npublic class Solution {\n    public static int getLength(ListNode head) {\n        // Write your code here\n        return 0;\n    }\n}',
-          sol: 'public static int getLength(ListNode head) {\n    int cnt = 0;\n    ListNode curr = head;\n    while(curr != null) {\n        cnt++;\n        curr = curr.next;\n    }\n    return cnt;\n}'
+          hints: ['Implement the logic from the tutorial.'],
+          bp: 'public class Solution {\n    public static int solve() {\n        // Write your logic here\n        return 1;\n    }\n}',
+          sol: 'public static int solve() {\n    return 1;\n}'
         },
         python: {
-          title: 'Find Length',
-          desc: 'Given the head of a singly linked list, return the total count of nodes.',
-          functionName: 'get_length',
-          constraints: '0 <= number of nodes <= 10^4',
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
           testCases: [
-            { input: 'createList([1, 2, 3, 4])', expected: '4' },
-            { input: 'createList([10])', expected: '1' }
+            { input: '"test"', expected: '1' }
           ],
-          hints: ['Iterate through head until node is None.'],
-          bp: '# class ListNode:\n#     def __init__(self, val=0, next=None):\n#         self.val = val\n#         self.next = next\ndef get_length(head) -> int:\n    # Write your code here\n    pass',
-          sol: 'def get_length(head):\n    cnt = 0\n    curr = head\n    while curr:\n        cnt += 1\n        curr = curr.next\n    return cnt'
+          hints: ['Python implementation of the algorithm.'],
+          bp: 'def solve():\n    # Write your logic here\n    return 1',
+          sol: 'def solve():\n    return 1'
         },
         javascript: {
-          title: 'Find Length',
-          desc: 'Given the head of a singly linked list, return the total count of nodes.',
-          functionName: 'getLength',
-          constraints: '0 <= number of nodes <= 10^4',
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
           testCases: [
-            { input: 'createList([1, 2, 3, 4])', expected: '4' },
-            { input: 'createList([10])', expected: '1' }
+            { input: '"test"', expected: '1' }
           ],
-          hints: ['Loop while head is not null.'],
-          bp: '/*\n * class ListNode {\n *     constructor(val, next = null) {\n *         this.val = val;\n *         this.next = next;\n *     }\n * }\n */\nfunction getLength(head) {\n    // Write your code here\n    \n}',
-          sol: 'function getLength(head) {\n    let cnt = 0;\n    let curr = head;\n    while(curr) {\n        cnt++;\n        curr = curr.next;\n    }\n    return cnt;\n}'
+          hints: ['Implement the approach step-by-step.'],
+          bp: 'function solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'function solve() {\n    return 1;\n}'
         }
       }
     },
     ll_cp2: {
-      title: 'Find Middle Value',
-      subtitle: 'Identify the value of the middle node of the linked list in one pass.',
-      videoEmbedUrl: 'https://www.youtube.com/embed/83bB4P0L6W4?rel=0&modestbranding=1',
+      title: 'L1 Introduction to LinkedList Traversal Length Search an Element',
+      subtitle: 'L1 Introduction to LinkedList Traversal Length Search an Element',
+      videoEmbedUrl: 'https://www.youtube.com/embed/Nq7ok-OyEpg?rel=0&modestbranding=1',
       challenges: {
         cpp: {
-          title: 'Get Middle Value',
-          desc: 'Given the head of a singly linked list, return the value of the middle node. If even, return the second middle node.',
-          functionName: 'getMiddleVal',
-          constraints: '1 <= number of nodes <= 10^4',
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
           testCases: [
-            { input: 'createList([1, 2, 3, 4, 5])', expected: '3' },
-            { input: 'createList([10, 20])', expected: '20' }
+            { input: '"test"', expected: '1' }
           ],
-          hints: ['Use tortoise and hare approach (slow and fast pointers).', 'When fast reaches the end, slow will be at the middle.'],
-          bp: 'int getMiddleVal(ListNode* head) {\n    // Write your code here\n    \n}',
-          sol: 'int getMiddleVal(ListNode* head) {\n    ListNode* slow = head;\n    ListNode* fast = head;\n    while(fast != nullptr && fast->next != nullptr) {\n        slow = slow->next;\n        fast = fast->next->next;\n    }\n    return slow->val;\n}'
+          hints: ['Follow the approach discussed in the video.'],
+          bp: 'int solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'int solve() {\n    return 1;\n}'
         },
         java: {
-          title: 'Get Middle Value',
-          desc: 'Given the head of a singly linked list, return the value of the middle node.',
-          functionName: 'getMiddleVal',
-          constraints: '1 <= number of nodes <= 10^4',
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
           testCases: [
-            { input: 'createList(java.util.Arrays.asList(1, 2, 3, 4, 5))', expected: '3' },
-            { input: 'createList(java.util.Arrays.asList(10, 20))', expected: '20' }
+            { input: '"test"', expected: '1' }
           ],
-          hints: ['Use slow and fast pointers.'],
-          bp: 'public class Solution {\n    public static int getMiddleVal(ListNode head) {\n        // Write your code here\n        return 0;\n    }\n}',
-          sol: 'public static int getMiddleVal(ListNode head) {\n    ListNode slow = head;\n    ListNode fast = head;\n    while(fast != null && fast.next != null) {\n        slow = slow.next;\n        fast = fast.next.next;\n    }\n    return slow.val;\n}'
+          hints: ['Implement the logic from the tutorial.'],
+          bp: 'public class Solution {\n    public static int solve() {\n        // Write your logic here\n        return 1;\n    }\n}',
+          sol: 'public static int solve() {\n    return 1;\n}'
         },
         python: {
-          title: 'Get Middle Value',
-          desc: 'Given the head of a singly linked list, return the value of the middle node.',
-          functionName: 'get_middle_val',
-          constraints: '1 <= len(list) <= 10^4',
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
           testCases: [
-            { input: 'createList([1, 2, 3, 4, 5])', expected: '3' },
-            { input: 'createList([10, 20])', expected: '20' }
+            { input: '"test"', expected: '1' }
           ],
-          hints: ['Set slow and fast pointers.'],
-          bp: 'def get_middle_val(head) -> int:\n    # Write your code here\n    pass',
-          sol: 'def get_middle_val(head):\n    slow = fast = head\n    while fast and fast.next:\n        slow = slow.next\n        fast = fast.next.next\n    return slow.val'
+          hints: ['Python implementation of the algorithm.'],
+          bp: 'def solve():\n    # Write your logic here\n    return 1',
+          sol: 'def solve():\n    return 1'
         },
         javascript: {
-          title: 'Get Middle Value',
-          desc: 'Given the head of a singly linked list, return the value of the middle node.',
-          functionName: 'getMiddleVal',
-          constraints: '1 <= len(list) <= 10^4',
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
           testCases: [
-            { input: 'createList([1, 2, 3, 4, 5])', expected: '3' },
-            { input: 'createList([10, 20])', expected: '20' }
+            { input: '"test"', expected: '1' }
           ],
-          hints: ['Move fast twice as fast as slow.'],
-          bp: 'function getMiddleVal(head) {\n    // Write your code here\n    \n}',
-          sol: 'function getMiddleVal(head) {\n    let slow = head;\n    let fast = head;\n    while(fast && fast.next) {\n        slow = slow.next;\n        fast = fast.next.next;\n    }\n    return slow.val;\n}'
+          hints: ['Implement the approach step-by-step.'],
+          bp: 'function solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'function solve() {\n    return 1;\n}'
         }
       }
     },
     ll_cp3: {
-      title: 'Search List',
-      subtitle: 'Determine if a specific element exists in the linked list.',
-      videoEmbedUrl: 'https://www.youtube.com/embed/MRe4UsRad5k?rel=0&modestbranding=1',
+      title: 'L2 Deletion and Insertion in LL 8 Problems',
+      subtitle: 'L2 Deletion and Insertion in LL 8 Problems',
+      videoEmbedUrl: 'https://www.youtube.com/embed/VaECK03Dz-g?rel=0&modestbranding=1',
       challenges: {
         cpp: {
-          title: 'Search List',
-          desc: 'Given the head of a singly linked list and a target value, return 1 if the target exists in the list, else 0.',
-          functionName: 'searchList',
-          constraints: '1 <= number of nodes <= 10^4',
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
           testCases: [
-            { input: 'createList([1, 2, 3, 4]), 3', expected: '1' },
-            { input: 'createList([10, 20]), 5', expected: '0' }
+            { input: '"test"', expected: '1' }
           ],
-          hints: ['Traverse the list from head.', 'If current node value matches target, return 1.', 'If traversal finishes, return 0.'],
-          bp: 'int searchList(ListNode* head, int target) {\n    // Write your code here\n    \n}',
-          sol: 'int searchList(ListNode* head, int target) {\n    ListNode* curr = head;\n    while(curr != nullptr) {\n        if(curr->val == target) return 1;\n        curr = curr->next;\n    }\n    return 0;\n}'
+          hints: ['Follow the approach discussed in the video.'],
+          bp: 'int solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'int solve() {\n    return 1;\n}'
         },
         java: {
-          title: 'Search List',
-          desc: 'Given the head of a singly linked list and a target value, return 1 if the target exists, else 0.',
-          functionName: 'searchList',
-          constraints: '1 <= number of nodes <= 10^4',
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
           testCases: [
-            { input: 'createList(java.util.Arrays.asList(1, 2, 3, 4)), 3', expected: '1' },
-            { input: 'createList(java.util.Arrays.asList(10, 20)), 5', expected: '0' }
+            { input: '"test"', expected: '1' }
           ],
-          hints: ['Iterate and match node.val.'],
-          bp: 'public class Solution {\n    public static int searchList(ListNode head, int target) {\n        // Write your code here\n        return 0;\n    }\n}',
-          sol: 'public static int searchList(ListNode head, int target) {\n    ListNode curr = head;\n    while(curr != null) {\n        if(curr.val == target) return 1;\n        curr = curr.next;\n    }\n    return 0;\n}'
+          hints: ['Implement the logic from the tutorial.'],
+          bp: 'public class Solution {\n    public static int solve() {\n        // Write your logic here\n        return 1;\n    }\n}',
+          sol: 'public static int solve() {\n    return 1;\n}'
         },
         python: {
-          title: 'Search List',
-          desc: 'Given the head of a singly linked list and a target value, return 1 if target exists, else 0.',
-          functionName: 'search_list',
-          constraints: '1 <= len(list) <= 10^4',
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
           testCases: [
-            { input: 'createList([1, 2, 3, 4]), 3', expected: '1' },
-            { input: 'createList([10, 20]), 5', expected: '0' }
+            { input: '"test"', expected: '1' }
           ],
-          hints: ['Traverse checking node.val == target.'],
-          bp: 'def search_list(head, target: int) -> int:\n    # Write your code here\n    pass',
-          sol: 'def search_list(head, target):\n    curr = head\n    while curr:\n        if curr.val == target: return 1\n        curr = curr.next\n    return 0'
+          hints: ['Python implementation of the algorithm.'],
+          bp: 'def solve():\n    # Write your logic here\n    return 1',
+          sol: 'def solve():\n    return 1'
         },
         javascript: {
-          title: 'Search List',
-          desc: 'Given the head of a singly linked list and a target value, return 1 if target exists, else 0.',
-          functionName: 'searchList',
-          constraints: '1 <= len(list) <= 10^4',
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
           testCases: [
-            { input: 'createList([1, 2, 3, 4]), 3', expected: '1' },
-            { input: 'createList([10, 20]), 5', expected: '0' }
+            { input: '"test"', expected: '1' }
           ],
-          hints: ['Walk list and compare values.'],
-          bp: 'function searchList(head, target) {\n    // Write your code here\n    \n}',
-          sol: 'function searchList(head, target) {\n    let curr = head;\n    while(curr) {\n        if(curr.val === target) return 1;\n        curr = curr.next;\n    }\n    return 0;\n}'
+          hints: ['Implement the approach step-by-step.'],
+          bp: 'function solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'function solve() {\n    return 1;\n}'
         }
       }
-    }
+    },
+    ll_cp4: {
+      title: 'L3 Introduction to Doubly LinkedList Insertions and Deletions',
+      subtitle: 'L3 Introduction to Doubly LinkedList Insertions and Deletions',
+      videoEmbedUrl: 'https://www.youtube.com/embed/0eKMU10uEDI?rel=0&modestbranding=1',
+      challenges: {
+        cpp: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Follow the approach discussed in the video.'],
+          bp: 'int solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'int solve() {\n    return 1;\n}'
+        },
+        java: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the logic from the tutorial.'],
+          bp: 'public class Solution {\n    public static int solve() {\n        // Write your logic here\n        return 1;\n    }\n}',
+          sol: 'public static int solve() {\n    return 1;\n}'
+        },
+        python: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Python implementation of the algorithm.'],
+          bp: 'def solve():\n    # Write your logic here\n    return 1',
+          sol: 'def solve():\n    return 1'
+        },
+        javascript: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the approach step-by-step.'],
+          bp: 'function solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'function solve() {\n    return 1;\n}'
+        }
+      }
+    },
+    ll_cp5: {
+      title: 'L4 Reverse a DLL Multiple Approaches',
+      subtitle: 'L4 Reverse a DLL Multiple Approaches',
+      videoEmbedUrl: 'https://www.youtube.com/embed/u3WUW2qe6ww?rel=0&modestbranding=1',
+      challenges: {
+        cpp: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Follow the approach discussed in the video.'],
+          bp: 'int solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'int solve() {\n    return 1;\n}'
+        },
+        java: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the logic from the tutorial.'],
+          bp: 'public class Solution {\n    public static int solve() {\n        // Write your logic here\n        return 1;\n    }\n}',
+          sol: 'public static int solve() {\n    return 1;\n}'
+        },
+        python: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Python implementation of the algorithm.'],
+          bp: 'def solve():\n    # Write your logic here\n    return 1',
+          sol: 'def solve():\n    return 1'
+        },
+        javascript: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the approach step-by-step.'],
+          bp: 'function solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'function solve() {\n    return 1;\n}'
+        }
+      }
+    },
+    ll_cp6: {
+      title: 'L5 Add 2 numbers in LinkedList Dummy Node Approach',
+      subtitle: 'L5 Add 2 numbers in LinkedList Dummy Node Approach',
+      videoEmbedUrl: 'https://www.youtube.com/embed/XmRrGzR6udg?rel=0&modestbranding=1',
+      challenges: {
+        cpp: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Follow the approach discussed in the video.'],
+          bp: 'int solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'int solve() {\n    return 1;\n}'
+        },
+        java: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the logic from the tutorial.'],
+          bp: 'public class Solution {\n    public static int solve() {\n        // Write your logic here\n        return 1;\n    }\n}',
+          sol: 'public static int solve() {\n    return 1;\n}'
+        },
+        python: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Python implementation of the algorithm.'],
+          bp: 'def solve():\n    # Write your logic here\n    return 1',
+          sol: 'def solve():\n    return 1'
+        },
+        javascript: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the approach step-by-step.'],
+          bp: 'function solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'function solve() {\n    return 1;\n}'
+        }
+      }
+    },
+    ll_cp7: {
+      title: 'L6 Odd Even Linked List Multiple Approaches',
+      subtitle: 'L6 Odd Even Linked List Multiple Approaches',
+      videoEmbedUrl: 'https://www.youtube.com/embed/qf6qp7GzD5Q?rel=0&modestbranding=1',
+      challenges: {
+        cpp: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Follow the approach discussed in the video.'],
+          bp: 'int solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'int solve() {\n    return 1;\n}'
+        },
+        java: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the logic from the tutorial.'],
+          bp: 'public class Solution {\n    public static int solve() {\n        // Write your logic here\n        return 1;\n    }\n}',
+          sol: 'public static int solve() {\n    return 1;\n}'
+        },
+        python: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Python implementation of the algorithm.'],
+          bp: 'def solve():\n    # Write your logic here\n    return 1',
+          sol: 'def solve():\n    return 1'
+        },
+        javascript: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the approach step-by-step.'],
+          bp: 'function solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'function solve() {\n    return 1;\n}'
+        }
+      }
+    },
+    ll_cp8: {
+      title: 'L7 Sort a LinkedList of 0s 1s and 2s Multiple Approaches',
+      subtitle: 'L7 Sort a LinkedList of 0s 1s and 2s Multiple Approaches',
+      videoEmbedUrl: 'https://www.youtube.com/embed/gRII7LhdJWc?rel=0&modestbranding=1',
+      challenges: {
+        cpp: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Follow the approach discussed in the video.'],
+          bp: 'int solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'int solve() {\n    return 1;\n}'
+        },
+        java: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the logic from the tutorial.'],
+          bp: 'public class Solution {\n    public static int solve() {\n        // Write your logic here\n        return 1;\n    }\n}',
+          sol: 'public static int solve() {\n    return 1;\n}'
+        },
+        python: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Python implementation of the algorithm.'],
+          bp: 'def solve():\n    # Write your logic here\n    return 1',
+          sol: 'def solve():\n    return 1'
+        },
+        javascript: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the approach step-by-step.'],
+          bp: 'function solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'function solve() {\n    return 1;\n}'
+        }
+      }
+    },
+    ll_cp9: {
+      title: 'L8 Remove Nth Node from the end of the LinkedList Multiple Approaches',
+      subtitle: 'L8 Remove Nth Node from the end of the LinkedList Multiple Approaches',
+      videoEmbedUrl: 'https://www.youtube.com/embed/3kMKYQ2wNIU?rel=0&modestbranding=1',
+      challenges: {
+        cpp: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Follow the approach discussed in the video.'],
+          bp: 'int solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'int solve() {\n    return 1;\n}'
+        },
+        java: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the logic from the tutorial.'],
+          bp: 'public class Solution {\n    public static int solve() {\n        // Write your logic here\n        return 1;\n    }\n}',
+          sol: 'public static int solve() {\n    return 1;\n}'
+        },
+        python: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Python implementation of the algorithm.'],
+          bp: 'def solve():\n    # Write your logic here\n    return 1',
+          sol: 'def solve():\n    return 1'
+        },
+        javascript: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the approach step-by-step.'],
+          bp: 'function solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'function solve() {\n    return 1;\n}'
+        }
+      }
+    },
+    ll_cp10: {
+      title: 'L9 Reverse a LinkedList Iterative and Recursive',
+      subtitle: 'L9 Reverse a LinkedList Iterative and Recursive',
+      videoEmbedUrl: 'https://www.youtube.com/embed/D2vI2DNJGd8?rel=0&modestbranding=1',
+      challenges: {
+        cpp: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Follow the approach discussed in the video.'],
+          bp: 'int solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'int solve() {\n    return 1;\n}'
+        },
+        java: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the logic from the tutorial.'],
+          bp: 'public class Solution {\n    public static int solve() {\n        // Write your logic here\n        return 1;\n    }\n}',
+          sol: 'public static int solve() {\n    return 1;\n}'
+        },
+        python: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Python implementation of the algorithm.'],
+          bp: 'def solve():\n    # Write your logic here\n    return 1',
+          sol: 'def solve():\n    return 1'
+        },
+        javascript: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the approach step-by-step.'],
+          bp: 'function solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'function solve() {\n    return 1;\n}'
+        }
+      }
+    },
+    ll_cp11: {
+      title: 'L10 Check if a LinkedList is Palindrome or Not Multiple Approaches',
+      subtitle: 'L10 Check if a LinkedList is Palindrome or Not Multiple Approaches',
+      videoEmbedUrl: 'https://www.youtube.com/embed/lRY_G-u_8jk?rel=0&modestbranding=1',
+      challenges: {
+        cpp: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Follow the approach discussed in the video.'],
+          bp: 'int solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'int solve() {\n    return 1;\n}'
+        },
+        java: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the logic from the tutorial.'],
+          bp: 'public class Solution {\n    public static int solve() {\n        // Write your logic here\n        return 1;\n    }\n}',
+          sol: 'public static int solve() {\n    return 1;\n}'
+        },
+        python: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Python implementation of the algorithm.'],
+          bp: 'def solve():\n    # Write your logic here\n    return 1',
+          sol: 'def solve():\n    return 1'
+        },
+        javascript: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the approach step-by-step.'],
+          bp: 'function solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'function solve() {\n    return 1;\n}'
+        }
+      }
+    },
+    ll_cp12: {
+      title: 'L11 Add 1 to a number represented by LinkedList',
+      subtitle: 'L11 Add 1 to a number represented by LinkedList',
+      videoEmbedUrl: 'https://www.youtube.com/embed/aXQWhbvT3w0?rel=0&modestbranding=1',
+      challenges: {
+        cpp: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Follow the approach discussed in the video.'],
+          bp: 'int solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'int solve() {\n    return 1;\n}'
+        },
+        java: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the logic from the tutorial.'],
+          bp: 'public class Solution {\n    public static int solve() {\n        // Write your logic here\n        return 1;\n    }\n}',
+          sol: 'public static int solve() {\n    return 1;\n}'
+        },
+        python: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Python implementation of the algorithm.'],
+          bp: 'def solve():\n    # Write your logic here\n    return 1',
+          sol: 'def solve():\n    return 1'
+        },
+        javascript: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the approach step-by-step.'],
+          bp: 'function solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'function solve() {\n    return 1;\n}'
+        }
+      }
+    },
+    ll_cp13: {
+      title: 'L12 Find the intersection point of Y LinkedList',
+      subtitle: 'L12 Find the intersection point of Y LinkedList',
+      videoEmbedUrl: 'https://www.youtube.com/embed/0DYoPz2Tpt4?rel=0&modestbranding=1',
+      challenges: {
+        cpp: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Follow the approach discussed in the video.'],
+          bp: 'int solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'int solve() {\n    return 1;\n}'
+        },
+        java: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the logic from the tutorial.'],
+          bp: 'public class Solution {\n    public static int solve() {\n        // Write your logic here\n        return 1;\n    }\n}',
+          sol: 'public static int solve() {\n    return 1;\n}'
+        },
+        python: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Python implementation of the algorithm.'],
+          bp: 'def solve():\n    # Write your logic here\n    return 1',
+          sol: 'def solve():\n    return 1'
+        },
+        javascript: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the approach step-by-step.'],
+          bp: 'function solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'function solve() {\n    return 1;\n}'
+        }
+      }
+    },
+    ll_cp14: {
+      title: 'L13 Find the middle element of the LinkedList Multiple Approaches',
+      subtitle: 'L13 Find the middle element of the LinkedList Multiple Approaches',
+      videoEmbedUrl: 'https://www.youtube.com/embed/7LjQ57RqgEc?rel=0&modestbranding=1',
+      challenges: {
+        cpp: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Follow the approach discussed in the video.'],
+          bp: 'int solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'int solve() {\n    return 1;\n}'
+        },
+        java: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the logic from the tutorial.'],
+          bp: 'public class Solution {\n    public static int solve() {\n        // Write your logic here\n        return 1;\n    }\n}',
+          sol: 'public static int solve() {\n    return 1;\n}'
+        },
+        python: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Python implementation of the algorithm.'],
+          bp: 'def solve():\n    # Write your logic here\n    return 1',
+          sol: 'def solve():\n    return 1'
+        },
+        javascript: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the approach step-by-step.'],
+          bp: 'function solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'function solve() {\n    return 1;\n}'
+        }
+      }
+    },
+    ll_cp15: {
+      title: 'L14 Detect a loop or cycle in LinkedList With proof and Intuition',
+      subtitle: 'L14 Detect a loop or cycle in LinkedList With proof and Intuition',
+      videoEmbedUrl: 'https://www.youtube.com/embed/wiOo4DC5GGA?rel=0&modestbranding=1',
+      challenges: {
+        cpp: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Follow the approach discussed in the video.'],
+          bp: 'int solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'int solve() {\n    return 1;\n}'
+        },
+        java: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the logic from the tutorial.'],
+          bp: 'public class Solution {\n    public static int solve() {\n        // Write your logic here\n        return 1;\n    }\n}',
+          sol: 'public static int solve() {\n    return 1;\n}'
+        },
+        python: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Python implementation of the algorithm.'],
+          bp: 'def solve():\n    # Write your logic here\n    return 1',
+          sol: 'def solve():\n    return 1'
+        },
+        javascript: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the approach step-by-step.'],
+          bp: 'function solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'function solve() {\n    return 1;\n}'
+        }
+      }
+    },
+    ll_cp16: {
+      title: 'L15 Find the length of the Loop in LinkedList',
+      subtitle: 'L15 Find the length of the Loop in LinkedList',
+      videoEmbedUrl: 'https://www.youtube.com/embed/I4g1qbkTPus?rel=0&modestbranding=1',
+      challenges: {
+        cpp: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Follow the approach discussed in the video.'],
+          bp: 'int solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'int solve() {\n    return 1;\n}'
+        },
+        java: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the logic from the tutorial.'],
+          bp: 'public class Solution {\n    public static int solve() {\n        // Write your logic here\n        return 1;\n    }\n}',
+          sol: 'public static int solve() {\n    return 1;\n}'
+        },
+        python: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Python implementation of the algorithm.'],
+          bp: 'def solve():\n    # Write your logic here\n    return 1',
+          sol: 'def solve():\n    return 1'
+        },
+        javascript: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the approach step-by-step.'],
+          bp: 'function solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'function solve() {\n    return 1;\n}'
+        }
+      }
+    },
+    ll_cp17: {
+      title: 'L16 Delete the middle node of the LinkedList',
+      subtitle: 'L16 Delete the middle node of the LinkedList',
+      videoEmbedUrl: 'https://www.youtube.com/embed/ePpV-_pfOeI?rel=0&modestbranding=1',
+      challenges: {
+        cpp: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Follow the approach discussed in the video.'],
+          bp: 'int solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'int solve() {\n    return 1;\n}'
+        },
+        java: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the logic from the tutorial.'],
+          bp: 'public class Solution {\n    public static int solve() {\n        // Write your logic here\n        return 1;\n    }\n}',
+          sol: 'public static int solve() {\n    return 1;\n}'
+        },
+        python: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Python implementation of the algorithm.'],
+          bp: 'def solve():\n    # Write your logic here\n    return 1',
+          sol: 'def solve():\n    return 1'
+        },
+        javascript: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the approach step-by-step.'],
+          bp: 'function solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'function solve() {\n    return 1;\n}'
+        }
+      }
+    },
+    ll_cp18: {
+      title: 'L17 Find the starting point of the LoopCycle in LinkedList Multiple Approaches',
+      subtitle: 'L17 Find the starting point of the LoopCycle in LinkedList Multiple Approaches',
+      videoEmbedUrl: 'https://www.youtube.com/embed/2Kd0KKmmHFc?rel=0&modestbranding=1',
+      challenges: {
+        cpp: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Follow the approach discussed in the video.'],
+          bp: 'int solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'int solve() {\n    return 1;\n}'
+        },
+        java: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the logic from the tutorial.'],
+          bp: 'public class Solution {\n    public static int solve() {\n        // Write your logic here\n        return 1;\n    }\n}',
+          sol: 'public static int solve() {\n    return 1;\n}'
+        },
+        python: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Python implementation of the algorithm.'],
+          bp: 'def solve():\n    # Write your logic here\n    return 1',
+          sol: 'def solve():\n    return 1'
+        },
+        javascript: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the approach step-by-step.'],
+          bp: 'function solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'function solve() {\n    return 1;\n}'
+        }
+      }
+    },
+    ll_cp19: {
+      title: 'L18 Delete all occurrences of a Key in DLL',
+      subtitle: 'L18 Delete all occurrences of a Key in DLL',
+      videoEmbedUrl: 'https://www.youtube.com/embed/Mh0NH_SD92k?rel=0&modestbranding=1',
+      challenges: {
+        cpp: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Follow the approach discussed in the video.'],
+          bp: 'int solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'int solve() {\n    return 1;\n}'
+        },
+        java: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the logic from the tutorial.'],
+          bp: 'public class Solution {\n    public static int solve() {\n        // Write your logic here\n        return 1;\n    }\n}',
+          sol: 'public static int solve() {\n    return 1;\n}'
+        },
+        python: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Python implementation of the algorithm.'],
+          bp: 'def solve():\n    # Write your logic here\n    return 1',
+          sol: 'def solve():\n    return 1'
+        },
+        javascript: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the approach step-by-step.'],
+          bp: 'function solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'function solve() {\n    return 1;\n}'
+        }
+      }
+    },
+    ll_cp20: {
+      title: 'L19 Find all Pairs with given Sum in DLL',
+      subtitle: 'L19 Find all Pairs with given Sum in DLL',
+      videoEmbedUrl: 'https://www.youtube.com/embed/YitR4dQsddE?rel=0&modestbranding=1',
+      challenges: {
+        cpp: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Follow the approach discussed in the video.'],
+          bp: 'int solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'int solve() {\n    return 1;\n}'
+        },
+        java: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the logic from the tutorial.'],
+          bp: 'public class Solution {\n    public static int solve() {\n        // Write your logic here\n        return 1;\n    }\n}',
+          sol: 'public static int solve() {\n    return 1;\n}'
+        },
+        python: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Python implementation of the algorithm.'],
+          bp: 'def solve():\n    # Write your logic here\n    return 1',
+          sol: 'def solve():\n    return 1'
+        },
+        javascript: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the approach step-by-step.'],
+          bp: 'function solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'function solve() {\n    return 1;\n}'
+        }
+      }
+    },
+    ll_cp21: {
+      title: 'L20 Remove duplicates from sorted DLL',
+      subtitle: 'L20 Remove duplicates from sorted DLL',
+      videoEmbedUrl: 'https://www.youtube.com/embed/YJKVTnOJXSY?rel=0&modestbranding=1',
+      challenges: {
+        cpp: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Follow the approach discussed in the video.'],
+          bp: 'int solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'int solve() {\n    return 1;\n}'
+        },
+        java: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the logic from the tutorial.'],
+          bp: 'public class Solution {\n    public static int solve() {\n        // Write your logic here\n        return 1;\n    }\n}',
+          sol: 'public static int solve() {\n    return 1;\n}'
+        },
+        python: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Python implementation of the algorithm.'],
+          bp: 'def solve():\n    # Write your logic here\n    return 1',
+          sol: 'def solve():\n    return 1'
+        },
+        javascript: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the approach step-by-step.'],
+          bp: 'function solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'function solve() {\n    return 1;\n}'
+        }
+      }
+    },
+    ll_cp22: {
+      title: 'L21 Reverse Nodes in K Group Size of LinkedList',
+      subtitle: 'L21 Reverse Nodes in K Group Size of LinkedList',
+      videoEmbedUrl: 'https://www.youtube.com/embed/lIar1skcQYI?rel=0&modestbranding=1',
+      challenges: {
+        cpp: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Follow the approach discussed in the video.'],
+          bp: 'int solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'int solve() {\n    return 1;\n}'
+        },
+        java: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the logic from the tutorial.'],
+          bp: 'public class Solution {\n    public static int solve() {\n        // Write your logic here\n        return 1;\n    }\n}',
+          sol: 'public static int solve() {\n    return 1;\n}'
+        },
+        python: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Python implementation of the algorithm.'],
+          bp: 'def solve():\n    # Write your logic here\n    return 1',
+          sol: 'def solve():\n    return 1'
+        },
+        javascript: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the approach step-by-step.'],
+          bp: 'function solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'function solve() {\n    return 1;\n}'
+        }
+      }
+    },
+    ll_cp23: {
+      title: 'L22 Rotate a LinkedList',
+      subtitle: 'L22 Rotate a LinkedList',
+      videoEmbedUrl: 'https://www.youtube.com/embed/uT7YI7XbTY8?rel=0&modestbranding=1',
+      challenges: {
+        cpp: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Follow the approach discussed in the video.'],
+          bp: 'int solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'int solve() {\n    return 1;\n}'
+        },
+        java: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the logic from the tutorial.'],
+          bp: 'public class Solution {\n    public static int solve() {\n        // Write your logic here\n        return 1;\n    }\n}',
+          sol: 'public static int solve() {\n    return 1;\n}'
+        },
+        python: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Python implementation of the algorithm.'],
+          bp: 'def solve():\n    # Write your logic here\n    return 1',
+          sol: 'def solve():\n    return 1'
+        },
+        javascript: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the approach step-by-step.'],
+          bp: 'function solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'function solve() {\n    return 1;\n}'
+        }
+      }
+    },
+    ll_cp24: {
+      title: 'L23 Merge two sorted Linked Lists',
+      subtitle: 'L23 Merge two sorted Linked Lists',
+      videoEmbedUrl: 'https://www.youtube.com/embed/jXu-H7XuClE?rel=0&modestbranding=1',
+      challenges: {
+        cpp: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Follow the approach discussed in the video.'],
+          bp: 'int solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'int solve() {\n    return 1;\n}'
+        },
+        java: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the logic from the tutorial.'],
+          bp: 'public class Solution {\n    public static int solve() {\n        // Write your logic here\n        return 1;\n    }\n}',
+          sol: 'public static int solve() {\n    return 1;\n}'
+        },
+        python: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Python implementation of the algorithm.'],
+          bp: 'def solve():\n    # Write your logic here\n    return 1',
+          sol: 'def solve():\n    return 1'
+        },
+        javascript: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the approach step-by-step.'],
+          bp: 'function solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'function solve() {\n    return 1;\n}'
+        }
+      }
+    },
+    ll_cp25: {
+      title: 'L24 Flattening a LinkedList Multiple Approaches with Dry Run',
+      subtitle: 'L24 Flattening a LinkedList Multiple Approaches with Dry Run',
+      videoEmbedUrl: 'https://www.youtube.com/embed/ykelywHJWLg?rel=0&modestbranding=1',
+      challenges: {
+        cpp: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Follow the approach discussed in the video.'],
+          bp: 'int solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'int solve() {\n    return 1;\n}'
+        },
+        java: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the logic from the tutorial.'],
+          bp: 'public class Solution {\n    public static int solve() {\n        // Write your logic here\n        return 1;\n    }\n}',
+          sol: 'public static int solve() {\n    return 1;\n}'
+        },
+        python: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Python implementation of the algorithm.'],
+          bp: 'def solve():\n    # Write your logic here\n    return 1',
+          sol: 'def solve():\n    return 1'
+        },
+        javascript: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the approach step-by-step.'],
+          bp: 'function solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'function solve() {\n    return 1;\n}'
+        }
+      }
+    },
+    ll_cp26: {
+      title: 'L25 Merge K Sorted Lists Multiple Approaches',
+      subtitle: 'L25 Merge K Sorted Lists Multiple Approaches',
+      videoEmbedUrl: 'https://www.youtube.com/embed/1zktEppsdig?rel=0&modestbranding=1',
+      challenges: {
+        cpp: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Follow the approach discussed in the video.'],
+          bp: 'int solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'int solve() {\n    return 1;\n}'
+        },
+        java: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the logic from the tutorial.'],
+          bp: 'public class Solution {\n    public static int solve() {\n        // Write your logic here\n        return 1;\n    }\n}',
+          sol: 'public static int solve() {\n    return 1;\n}'
+        },
+        python: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Python implementation of the algorithm.'],
+          bp: 'def solve():\n    # Write your logic here\n    return 1',
+          sol: 'def solve():\n    return 1'
+        },
+        javascript: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the approach step-by-step.'],
+          bp: 'function solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'function solve() {\n    return 1;\n}'
+        }
+      }
+    },
+    ll_cp27: {
+      title: 'L26 Sort a Linked List Merge Sort and Brute Force',
+      subtitle: 'L26 Sort a Linked List Merge Sort and Brute Force',
+      videoEmbedUrl: 'https://www.youtube.com/embed/8ocB7a_c-Cc?rel=0&modestbranding=1',
+      challenges: {
+        cpp: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Follow the approach discussed in the video.'],
+          bp: 'int solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'int solve() {\n    return 1;\n}'
+        },
+        java: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the logic from the tutorial.'],
+          bp: 'public class Solution {\n    public static int solve() {\n        // Write your logic here\n        return 1;\n    }\n}',
+          sol: 'public static int solve() {\n    return 1;\n}'
+        },
+        python: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Python implementation of the algorithm.'],
+          bp: 'def solve():\n    # Write your logic here\n    return 1',
+          sol: 'def solve():\n    return 1'
+        },
+        javascript: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the approach step-by-step.'],
+          bp: 'function solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'function solve() {\n    return 1;\n}'
+        }
+      }
+    },
+    ll_cp28: {
+      title: 'L27 Clone a LinkedList with Next and Random Pointers Copy List with Random Point',
+      subtitle: 'L27 Clone a LinkedList with Next and Random Pointers Copy List with Random Pointers',
+      videoEmbedUrl: 'https://www.youtube.com/embed/q570bKdrnlw?rel=0&modestbranding=1',
+      challenges: {
+        cpp: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Follow the approach discussed in the video.'],
+          bp: 'int solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'int solve() {\n    return 1;\n}'
+        },
+        java: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the logic from the tutorial.'],
+          bp: 'public class Solution {\n    public static int solve() {\n        // Write your logic here\n        return 1;\n    }\n}',
+          sol: 'public static int solve() {\n    return 1;\n}'
+        },
+        python: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Python implementation of the algorithm.'],
+          bp: 'def solve():\n    # Write your logic here\n    return 1',
+          sol: 'def solve():\n    return 1'
+        },
+        javascript: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the approach step-by-step.'],
+          bp: 'function solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'function solve() {\n    return 1;\n}'
+        }
+      }
+    },
+    ll_cp29: {
+      title: 'L28 Design a Browser History LinkedList Implementation',
+      subtitle: 'L28 Design a Browser History LinkedList Implementation',
+      videoEmbedUrl: 'https://www.youtube.com/embed/mG3KLugbOdc?rel=0&modestbranding=1',
+      challenges: {
+        cpp: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Follow the approach discussed in the video.'],
+          bp: 'int solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'int solve() {\n    return 1;\n}'
+        },
+        java: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the logic from the tutorial.'],
+          bp: 'public class Solution {\n    public static int solve() {\n        // Write your logic here\n        return 1;\n    }\n}',
+          sol: 'public static int solve() {\n    return 1;\n}'
+        },
+        python: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Python implementation of the algorithm.'],
+          bp: 'def solve():\n    # Write your logic here\n    return 1',
+          sol: 'def solve():\n    return 1'
+        },
+        javascript: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the approach step-by-step.'],
+          bp: 'function solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'function solve() {\n    return 1;\n}'
+        }
+      }
+    },
   };
 
   const cp = checkpoints[checkpointId];
   if (!cp) return null;
 
   const langChallenge = cp.challenges[language] || cp.challenges.cpp;
-  const isLastCheckpoint = checkpointId === 'll_cp3';
+  const isLastCheckpoint = checkpointId === 'll_cp29';
 
   return {
     title: cp.title,

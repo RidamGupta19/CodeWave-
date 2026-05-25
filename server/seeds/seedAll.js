@@ -151,7 +151,11 @@ async function seedDB() {
     const streakBadges = [
       { name: 'Bronze Badge', description: 'Studied 5 days in a row', icon: '🥉', type: 'streak', unlockCondition: 'Maintain 5-day study streak' },
       { name: 'Monthly Badge', description: 'Studied 30 days in a row', icon: '📅', type: 'streak', unlockCondition: 'Maintain 30-day study streak' },
-      { name: 'First Step', description: 'Completed your first topic', icon: '👣', type: 'special', unlockCondition: 'Complete any topic' }
+      { name: 'First Step', description: 'Completed your first topic', icon: '👣', type: 'special', unlockCondition: 'Complete any topic' },
+      { name: 'Base Case Beginner', description: 'Solved your first recursion checkpoint', icon: '🧱', type: 'special', unlockCondition: 'Complete checkpoint 1 of Recursion' },
+      { name: 'Stack Explorer', description: 'Understood function call stacks', icon: '📚', type: 'special', unlockCondition: 'Complete checkpoint 10 of Recursion' },
+      { name: 'Backtracking Warrior', description: 'Mastered backtracking techniques', icon: '⚔️', type: 'special', unlockCondition: 'Complete checkpoint 15 of Recursion' },
+      { name: 'Recursion Survivor', description: 'Completed all recursion challenges', icon: '👑', type: 'special', unlockCondition: 'Complete all 22 checkpoints' }
     ];
     await Badge.insertMany(streakBadges);
 

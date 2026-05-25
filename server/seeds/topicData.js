@@ -293,21 +293,21 @@ const topicData = {
       checkpoints: [
         {
           id: 'hash_cp1',
-          label: 'Frequency Tracker',
-          description: 'Identify the maximum frequency of elements in an array using hashing.',
+          label: 'Hashing Introduction',
+          description: 'Understand the basics of Hashing',
           youtubeLink: 'https://www.youtube.com/embed/KEs5UyBJ39g?rel=0&modestbranding=1'
         },
         {
           id: 'hash_cp2',
-          label: 'Find Duplicates',
-          description: 'Find the count of elements that appear more than once using hashing.',
-          youtubeLink: 'https://www.youtube.com/embed/KEs5UyBJ39g?rel=0&modestbranding=1'
+          label: 'Count frequencies of elements',
+          description: 'Learn how to count frequencies',
+          youtubeLink: 'https://www.youtube.com/embed/KEs5UyBJ39g?start=850&rel=0&modestbranding=1'
         },
         {
           id: 'hash_cp3',
-          label: 'First Unique Element',
-          description: 'Identify the first element that appears exactly once in the array.',
-          youtubeLink: 'https://www.youtube.com/embed/KEs5UyBJ39g?rel=0&modestbranding=1'
+          label: 'Highest/Lowest Frequency Elements',
+          description: 'Apply Hashing to find elements',
+          youtubeLink: 'https://www.youtube.com/embed/KEs5UyBJ39g?start=1500&rel=0&modestbranding=1'
         }
       ],
       youtubeLink: 'https://www.youtube.com/watch?v=KEs5UyBJ39g'
@@ -315,31 +315,145 @@ const topicData = {
   ],
   'dsa:3': [
     {
-      title: 'Recursion Explorer',
-      description: 'Master the core concepts of recursion from base cases to recurrence relations. Watch tutorials, solve coding challenges, and track your progress in real-time!',
+      title: 'Recursion Survivor',
+      description: 'Bootcamp for Recursion: Trace call stacks, understand base cases, and master backtracking techniques.',
       instructor: 'Striver',
       difficulty: 'beginner',
       estimatedTime: '6 hours',
       order: 1,
       isCheckpointModule: true,
-      checkpoints: [
+            checkpoints: [
         {
           id: 'rec_cp1',
-          label: 'Sum of N Numbers',
-          description: 'Calculate the sum of first N natural numbers recursively.',
+          label: 'Re 1. Introduction to Recursion | Recursion Tree | Stack Space | Strivers A2Z DSA Course',
+          description: 'Checkpoint 1',
           youtubeLink: 'https://www.youtube.com/embed/yVdKa8dnKiE?rel=0&modestbranding=1'
         },
         {
           id: 'rec_cp2',
-          label: 'Reverse String',
-          description: 'Reverse a string recursively.',
-          youtubeLink: 'https://www.youtube.com/embed/92Z4_N0Uew0?rel=0&modestbranding=1'
+          label: 'Re 2. Problems on Recursion | Strivers A2Z DSA Course',
+          description: 'Checkpoint 2',
+          youtubeLink: 'https://www.youtube.com/embed/un6PLygfXrA?rel=0&modestbranding=1'
         },
         {
           id: 'rec_cp3',
-          label: 'Power Recursive',
-          description: 'Calculate base raised to exponent power recursively.',
-          youtubeLink: 'https://www.youtube.com/embed/kvRjFhrYpiA?rel=0&modestbranding=1'
+          label: 'Re 3. Parameterised and Functional Recursion | Strivers A2Z DSA Course',
+          description: 'Checkpoint 3',
+          youtubeLink: 'https://www.youtube.com/embed/69ZCDFy-OUo?rel=0&modestbranding=1'
+        },
+        {
+          id: 'rec_cp4',
+          label: 'Re 4. Problems on Functional Recursion | Strivers A2Z DSA Course',
+          description: 'Checkpoint 4',
+          youtubeLink: 'https://www.youtube.com/embed/twuC1F6gLI8?rel=0&modestbranding=1'
+        },
+        {
+          id: 'rec_cp5',
+          label: 'Re 5. Multiple Recursion Calls | Problems | Strivers A2Z DSA Course',
+          description: 'Checkpoint 5',
+          youtubeLink: 'https://www.youtube.com/embed/kvRjNm4rVBE?rel=0&modestbranding=1'
+        },
+        {
+          id: 'rec_cp6',
+          label: 'L6. Recursion on Subsequences | Printing Subsequences',
+          description: 'Checkpoint 6',
+          youtubeLink: 'https://www.youtube.com/embed/AxNNVECce8c?rel=0&modestbranding=1'
+        },
+        {
+          id: 'rec_cp7',
+          label: 'L7. All Kind of Patterns in Recursion | Print All | Print one | Count',
+          description: 'Checkpoint 7',
+          youtubeLink: 'https://www.youtube.com/embed/eQCS_v3bw0Q?rel=0&modestbranding=1'
+        },
+        {
+          id: 'rec_cp8',
+          label: 'Merge Sort | Algorithm | Pseudocode | Dry Run | Code | Strivers A2Z DSA Course',
+          description: 'Checkpoint 8',
+          youtubeLink: 'https://www.youtube.com/embed/ogjf7ORKfd8?rel=0&modestbranding=1'
+        },
+        {
+          id: 'rec_cp9',
+          label: 'Quick Sort For Beginners | Strivers A2Z DSA Course',
+          description: 'Checkpoint 9',
+          youtubeLink: 'https://www.youtube.com/embed/WIrA4YexLRQ?rel=0&modestbranding=1'
+        },
+        {
+          id: 'rec_cp10',
+          label: 'L8. Combination Sum | Recursion | Leetcode | C++ | Java',
+          description: 'Checkpoint 10',
+          youtubeLink: 'https://www.youtube.com/embed/OyZFFqQtu98?rel=0&modestbranding=1'
+        },
+        {
+          id: 'rec_cp11',
+          label: 'L9. Combination Sum II | Leetcode | Recursion | Java | C++',
+          description: 'Checkpoint 11',
+          youtubeLink: 'https://www.youtube.com/embed/G1fRTGRxXU8?rel=0&modestbranding=1'
+        },
+        {
+          id: 'rec_cp12',
+          label: 'L10. Subset Sum I | Recursion | C++ | Java',
+          description: 'Checkpoint 12',
+          youtubeLink: 'https://www.youtube.com/embed/rYkfBRtMJr8?rel=0&modestbranding=1'
+        },
+        {
+          id: 'rec_cp13',
+          label: 'L11. Subset Sum II | Leetcode | Recursion',
+          description: 'Checkpoint 13',
+          youtubeLink: 'https://www.youtube.com/embed/RIn3gOkbhQE?rel=0&modestbranding=1'
+        },
+        {
+          id: 'rec_cp14',
+          label: 'L12. Print all Permutations of a String/Array | Recursion | Approach - 1',
+          description: 'Checkpoint 14',
+          youtubeLink: 'https://www.youtube.com/embed/YK78FU5Ffjw?rel=0&modestbranding=1'
+        },
+        {
+          id: 'rec_cp15',
+          label: 'L13. Print all Permutations of a String/Array | Recursion | Approach - 2',
+          description: 'Checkpoint 15',
+          youtubeLink: 'https://www.youtube.com/embed/f2ic2Rsc9pU?rel=0&modestbranding=1'
+        },
+        {
+          id: 'rec_cp16',
+          label: 'L14. N-Queens | Leetcode Hard | Backtracking',
+          description: 'Checkpoint 16',
+          youtubeLink: 'https://www.youtube.com/embed/i05Ju7AftcM?rel=0&modestbranding=1'
+        },
+        {
+          id: 'rec_cp17',
+          label: 'L15. Sudoko Solver | Backtracking',
+          description: 'Checkpoint 17',
+          youtubeLink: 'https://www.youtube.com/embed/FWAIf_EVUKE?rel=0&modestbranding=1'
+        },
+        {
+          id: 'rec_cp18',
+          label: 'L16. M-Coloring Problem | Backtracking',
+          description: 'Checkpoint 18',
+          youtubeLink: 'https://www.youtube.com/embed/wuVwUK25Rfc?rel=0&modestbranding=1'
+        },
+        {
+          id: 'rec_cp19',
+          label: 'L17. Palindrome Partitioning | Leetcode | Recursion | C++ | Java',
+          description: 'Checkpoint 19',
+          youtubeLink: 'https://www.youtube.com/embed/WBgsABoClE0?rel=0&modestbranding=1'
+        },
+        {
+          id: 'rec_cp20',
+          label: 'L19. Rat in A Maze | Backtracking',
+          description: 'Checkpoint 20',
+          youtubeLink: 'https://www.youtube.com/embed/bLGZhJlt4y0?rel=0&modestbranding=1'
+        },
+        {
+          id: 'rec_cp21',
+          label: 'L18. K-th Permutation Sequence | Leetcode',
+          description: 'Checkpoint 21',
+          youtubeLink: 'https://www.youtube.com/embed/wT7gcXLYoao?rel=0&modestbranding=1'
+        },
+        {
+          id: 'rec_cp22',
+          label: 'Count Inversions in an Array | Brute and Optimal',
+          description: 'Checkpoint 22',
+          youtubeLink: 'https://www.youtube.com/embed/AseUmwVNaoY?rel=0&modestbranding=1'
         }
       ],
       youtubeLink: 'https://www.youtube.com/watch?v=yVdKa8dnKiE&list=PLgUwDviBIf0rGlzIn_7rsaR2FQ5e6ZOL9'
@@ -355,24 +469,6 @@ const topicData = {
       order: 1,
       isCheckpointModule: true,
       checkpoints: [
-        {
-          id: 'll_cp1',
-          label: 'Linked List Length',
-          description: 'Find the total number of nodes in a singly linked list.',
-          youtubeLink: 'https://www.youtube.com/embed/cg6JGiXhQ9c?rel=0&modestbranding=1'
-        },
-        {
-          id: 'll_cp2',
-          label: 'Find Middle Value',
-          description: 'Identify the value of the middle node of the linked list in one pass.',
-          youtubeLink: 'https://www.youtube.com/embed/83bB4P0L6W4?rel=0&modestbranding=1'
-        },
-        {
-          id: 'll_cp3',
-          label: 'Search List',
-          description: 'Determine if a specific element exists in the linked list.',
-          youtubeLink: 'https://www.youtube.com/embed/MRe4UsRad5k?rel=0&modestbranding=1'
-        }
       ],
       youtubeLink: 'https://www.youtube.com/watch?v=cg6JGiXhQ9c&list=PLgUwDviBIf0rAuz8tVcM0AymmhTRsfaLU'
     }
@@ -387,24 +483,6 @@ const topicData = {
       order: 1,
       isCheckpointModule: true,
       checkpoints: [
-        {
-          id: 'sq_cp1',
-          label: 'Valid Parentheses',
-          description: 'Use a stack to validate parenthesis balance in a string.',
-          youtubeLink: 'https://www.youtube.com/embed/tqQ5fTamIN4?rel=0&modestbranding=1'
-        },
-        {
-          id: 'sq_cp2',
-          label: 'Next Greater Element',
-          description: 'Use a stack to find the next greater element in O(N).',
-          youtubeLink: 'https://www.youtube.com/embed/N7m7yP8r8pY?rel=0&modestbranding=1'
-        },
-        {
-          id: 'sq_cp3',
-          label: 'Queue Sum',
-          description: 'Calculate the total sum of elements in a dynamic FIFO queue.',
-          youtubeLink: 'https://www.youtube.com/embed/m4N0e_fKxZc?rel=0&modestbranding=1'
-        }
       ],
       youtubeLink: 'https://www.youtube.com/watch?v=tqQ5fTamIN4&list=PLgUwDviBIf0pOd5zvVVSzgpo6BaCpHT9c'
     }
@@ -419,24 +497,6 @@ const topicData = {
       order: 1,
       isCheckpointModule: true,
       checkpoints: [
-        {
-          id: 'tree_cp1',
-          label: 'Tree Node Sum',
-          description: 'Perform a depth-first traversal to sum all values in a binary tree.',
-          youtubeLink: 'https://www.youtube.com/embed/OYqYEM1bMK8?rel=0&modestbranding=1'
-        },
-        {
-          id: 'tree_cp2',
-          label: 'Max Depth',
-          description: 'Calculate the maximum height/depth of the binary tree recursively.',
-          youtubeLink: 'https://www.youtube.com/embed/eD4w3H1n8u4?rel=0&modestbranding=1'
-        },
-        {
-          id: 'tree_cp3',
-          label: 'Leaf Node Count',
-          description: 'Identify and count leaf nodes (nodes without children) in a binary tree.',
-          youtubeLink: 'https://www.youtube.com/embed/x1C0nU2sP9Y?rel=0&modestbranding=1'
-        }
       ],
       youtubeLink: 'https://www.youtube.com/watch?v=OYqYEM1bMK8&list=PLgUwDviBIf0q8Hkd7bK2Bpryj2xVJk8Vk'
     }
@@ -451,24 +511,6 @@ const topicData = {
       order: 1,
       isCheckpointModule: true,
       checkpoints: [
-        {
-          id: 'graph_cp1',
-          label: 'Find Node Degree',
-          description: 'Calculate the degree of a given node from the graph adjacency list.',
-          youtubeLink: 'https://www.youtube.com/embed/M3_pLsDdeuU?rel=0&modestbranding=1'
-        },
-        {
-          id: 'graph_cp2',
-          label: 'Find Path',
-          description: 'Use Breadth-First Search (BFS) to check if a path exists between two nodes.',
-          youtubeLink: 'https://www.youtube.com/embed/V63W7p_p4uE?rel=0&modestbranding=1'
-        },
-        {
-          id: 'graph_cp3',
-          label: 'Count Connected Components',
-          description: 'Identify and count disjoint subgraphs in an undirected graph.',
-          youtubeLink: 'https://www.youtube.com/embed/XpkfK_Mh6vA?rel=0&modestbranding=1'
-        }
       ],
       youtubeLink: 'https://www.youtube.com/watch?v=M3_pLsDdeuU&list=PLgUwDviBIf0oE3gA41TKO2H5bHpPd7fzn'
     }
@@ -483,24 +525,6 @@ const topicData = {
       order: 1,
       isCheckpointModule: true,
       checkpoints: [
-        {
-          id: 'dp_cp1',
-          label: 'Climbing Stairs',
-          description: 'Use Dynamic Programming to count distinct ways to climb stairs.',
-          youtubeLink: 'https://www.youtube.com/embed/tyB0ztf0DNY?rel=0&modestbranding=1'
-        },
-        {
-          id: 'dp_cp2',
-          label: 'House Robber',
-          description: 'Find the maximum amount of money you can rob without alerting police.',
-          youtubeLink: 'https://www.youtube.com/embed/7cELW7O_E9k?rel=0&modestbranding=1'
-        },
-        {
-          id: 'dp_cp3',
-          label: 'Min Path Sum',
-          description: 'Find the minimum sum path from top-left to bottom-right in a grid.',
-          youtubeLink: 'https://www.youtube.com/embed/NPZn9jBrX8U?rel=0&modestbranding=1'
-        }
       ],
       youtubeLink: 'https://www.youtube.com/watch?v=tyB0ztf0DNY&list=PLgUwDviBIf0pwFf-BnpkXxs0Ra0eU2sJY'
     }
@@ -515,24 +539,6 @@ const topicData = {
       order: 1,
       isCheckpointModule: true,
       checkpoints: [
-        {
-          id: 'greedy_cp1',
-          label: 'Lemonade Change',
-          description: 'Use a greedy strategy to count bills and decide if change can be provided.',
-          youtubeLink: 'https://www.youtube.com/embed/Fqd5aB8S624?rel=0&modestbranding=1'
-        },
-        {
-          id: 'greedy_cp2',
-          label: 'Assign Cookies',
-          description: 'Greedily satisfy maximum children matching cookie sizes.',
-          youtubeLink: 'https://www.youtube.com/embed/HZOUwK5El5U?rel=0&modestbranding=1'
-        },
-        {
-          id: 'greedy_cp3',
-          label: 'Fractional Knapsack',
-          description: 'Greedily sort items by density value to maximize total value.',
-          youtubeLink: 'https://www.youtube.com/embed/n59vC9nJreU?rel=0&modestbranding=1'
-        }
       ],
       youtubeLink: 'https://www.youtube.com/watch?v=tyB0ztf0DNY&list=PLgUwDviBIf0pwFf-BnpkXxs0Ra0eU2sJY'
     }

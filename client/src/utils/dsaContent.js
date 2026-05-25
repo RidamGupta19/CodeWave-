@@ -5,7 +5,7 @@ import { getLinkedListCheckpointContent } from './linkedListContent';
 import { getStackQueueCheckpointContent } from './stackQueueContent';
 import { getTreesCheckpointContent } from './treesContent';
 import { getGraphCheckpointContent } from './graphContent';
-import { getDpCheckpointContent } from './dpContent';
+import { getDPCheckpointContent } from './dpContent';
 import { getGreedyCheckpointContent } from './greedyContent';
 
 // DSA Content Engine - Striver A2Z Aligned with 4 Unlockable Difficulty Levels per Topic
@@ -1449,7 +1449,7 @@ export const getCheckpointContent = (checkpointId, lang = 'cpp') => {
     return getGraphCheckpointContent(checkpointId, lang);
   }
   if (checkpointId && checkpointId.startsWith('dp_cp')) {
-    return getDpCheckpointContent(checkpointId, lang);
+    return getDPCheckpointContent(checkpointId, lang);
   }
   if (checkpointId && checkpointId.startsWith('greedy_cp')) {
     return getGreedyCheckpointContent(checkpointId, lang);

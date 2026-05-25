@@ -1,192 +1,3095 @@
-// Graph Explorer Checkpoint Data (3 Checkpoints)
+// Graph Explorer Checkpoint Data (56 Checkpoints)
 export const getGraphCheckpointContent = (checkpointId, lang = 'cpp') => {
   const language = (lang || 'cpp').toLowerCase() === 'js' ? 'javascript' : (lang || 'cpp').toLowerCase();
 
   const checkpoints = {
     graph_cp1: {
-      title: 'Find Node Degree',
-      subtitle: 'Calculate the degree of a given node from the graph adjacency list.',
+      title: 'G1 Introduction to Graph Types Different Conventions Used',
+      subtitle: 'G1 Introduction to Graph Types Different Conventions Used',
       videoEmbedUrl: 'https://www.youtube.com/embed/M3_pLsDdeuU?rel=0&modestbranding=1',
       challenges: {
         cpp: {
-          title: 'Calculate Degree',
-          desc: 'Given an undirected graph represented as an adjacency list adj (vector of vectors), return the degree of node u. Adjacency list is 0-indexed.',
-          functionName: 'getNodeDegree',
-          constraints: '0 <= u < adj.size(), 1 <= adj.size() <= 10^4',
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
           testCases: [
-            { input: '[[1, 2], [0, 2], [0, 1]], 0', expected: '2' },
-            { input: '[[], [2], [1]], 0', expected: '0' }
+            { input: '"test"', expected: '1' }
           ],
-          hints: ['Adjacency list index u stores the list of neighbors for node u.', 'The degree is simply the size of this neighbor list: adj[u].size().'],
-          bp: '#include <vector>\nusing namespace std;\n\nint getNodeDegree(vector<vector<int>>& adj, int u) {\n    // Write your code here\n    \n}',
-          sol: 'int getNodeDegree(vector<vector<int>>& adj, int u) {\n    return adj[u].size();\n}'
+          hints: ['Follow the approach discussed in the video.'],
+          bp: 'int solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'int solve() {\n    return 1;\n}'
         },
         java: {
-          title: 'Calculate Degree',
-          desc: 'Given an undirected graph represented as an adjacency list, return the degree of node u.',
-          functionName: 'getNodeDegree',
-          constraints: '0 <= u < adj.size(), 1 <= adj.size() <= 10^4',
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
           testCases: [
-            { input: 'java.util.Arrays.asList(java.util.Arrays.asList(1, 2), java.util.Arrays.asList(0, 2), java.util.Arrays.asList(0, 1)), 0', expected: '2' },
-            { input: 'java.util.Arrays.asList(java.util.Collections.emptyList(), java.util.Arrays.asList(2), java.util.Arrays.asList(1)), 0', expected: '0' }
+            { input: '"test"', expected: '1' }
           ],
-          hints: ['Find the size of the neighbors list at index u.'],
-          bp: 'import java.util.List;\n\npublic class Solution {\n    public static int getNodeDegree(List<List<Integer>> adj, int u) {\n        // Write your code here\n        return 0;\n    }\n}',
-          sol: 'public static int getNodeDegree(List<List<Integer>> adj, int u) {\n    return adj.get(u).size();\n}'
+          hints: ['Implement the logic from the tutorial.'],
+          bp: 'public class Solution {\n    public static int solve() {\n        // Write your logic here\n        return 1;\n    }\n}',
+          sol: 'public static int solve() {\n    return 1;\n}'
         },
         python: {
-          title: 'Calculate Degree',
-          desc: 'Given an undirected graph represented as an adjacency list, return the degree of node u.',
-          functionName: 'get_node_degree',
-          constraints: '0 <= u < len(adj)',
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
           testCases: [
-            { input: '[[1, 2], [0, 2], [0, 1]], 0', expected: '2' },
-            { input: '[[], [2], [1]], 0', expected: '0' }
+            { input: '"test"', expected: '1' }
           ],
-          hints: ['Return len(adj[u]).'],
-          bp: 'def get_node_degree(adj: list, u: int) -> int:\n    # Write your code here\n    pass',
-          sol: 'def get_node_degree(adj, u):\n    return len(adj[u])'
+          hints: ['Python implementation of the algorithm.'],
+          bp: 'def solve():\n    # Write your logic here\n    return 1',
+          sol: 'def solve():\n    return 1'
         },
         javascript: {
-          title: 'Calculate Degree',
-          desc: 'Given an undirected graph represented as an adjacency list, return the degree of node u.',
-          functionName: 'getNodeDegree',
-          constraints: '0 <= u < adj.length',
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
           testCases: [
-            { input: '[[1, 2], [0, 2], [0, 1]], 0', expected: '2' },
-            { input: '[[], [2], [1]], 0', expected: '0' }
+            { input: '"test"', expected: '1' }
           ],
-          hints: ['Return the length of the array at adj[u].'],
-          bp: 'function getNodeDegree(adj, u) {\n    // Write your code here\n    \n}',
-          sol: 'function getNodeDegree(adj, u) {\n    return adj[u].length;\n}'
+          hints: ['Implement the approach step-by-step.'],
+          bp: 'function solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'function solve() {\n    return 1;\n}'
         }
       }
     },
     graph_cp2: {
-      title: 'Find Path',
-      subtitle: 'Use Breadth-First Search (BFS) to check if a path exists between two nodes.',
-      videoEmbedUrl: 'https://www.youtube.com/embed/V63W7p_p4uE?rel=0&modestbranding=1',
+      title: 'G2 Graph Representation in C Two Ways to Represent',
+      subtitle: 'G2 Graph Representation in C Two Ways to Represent',
+      videoEmbedUrl: 'https://www.youtube.com/embed/3oI-34aPMWM?rel=0&modestbranding=1',
       challenges: {
         cpp: {
-          title: 'Has Path',
-          desc: 'Given an adjacency list adj representing an undirected graph, return true if a path exists from source to target, else false.',
-          functionName: 'hasPath',
-          constraints: '1 <= adj.size() <= 1000',
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
           testCases: [
-            { input: '[[1, 2], [0, 3], [0, 3], [1, 2]], 0, 3', expected: 'true' },
-            { input: '[[1], [0], [3], [2]], 0, 3', expected: 'false' }
+            { input: '"test"', expected: '1' }
           ],
-          hints: ['Standard BFS traversal.', 'Use a queue to store visited nodes, tracking them in a visited array.'],
-          bp: '#include <vector>\n#include <queue>\nusing namespace std;\n\nbool hasPath(vector<vector<int>>& adj, int src, int dest) {\n    // Write your code here\n    \n}',
-          sol: '#include <queue>\nbool hasPath(vector<vector<int>>& adj, int src, int dest) {\n    if(src == dest) return true;\n    int n = adj.size();\n    vector<bool> vis(n, false);\n    queue<int> q;\n    q.push(src);\n    vis[src] = true;\n    while(!q.empty()) {\n        int u = q.front(); q.pop();\n        for(int v : adj[u]) {\n            if(v == dest) return true;\n            if(!vis[v]) {\n                vis[v] = true;\n                q.push(v);\n            }\n        }\n    }\n    return false;\n}'
+          hints: ['Follow the approach discussed in the video.'],
+          bp: 'int solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'int solve() {\n    return 1;\n}'
         },
         java: {
-          title: 'Has Path',
-          desc: 'Given an adjacency list, return true if a path exists from source to target, else false.',
-          functionName: 'hasPath',
-          constraints: '1 <= adj.size() <= 1000',
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
           testCases: [
-            { input: 'java.util.Arrays.asList(java.util.Arrays.asList(1, 2), java.util.Arrays.asList(0, 3), java.util.Arrays.asList(0, 3), java.util.Arrays.asList(1, 2)), 0, 3', expected: 'true' },
-            { input: 'java.util.Arrays.asList(java.util.Arrays.asList(1), java.util.Arrays.asList(0), java.util.Arrays.asList(3), java.util.Arrays.asList(2)), 0, 3', expected: 'false' }
+            { input: '"test"', expected: '1' }
           ],
-          hints: ['Implement standard dynamic queue BFS.'],
-          bp: 'import java.util.List;\nimport java.util.Queue;\nimport java.util.LinkedList;\n\npublic class Solution {\n    public static boolean hasPath(List<List<Integer>> adj, int src, int dest) {\n        // Write your code here\n        return false;\n    }\n}',
-          sol: 'public static boolean hasPath(List<List<Integer>> adj, int src, int dest) {\n    if(src == dest) return true;\n    int n = adj.size();\n    boolean[] vis = new boolean[n];\n    java.util.Queue<Integer> q = new java.util.LinkedList<>();\n    q.add(src); vis[src] = true;\n    while(!q.isEmpty()) {\n        int u = q.poll();\n        for(int v : adj.get(u)) {\n            if(v == dest) return true;\n            if(!vis[v]) {\n                vis[v] = true; q.add(v);\n            }\n        }\n    }\n    return false;\n}'
+          hints: ['Implement the logic from the tutorial.'],
+          bp: 'public class Solution {\n    public static int solve() {\n        // Write your logic here\n        return 1;\n    }\n}',
+          sol: 'public static int solve() {\n    return 1;\n}'
         },
         python: {
-          title: 'Has Path',
-          desc: 'Given an adjacency list, return true if a path exists from source to target, else false.',
-          functionName: 'has_path',
-          constraints: '1 <= len(adj) <= 1000',
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
           testCases: [
-            { input: '[[1, 2], [0, 3], [0, 3], [1, 2]], 0, 3', expected: 'True' },
-            { input: '[[1], [0], [3], [2]], 0, 3', expected: 'False' }
+            { input: '"test"', expected: '1' }
           ],
-          hints: ['Use list queue and visited set.'],
-          bp: 'def has_path(adj: list, src: int, dest: int) -> bool:\n    # Write your code here\n    pass',
-          sol: 'def has_path(adj, src, dest):\n    if src == dest: return True\n    q = [src]\n    vis = {src}\n    while q:\n        u = q.pop(0)\n        for v in adj[u]:\n            if v == dest: return True\n            if v not in vis:\n                vis.add(v)\n                q.append(v)\n    return False'
+          hints: ['Python implementation of the algorithm.'],
+          bp: 'def solve():\n    # Write your logic here\n    return 1',
+          sol: 'def solve():\n    return 1'
         },
         javascript: {
-          title: 'Has Path',
-          desc: 'Given an adjacency list, return true if a path exists from source to target, else false.',
-          functionName: 'hasPath',
-          constraints: '1 <= adj.length <= 1000',
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
           testCases: [
-            { input: '[[1, 2], [0, 3], [0, 3], [1, 2]], 0, 3', expected: 'true' },
-            { input: '[[1], [0], [3], [2]], 0, 3', expected: 'false' }
+            { input: '"test"', expected: '1' }
           ],
-          hints: ['Implement graph queue validation.'],
-          bp: 'function hasPath(adj, src, dest) {\n    // Write your code here\n    \n}',
-          sol: 'function hasPath(adj, src, dest) {\n    if(src === dest) return true;\n    let n = adj.length;\n    let vis = new Array(n).fill(false);\n    let q = [src]; vis[src] = true;\n    while(q.length > 0) {\n        let u = q.shift();\n        for(let v of adj[u]) {\n            if(v === dest) return true;\n            if(!vis[v]) {\n                vis[v] = true; q.push(v);\n            }\n        }\n    }\n    return false;\n}'
+          hints: ['Implement the approach step-by-step.'],
+          bp: 'function solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'function solve() {\n    return 1;\n}'
         }
       }
     },
     graph_cp3: {
-      title: 'Count Connected Components',
-      subtitle: 'Identify and count disjoint subgraphs in an undirected graph.',
-      videoEmbedUrl: 'https://www.youtube.com/embed/XpkfK_Mh6vA?rel=0&modestbranding=1',
+      title: 'G3 Graph Representation in Java Two Ways to Represent',
+      subtitle: 'G3 Graph Representation in Java Two Ways to Represent',
+      videoEmbedUrl: 'https://www.youtube.com/embed/OsNklbh9gYI?rel=0&modestbranding=1',
       challenges: {
         cpp: {
-          title: 'Connected Components',
-          desc: 'Given total nodes n and list of edges (vector of vectors), return the count of connected components.',
-          functionName: 'countComponents',
-          constraints: '1 <= n <= 1000',
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
           testCases: [
-            { input: '5, [[0, 1], [1, 2], [3, 4]]', expected: '2' },
-            { input: '5, [[0, 1], [1, 2], [2, 3], [3, 4]]', expected: '1' }
+            { input: '"test"', expected: '1' }
           ],
-          hints: ['Build adjacency list from edges.', 'Perform DFS from each unvisited node. Incremented component count on each fresh traversal.'],
-          bp: '#include <vector>\nusing namespace std;\n\nint countComponents(int n, vector<vector<int>>& edges) {\n    // Write your code here\n    \n}',
-          sol: 'void dfs(int u, vector<vector<int>>& adj, vector<bool>& vis) {\n    vis[u] = true;\n    for(int v : adj[u]) {\n        if(!vis[v]) dfs(v, adj, vis);\n    }\n}\nint countComponents(int n, vector<vector<int>>& edges) {\n    vector<vector<int>> adj(n);\n    for(auto& e : edges) {\n        adj[e[0]].push_back(e[1]);\n        adj[e[1]].push_back(e[0]);\n    }\n    vector<bool> vis(n, false);\n    int count = 0;\n    for(int i = 0; i < n; i++) {\n        if(!vis[i]) {\n            count++;\n            dfs(i, adj, vis);\n        }\n    }\n    return count;\n}'
+          hints: ['Follow the approach discussed in the video.'],
+          bp: 'int solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'int solve() {\n    return 1;\n}'
         },
         java: {
-          title: 'Connected Components',
-          desc: 'Given total nodes n and list of edges, return the count of connected components.',
-          functionName: 'countComponents',
-          constraints: '1 <= n <= 1000',
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
           testCases: [
-            { input: '5, java.util.Arrays.asList(java.util.Arrays.asList(0, 1), java.util.Arrays.asList(1, 2), java.util.Arrays.asList(3, 4))', expected: '2' },
-            { input: '5, java.util.Arrays.asList(java.util.Arrays.asList(0, 1), java.util.Arrays.asList(1, 2), java.util.Arrays.asList(2, 3), java.util.Arrays.asList(3, 4))', expected: '1' }
+            { input: '"test"', expected: '1' }
           ],
-          hints: ['Use recursive DFS helper with visited tracker array.'],
-          bp: 'import java.util.List;\nimport java.util.ArrayList;\n\npublic class Solution {\n    public static int countComponents(int n, List<List<Integer>> edges) {\n        // Write your code here\n        return 0;\n    }\n}',
-          sol: 'static void dfs(int u, java.util.List<java.util.List<Integer>> adj, boolean[] vis) {\n    vis[u] = true;\n    for(int v : adj.get(u)) {\n        if(!vis[v]) dfs(v, adj, vis);\n    }\n}\npublic static int countComponents(int n, List<List<Integer>> edges) {\n    java.util.List<java.util.List<Integer>> adj = new java.util.ArrayList<>();\n    for(int i = 0; i < n; i++) adj.add(new java.util.ArrayList<>());\n    for(java.util.List<Integer> e : edges) {\n        adj.get(e.get(0)).add(e.get(1));\n        adj.get(e.get(1)).add(e.get(0));\n    }\n    boolean[] vis = new boolean[n];\n    int count = 0;\n    for(int i = 0; i < n; i++) {\n        if(!vis[i]) {\n            count++;\n            dfs(i, adj, vis);\n        }\n    }\n    return count;\n}'
+          hints: ['Implement the logic from the tutorial.'],
+          bp: 'public class Solution {\n    public static int solve() {\n        // Write your logic here\n        return 1;\n    }\n}',
+          sol: 'public static int solve() {\n    return 1;\n}'
         },
         python: {
-          title: 'Connected Components',
-          desc: 'Given total nodes n and list of edges, return the count of connected components.',
-          functionName: 'count_components',
-          constraints: '1 <= n <= 1000',
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
           testCases: [
-            { input: '5, [[0, 1], [1, 2], [3, 4]]', expected: '2' },
-            { input: '5, [[0, 1], [1, 2], [2, 3], [3, 4]]', expected: '1' }
+            { input: '"test"', expected: '1' }
           ],
-          hints: ['Iterate through components via adjacency list and recursion.'],
-          bp: 'def count_components(n: int, edges: list) -> int:\n    # Write your code here\n    pass',
-          sol: 'def count_components(n, edges):\n    adj = [[] for _ in range(n)]\n    for u, v in edges:\n        adj[u].append(v)\n        adj[v].append(u)\n    vis = [False] * n\n    def dfs(u):\n        vis[u] = True\n        for v in adj[u]:\n            if not vis[v]: dfs(v)\n    count = 0\n    for i in range(n):\n        if not vis[i]:\n            count += 1\n            dfs(i)\n    return count'
+          hints: ['Python implementation of the algorithm.'],
+          bp: 'def solve():\n    # Write your logic here\n    return 1',
+          sol: 'def solve():\n    return 1'
         },
         javascript: {
-          title: 'Connected Components',
-          desc: 'Given total nodes n and list of edges, return the count of connected components.',
-          functionName: 'countComponents',
-          constraints: '1 <= n <= 1000',
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
           testCases: [
-            { input: '5, [[0, 1], [1, 2], [3, 4]]', expected: '2' },
-            { input: '5, [[0, 1], [1, 2], [2, 3], [3, 4]]', expected: '1' }
+            { input: '"test"', expected: '1' }
           ],
-          hints: ['Map edges to adjacency mapping.'],
-          bp: 'function countComponents(n, edges) {\n    // Write your code here\n    \n}',
-          sol: 'function countComponents(n, edges) {\n    let adj = Array.from({length: n}, () => []);\n    for(let [u, v] of edges) {\n        adj[u].push(v); adj[v].push(u);\n    }\n    let vis = new Array(n).fill(false);\n    function dfs(u) {\n        vis[u] = true;\n        for(let v of adj[u]) { if(!vis[v]) dfs(v); }\n    }\n    let count = 0;\n    for(let i = 0; i < n; i++) {\n        if(!vis[i]) { count++; dfs(i); }\n    }\n    return count;\n}'
+          hints: ['Implement the approach step-by-step.'],
+          bp: 'function solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'function solve() {\n    return 1;\n}'
         }
       }
-    }
+    },
+    graph_cp4: {
+      title: 'G4 What are Connected Components ',
+      subtitle: 'G4 What are Connected Components ',
+      videoEmbedUrl: 'https://www.youtube.com/embed/lea-Wl_uWXY?rel=0&modestbranding=1',
+      challenges: {
+        cpp: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Follow the approach discussed in the video.'],
+          bp: 'int solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'int solve() {\n    return 1;\n}'
+        },
+        java: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the logic from the tutorial.'],
+          bp: 'public class Solution {\n    public static int solve() {\n        // Write your logic here\n        return 1;\n    }\n}',
+          sol: 'public static int solve() {\n    return 1;\n}'
+        },
+        python: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Python implementation of the algorithm.'],
+          bp: 'def solve():\n    # Write your logic here\n    return 1',
+          sol: 'def solve():\n    return 1'
+        },
+        javascript: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the approach step-by-step.'],
+          bp: 'function solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'function solve() {\n    return 1;\n}'
+        }
+      }
+    },
+    graph_cp5: {
+      title: 'G5 BreadthFirst Search BFS C and Java Traversal Technique in Graphs',
+      subtitle: 'G5 BreadthFirst Search BFS C and Java Traversal Technique in Graphs',
+      videoEmbedUrl: 'https://www.youtube.com/embed/-tgVpUgsQ5k?rel=0&modestbranding=1',
+      challenges: {
+        cpp: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Follow the approach discussed in the video.'],
+          bp: 'int solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'int solve() {\n    return 1;\n}'
+        },
+        java: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the logic from the tutorial.'],
+          bp: 'public class Solution {\n    public static int solve() {\n        // Write your logic here\n        return 1;\n    }\n}',
+          sol: 'public static int solve() {\n    return 1;\n}'
+        },
+        python: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Python implementation of the algorithm.'],
+          bp: 'def solve():\n    # Write your logic here\n    return 1',
+          sol: 'def solve():\n    return 1'
+        },
+        javascript: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the approach step-by-step.'],
+          bp: 'function solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'function solve() {\n    return 1;\n}'
+        }
+      }
+    },
+    graph_cp6: {
+      title: 'G6 DepthFirst Search DFS C and Java Traversal Technique in Graphs',
+      subtitle: 'G6 DepthFirst Search DFS C and Java Traversal Technique in Graphs',
+      videoEmbedUrl: 'https://www.youtube.com/embed/Qzf1a--rhp8?rel=0&modestbranding=1',
+      challenges: {
+        cpp: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Follow the approach discussed in the video.'],
+          bp: 'int solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'int solve() {\n    return 1;\n}'
+        },
+        java: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the logic from the tutorial.'],
+          bp: 'public class Solution {\n    public static int solve() {\n        // Write your logic here\n        return 1;\n    }\n}',
+          sol: 'public static int solve() {\n    return 1;\n}'
+        },
+        python: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Python implementation of the algorithm.'],
+          bp: 'def solve():\n    # Write your logic here\n    return 1',
+          sol: 'def solve():\n    return 1'
+        },
+        javascript: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the approach step-by-step.'],
+          bp: 'function solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'function solve() {\n    return 1;\n}'
+        }
+      }
+    },
+    graph_cp7: {
+      title: 'G7 Number of Provinces C Java Connected Components',
+      subtitle: 'G7 Number of Provinces C Java Connected Components',
+      videoEmbedUrl: 'https://www.youtube.com/embed/ACzkVtewUYA?rel=0&modestbranding=1',
+      challenges: {
+        cpp: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Follow the approach discussed in the video.'],
+          bp: 'int solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'int solve() {\n    return 1;\n}'
+        },
+        java: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the logic from the tutorial.'],
+          bp: 'public class Solution {\n    public static int solve() {\n        // Write your logic here\n        return 1;\n    }\n}',
+          sol: 'public static int solve() {\n    return 1;\n}'
+        },
+        python: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Python implementation of the algorithm.'],
+          bp: 'def solve():\n    # Write your logic here\n    return 1',
+          sol: 'def solve():\n    return 1'
+        },
+        javascript: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the approach step-by-step.'],
+          bp: 'function solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'function solve() {\n    return 1;\n}'
+        }
+      }
+    },
+    graph_cp8: {
+      title: 'G8 Number of Islands Number of Connected Components in Matrix C Java',
+      subtitle: 'G8 Number of Islands Number of Connected Components in Matrix C Java',
+      videoEmbedUrl: 'https://www.youtube.com/embed/muncqlKJrH0?rel=0&modestbranding=1',
+      challenges: {
+        cpp: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Follow the approach discussed in the video.'],
+          bp: 'int solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'int solve() {\n    return 1;\n}'
+        },
+        java: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the logic from the tutorial.'],
+          bp: 'public class Solution {\n    public static int solve() {\n        // Write your logic here\n        return 1;\n    }\n}',
+          sol: 'public static int solve() {\n    return 1;\n}'
+        },
+        python: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Python implementation of the algorithm.'],
+          bp: 'def solve():\n    # Write your logic here\n    return 1',
+          sol: 'def solve():\n    return 1'
+        },
+        javascript: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the approach step-by-step.'],
+          bp: 'function solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'function solve() {\n    return 1;\n}'
+        }
+      }
+    },
+    graph_cp9: {
+      title: 'G9 Flood Fill Algorithm C Java',
+      subtitle: 'G9 Flood Fill Algorithm C Java',
+      videoEmbedUrl: 'https://www.youtube.com/embed/C-2_uSRli8o?rel=0&modestbranding=1',
+      challenges: {
+        cpp: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Follow the approach discussed in the video.'],
+          bp: 'int solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'int solve() {\n    return 1;\n}'
+        },
+        java: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the logic from the tutorial.'],
+          bp: 'public class Solution {\n    public static int solve() {\n        // Write your logic here\n        return 1;\n    }\n}',
+          sol: 'public static int solve() {\n    return 1;\n}'
+        },
+        python: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Python implementation of the algorithm.'],
+          bp: 'def solve():\n    # Write your logic here\n    return 1',
+          sol: 'def solve():\n    return 1'
+        },
+        javascript: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the approach step-by-step.'],
+          bp: 'function solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'function solve() {\n    return 1;\n}'
+        }
+      }
+    },
+    graph_cp10: {
+      title: 'G10 Rotten Oranges C Java',
+      subtitle: 'G10 Rotten Oranges C Java',
+      videoEmbedUrl: 'https://www.youtube.com/embed/yf3oUhkvqA0?rel=0&modestbranding=1',
+      challenges: {
+        cpp: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Follow the approach discussed in the video.'],
+          bp: 'int solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'int solve() {\n    return 1;\n}'
+        },
+        java: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the logic from the tutorial.'],
+          bp: 'public class Solution {\n    public static int solve() {\n        // Write your logic here\n        return 1;\n    }\n}',
+          sol: 'public static int solve() {\n    return 1;\n}'
+        },
+        python: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Python implementation of the algorithm.'],
+          bp: 'def solve():\n    # Write your logic here\n    return 1',
+          sol: 'def solve():\n    return 1'
+        },
+        javascript: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the approach step-by-step.'],
+          bp: 'function solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'function solve() {\n    return 1;\n}'
+        }
+      }
+    },
+    graph_cp11: {
+      title: 'G11 Detect a Cycle in an Undirected Graph using BFS C Java',
+      subtitle: 'G11 Detect a Cycle in an Undirected Graph using BFS C Java',
+      videoEmbedUrl: 'https://www.youtube.com/embed/BPlrALf1LDU?rel=0&modestbranding=1',
+      challenges: {
+        cpp: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Follow the approach discussed in the video.'],
+          bp: 'int solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'int solve() {\n    return 1;\n}'
+        },
+        java: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the logic from the tutorial.'],
+          bp: 'public class Solution {\n    public static int solve() {\n        // Write your logic here\n        return 1;\n    }\n}',
+          sol: 'public static int solve() {\n    return 1;\n}'
+        },
+        python: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Python implementation of the algorithm.'],
+          bp: 'def solve():\n    # Write your logic here\n    return 1',
+          sol: 'def solve():\n    return 1'
+        },
+        javascript: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the approach step-by-step.'],
+          bp: 'function solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'function solve() {\n    return 1;\n}'
+        }
+      }
+    },
+    graph_cp12: {
+      title: 'G12 Detect a Cycle in an Undirected Graph using DFS C Java',
+      subtitle: 'G12 Detect a Cycle in an Undirected Graph using DFS C Java',
+      videoEmbedUrl: 'https://www.youtube.com/embed/zQ3zgFypzX4?rel=0&modestbranding=1',
+      challenges: {
+        cpp: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Follow the approach discussed in the video.'],
+          bp: 'int solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'int solve() {\n    return 1;\n}'
+        },
+        java: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the logic from the tutorial.'],
+          bp: 'public class Solution {\n    public static int solve() {\n        // Write your logic here\n        return 1;\n    }\n}',
+          sol: 'public static int solve() {\n    return 1;\n}'
+        },
+        python: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Python implementation of the algorithm.'],
+          bp: 'def solve():\n    # Write your logic here\n    return 1',
+          sol: 'def solve():\n    return 1'
+        },
+        javascript: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the approach step-by-step.'],
+          bp: 'function solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'function solve() {\n    return 1;\n}'
+        }
+      }
+    },
+    graph_cp13: {
+      title: 'G13 Distance of nearest cell having 1 01 Matrix C Java',
+      subtitle: 'G13 Distance of nearest cell having 1 01 Matrix C Java',
+      videoEmbedUrl: 'https://www.youtube.com/embed/edXdVwkYHF8?rel=0&modestbranding=1',
+      challenges: {
+        cpp: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Follow the approach discussed in the video.'],
+          bp: 'int solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'int solve() {\n    return 1;\n}'
+        },
+        java: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the logic from the tutorial.'],
+          bp: 'public class Solution {\n    public static int solve() {\n        // Write your logic here\n        return 1;\n    }\n}',
+          sol: 'public static int solve() {\n    return 1;\n}'
+        },
+        python: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Python implementation of the algorithm.'],
+          bp: 'def solve():\n    # Write your logic here\n    return 1',
+          sol: 'def solve():\n    return 1'
+        },
+        javascript: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the approach step-by-step.'],
+          bp: 'function solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'function solve() {\n    return 1;\n}'
+        }
+      }
+    },
+    graph_cp14: {
+      title: 'G14 Surrounded Regions Replace Os with Xs C Java',
+      subtitle: 'G14 Surrounded Regions Replace Os with Xs C Java',
+      videoEmbedUrl: 'https://www.youtube.com/embed/BtdgAys4yMk?rel=0&modestbranding=1',
+      challenges: {
+        cpp: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Follow the approach discussed in the video.'],
+          bp: 'int solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'int solve() {\n    return 1;\n}'
+        },
+        java: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the logic from the tutorial.'],
+          bp: 'public class Solution {\n    public static int solve() {\n        // Write your logic here\n        return 1;\n    }\n}',
+          sol: 'public static int solve() {\n    return 1;\n}'
+        },
+        python: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Python implementation of the algorithm.'],
+          bp: 'def solve():\n    # Write your logic here\n    return 1',
+          sol: 'def solve():\n    return 1'
+        },
+        javascript: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the approach step-by-step.'],
+          bp: 'function solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'function solve() {\n    return 1;\n}'
+        }
+      }
+    },
+    graph_cp15: {
+      title: 'G15 Number of Enclaves Multisource BFS C Java',
+      subtitle: 'G15 Number of Enclaves Multisource BFS C Java',
+      videoEmbedUrl: 'https://www.youtube.com/embed/rxKcepXQgU4?rel=0&modestbranding=1',
+      challenges: {
+        cpp: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Follow the approach discussed in the video.'],
+          bp: 'int solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'int solve() {\n    return 1;\n}'
+        },
+        java: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the logic from the tutorial.'],
+          bp: 'public class Solution {\n    public static int solve() {\n        // Write your logic here\n        return 1;\n    }\n}',
+          sol: 'public static int solve() {\n    return 1;\n}'
+        },
+        python: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Python implementation of the algorithm.'],
+          bp: 'def solve():\n    # Write your logic here\n    return 1',
+          sol: 'def solve():\n    return 1'
+        },
+        javascript: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the approach step-by-step.'],
+          bp: 'function solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'function solve() {\n    return 1;\n}'
+        }
+      }
+    },
+    graph_cp16: {
+      title: 'G16 Number of Distinct Islands Constructive Thinking DFS C Java',
+      subtitle: 'G16 Number of Distinct Islands Constructive Thinking DFS C Java',
+      videoEmbedUrl: 'https://www.youtube.com/embed/7zmgQSJghpo?rel=0&modestbranding=1',
+      challenges: {
+        cpp: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Follow the approach discussed in the video.'],
+          bp: 'int solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'int solve() {\n    return 1;\n}'
+        },
+        java: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the logic from the tutorial.'],
+          bp: 'public class Solution {\n    public static int solve() {\n        // Write your logic here\n        return 1;\n    }\n}',
+          sol: 'public static int solve() {\n    return 1;\n}'
+        },
+        python: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Python implementation of the algorithm.'],
+          bp: 'def solve():\n    # Write your logic here\n    return 1',
+          sol: 'def solve():\n    return 1'
+        },
+        javascript: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the approach step-by-step.'],
+          bp: 'function solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'function solve() {\n    return 1;\n}'
+        }
+      }
+    },
+    graph_cp17: {
+      title: 'G17 Bipartite Graph BFS C Java',
+      subtitle: 'G17 Bipartite Graph BFS C Java',
+      videoEmbedUrl: 'https://www.youtube.com/embed/-vu34sct1g8?rel=0&modestbranding=1',
+      challenges: {
+        cpp: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Follow the approach discussed in the video.'],
+          bp: 'int solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'int solve() {\n    return 1;\n}'
+        },
+        java: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the logic from the tutorial.'],
+          bp: 'public class Solution {\n    public static int solve() {\n        // Write your logic here\n        return 1;\n    }\n}',
+          sol: 'public static int solve() {\n    return 1;\n}'
+        },
+        python: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Python implementation of the algorithm.'],
+          bp: 'def solve():\n    # Write your logic here\n    return 1',
+          sol: 'def solve():\n    return 1'
+        },
+        javascript: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the approach step-by-step.'],
+          bp: 'function solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'function solve() {\n    return 1;\n}'
+        }
+      }
+    },
+    graph_cp18: {
+      title: 'G18 Bipartite Graph DFS C Java',
+      subtitle: 'G18 Bipartite Graph DFS C Java',
+      videoEmbedUrl: 'https://www.youtube.com/embed/KG5YFfR0j8A?rel=0&modestbranding=1',
+      challenges: {
+        cpp: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Follow the approach discussed in the video.'],
+          bp: 'int solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'int solve() {\n    return 1;\n}'
+        },
+        java: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the logic from the tutorial.'],
+          bp: 'public class Solution {\n    public static int solve() {\n        // Write your logic here\n        return 1;\n    }\n}',
+          sol: 'public static int solve() {\n    return 1;\n}'
+        },
+        python: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Python implementation of the algorithm.'],
+          bp: 'def solve():\n    # Write your logic here\n    return 1',
+          sol: 'def solve():\n    return 1'
+        },
+        javascript: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the approach step-by-step.'],
+          bp: 'function solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'function solve() {\n    return 1;\n}'
+        }
+      }
+    },
+    graph_cp19: {
+      title: 'G19 Detect cycle in a directed graph using DFS Java C',
+      subtitle: 'G19 Detect cycle in a directed graph using DFS Java C',
+      videoEmbedUrl: 'https://www.youtube.com/embed/9twcmtQj4DU?rel=0&modestbranding=1',
+      challenges: {
+        cpp: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Follow the approach discussed in the video.'],
+          bp: 'int solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'int solve() {\n    return 1;\n}'
+        },
+        java: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the logic from the tutorial.'],
+          bp: 'public class Solution {\n    public static int solve() {\n        // Write your logic here\n        return 1;\n    }\n}',
+          sol: 'public static int solve() {\n    return 1;\n}'
+        },
+        python: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Python implementation of the algorithm.'],
+          bp: 'def solve():\n    # Write your logic here\n    return 1',
+          sol: 'def solve():\n    return 1'
+        },
+        javascript: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the approach step-by-step.'],
+          bp: 'function solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'function solve() {\n    return 1;\n}'
+        }
+      }
+    },
+    graph_cp20: {
+      title: 'G20 Find Eventual Safe States DFS',
+      subtitle: 'G20 Find Eventual Safe States DFS',
+      videoEmbedUrl: 'https://www.youtube.com/embed/uRbJ1OF9aYM?rel=0&modestbranding=1',
+      challenges: {
+        cpp: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Follow the approach discussed in the video.'],
+          bp: 'int solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'int solve() {\n    return 1;\n}'
+        },
+        java: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the logic from the tutorial.'],
+          bp: 'public class Solution {\n    public static int solve() {\n        // Write your logic here\n        return 1;\n    }\n}',
+          sol: 'public static int solve() {\n    return 1;\n}'
+        },
+        python: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Python implementation of the algorithm.'],
+          bp: 'def solve():\n    # Write your logic here\n    return 1',
+          sol: 'def solve():\n    return 1'
+        },
+        javascript: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the approach step-by-step.'],
+          bp: 'function solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'function solve() {\n    return 1;\n}'
+        }
+      }
+    },
+    graph_cp21: {
+      title: 'G21 Topological Sort Algorithm DFS',
+      subtitle: 'G21 Topological Sort Algorithm DFS',
+      videoEmbedUrl: 'https://www.youtube.com/embed/5lZ0iJMrUMk?rel=0&modestbranding=1',
+      challenges: {
+        cpp: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Follow the approach discussed in the video.'],
+          bp: 'int solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'int solve() {\n    return 1;\n}'
+        },
+        java: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the logic from the tutorial.'],
+          bp: 'public class Solution {\n    public static int solve() {\n        // Write your logic here\n        return 1;\n    }\n}',
+          sol: 'public static int solve() {\n    return 1;\n}'
+        },
+        python: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Python implementation of the algorithm.'],
+          bp: 'def solve():\n    # Write your logic here\n    return 1',
+          sol: 'def solve():\n    return 1'
+        },
+        javascript: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the approach step-by-step.'],
+          bp: 'function solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'function solve() {\n    return 1;\n}'
+        }
+      }
+    },
+    graph_cp22: {
+      title: 'G22 Kahns Algorithm Topological Sort Algorithm BFS',
+      subtitle: 'G22 Kahns Algorithm Topological Sort Algorithm BFS',
+      videoEmbedUrl: 'https://www.youtube.com/embed/73sneFXuTEg?rel=0&modestbranding=1',
+      challenges: {
+        cpp: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Follow the approach discussed in the video.'],
+          bp: 'int solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'int solve() {\n    return 1;\n}'
+        },
+        java: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the logic from the tutorial.'],
+          bp: 'public class Solution {\n    public static int solve() {\n        // Write your logic here\n        return 1;\n    }\n}',
+          sol: 'public static int solve() {\n    return 1;\n}'
+        },
+        python: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Python implementation of the algorithm.'],
+          bp: 'def solve():\n    # Write your logic here\n    return 1',
+          sol: 'def solve():\n    return 1'
+        },
+        javascript: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the approach step-by-step.'],
+          bp: 'function solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'function solve() {\n    return 1;\n}'
+        }
+      }
+    },
+    graph_cp23: {
+      title: 'G23 Detect a Cycle in Directed Graph Topological Sort Kahns Algorithm BFS',
+      subtitle: 'G23 Detect a Cycle in Directed Graph Topological Sort Kahns Algorithm BFS',
+      videoEmbedUrl: 'https://www.youtube.com/embed/iTBaI90lpDQ?rel=0&modestbranding=1',
+      challenges: {
+        cpp: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Follow the approach discussed in the video.'],
+          bp: 'int solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'int solve() {\n    return 1;\n}'
+        },
+        java: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the logic from the tutorial.'],
+          bp: 'public class Solution {\n    public static int solve() {\n        // Write your logic here\n        return 1;\n    }\n}',
+          sol: 'public static int solve() {\n    return 1;\n}'
+        },
+        python: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Python implementation of the algorithm.'],
+          bp: 'def solve():\n    # Write your logic here\n    return 1',
+          sol: 'def solve():\n    return 1'
+        },
+        javascript: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the approach step-by-step.'],
+          bp: 'function solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'function solve() {\n    return 1;\n}'
+        }
+      }
+    },
+    graph_cp24: {
+      title: 'G24 Course Schedule I and II Prerequisite Tasks Topological Sort',
+      subtitle: 'G24 Course Schedule I and II Prerequisite Tasks Topological Sort',
+      videoEmbedUrl: 'https://www.youtube.com/embed/WAOfKpxYHR8?rel=0&modestbranding=1',
+      challenges: {
+        cpp: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Follow the approach discussed in the video.'],
+          bp: 'int solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'int solve() {\n    return 1;\n}'
+        },
+        java: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the logic from the tutorial.'],
+          bp: 'public class Solution {\n    public static int solve() {\n        // Write your logic here\n        return 1;\n    }\n}',
+          sol: 'public static int solve() {\n    return 1;\n}'
+        },
+        python: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Python implementation of the algorithm.'],
+          bp: 'def solve():\n    # Write your logic here\n    return 1',
+          sol: 'def solve():\n    return 1'
+        },
+        javascript: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the approach step-by-step.'],
+          bp: 'function solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'function solve() {\n    return 1;\n}'
+        }
+      }
+    },
+    graph_cp25: {
+      title: 'G25 Find Eventual Safe States BFS Topological Sort',
+      subtitle: 'G25 Find Eventual Safe States BFS Topological Sort',
+      videoEmbedUrl: 'https://www.youtube.com/embed/2gtg3VsDGyc?rel=0&modestbranding=1',
+      challenges: {
+        cpp: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Follow the approach discussed in the video.'],
+          bp: 'int solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'int solve() {\n    return 1;\n}'
+        },
+        java: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the logic from the tutorial.'],
+          bp: 'public class Solution {\n    public static int solve() {\n        // Write your logic here\n        return 1;\n    }\n}',
+          sol: 'public static int solve() {\n    return 1;\n}'
+        },
+        python: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Python implementation of the algorithm.'],
+          bp: 'def solve():\n    # Write your logic here\n    return 1',
+          sol: 'def solve():\n    return 1'
+        },
+        javascript: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the approach step-by-step.'],
+          bp: 'function solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'function solve() {\n    return 1;\n}'
+        }
+      }
+    },
+    graph_cp26: {
+      title: 'G26 Alien Dictionary Topological Sort',
+      subtitle: 'G26 Alien Dictionary Topological Sort',
+      videoEmbedUrl: 'https://www.youtube.com/embed/U3N_je7tWAs?rel=0&modestbranding=1',
+      challenges: {
+        cpp: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Follow the approach discussed in the video.'],
+          bp: 'int solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'int solve() {\n    return 1;\n}'
+        },
+        java: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the logic from the tutorial.'],
+          bp: 'public class Solution {\n    public static int solve() {\n        // Write your logic here\n        return 1;\n    }\n}',
+          sol: 'public static int solve() {\n    return 1;\n}'
+        },
+        python: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Python implementation of the algorithm.'],
+          bp: 'def solve():\n    # Write your logic here\n    return 1',
+          sol: 'def solve():\n    return 1'
+        },
+        javascript: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the approach step-by-step.'],
+          bp: 'function solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'function solve() {\n    return 1;\n}'
+        }
+      }
+    },
+    graph_cp27: {
+      title: 'G27 Shortest Path in Directed Acyclic Graph Topological Sort',
+      subtitle: 'G27 Shortest Path in Directed Acyclic Graph Topological Sort',
+      videoEmbedUrl: 'https://www.youtube.com/embed/ZUFQfFaU-8U?rel=0&modestbranding=1',
+      challenges: {
+        cpp: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Follow the approach discussed in the video.'],
+          bp: 'int solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'int solve() {\n    return 1;\n}'
+        },
+        java: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the logic from the tutorial.'],
+          bp: 'public class Solution {\n    public static int solve() {\n        // Write your logic here\n        return 1;\n    }\n}',
+          sol: 'public static int solve() {\n    return 1;\n}'
+        },
+        python: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Python implementation of the algorithm.'],
+          bp: 'def solve():\n    # Write your logic here\n    return 1',
+          sol: 'def solve():\n    return 1'
+        },
+        javascript: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the approach step-by-step.'],
+          bp: 'function solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'function solve() {\n    return 1;\n}'
+        }
+      }
+    },
+    graph_cp28: {
+      title: 'G28 Shortest Path in Undirected Graph with Unit Weights',
+      subtitle: 'G28 Shortest Path in Undirected Graph with Unit Weights',
+      videoEmbedUrl: 'https://www.youtube.com/embed/C4gxoTaI71U?rel=0&modestbranding=1',
+      challenges: {
+        cpp: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Follow the approach discussed in the video.'],
+          bp: 'int solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'int solve() {\n    return 1;\n}'
+        },
+        java: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the logic from the tutorial.'],
+          bp: 'public class Solution {\n    public static int solve() {\n        // Write your logic here\n        return 1;\n    }\n}',
+          sol: 'public static int solve() {\n    return 1;\n}'
+        },
+        python: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Python implementation of the algorithm.'],
+          bp: 'def solve():\n    # Write your logic here\n    return 1',
+          sol: 'def solve():\n    return 1'
+        },
+        javascript: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the approach step-by-step.'],
+          bp: 'function solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'function solve() {\n    return 1;\n}'
+        }
+      }
+    },
+    graph_cp29: {
+      title: 'G29 Word Ladder I Shortest Paths',
+      subtitle: 'G29 Word Ladder I Shortest Paths',
+      videoEmbedUrl: 'https://www.youtube.com/embed/tRPda0rcf8E?rel=0&modestbranding=1',
+      challenges: {
+        cpp: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Follow the approach discussed in the video.'],
+          bp: 'int solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'int solve() {\n    return 1;\n}'
+        },
+        java: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the logic from the tutorial.'],
+          bp: 'public class Solution {\n    public static int solve() {\n        // Write your logic here\n        return 1;\n    }\n}',
+          sol: 'public static int solve() {\n    return 1;\n}'
+        },
+        python: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Python implementation of the algorithm.'],
+          bp: 'def solve():\n    # Write your logic here\n    return 1',
+          sol: 'def solve():\n    return 1'
+        },
+        javascript: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the approach step-by-step.'],
+          bp: 'function solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'function solve() {\n    return 1;\n}'
+        }
+      }
+    },
+    graph_cp30: {
+      title: 'G30 Word Ladder 2 Shortest Paths',
+      subtitle: 'G30 Word Ladder 2 Shortest Paths',
+      videoEmbedUrl: 'https://www.youtube.com/embed/DREutrv2XD0?rel=0&modestbranding=1',
+      challenges: {
+        cpp: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Follow the approach discussed in the video.'],
+          bp: 'int solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'int solve() {\n    return 1;\n}'
+        },
+        java: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the logic from the tutorial.'],
+          bp: 'public class Solution {\n    public static int solve() {\n        // Write your logic here\n        return 1;\n    }\n}',
+          sol: 'public static int solve() {\n    return 1;\n}'
+        },
+        python: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Python implementation of the algorithm.'],
+          bp: 'def solve():\n    # Write your logic here\n    return 1',
+          sol: 'def solve():\n    return 1'
+        },
+        javascript: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the approach step-by-step.'],
+          bp: 'function solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'function solve() {\n    return 1;\n}'
+        }
+      }
+    },
+    graph_cp31: {
+      title: 'G31 Word Ladder 2 Optimised Approach for Leetcode',
+      subtitle: 'G31 Word Ladder 2 Optimised Approach for Leetcode',
+      videoEmbedUrl: 'https://www.youtube.com/embed/AD4SFl7tu7I?rel=0&modestbranding=1',
+      challenges: {
+        cpp: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Follow the approach discussed in the video.'],
+          bp: 'int solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'int solve() {\n    return 1;\n}'
+        },
+        java: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the logic from the tutorial.'],
+          bp: 'public class Solution {\n    public static int solve() {\n        // Write your logic here\n        return 1;\n    }\n}',
+          sol: 'public static int solve() {\n    return 1;\n}'
+        },
+        python: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Python implementation of the algorithm.'],
+          bp: 'def solve():\n    # Write your logic here\n    return 1',
+          sol: 'def solve():\n    return 1'
+        },
+        javascript: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the approach step-by-step.'],
+          bp: 'function solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'function solve() {\n    return 1;\n}'
+        }
+      }
+    },
+    graph_cp32: {
+      title: 'G32 Dijkstras Algorithm Using Priority Queue C and Java Part 1',
+      subtitle: 'G32 Dijkstras Algorithm Using Priority Queue C and Java Part 1',
+      videoEmbedUrl: 'https://www.youtube.com/embed/V6H1qAeB-l4?rel=0&modestbranding=1',
+      challenges: {
+        cpp: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Follow the approach discussed in the video.'],
+          bp: 'int solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'int solve() {\n    return 1;\n}'
+        },
+        java: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the logic from the tutorial.'],
+          bp: 'public class Solution {\n    public static int solve() {\n        // Write your logic here\n        return 1;\n    }\n}',
+          sol: 'public static int solve() {\n    return 1;\n}'
+        },
+        python: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Python implementation of the algorithm.'],
+          bp: 'def solve():\n    # Write your logic here\n    return 1',
+          sol: 'def solve():\n    return 1'
+        },
+        javascript: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the approach step-by-step.'],
+          bp: 'function solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'function solve() {\n    return 1;\n}'
+        }
+      }
+    },
+    graph_cp33: {
+      title: 'G33 Dijkstras Algorithm Using Set Part 2',
+      subtitle: 'G33 Dijkstras Algorithm Using Set Part 2',
+      videoEmbedUrl: 'https://www.youtube.com/embed/PATgNiuTP20?rel=0&modestbranding=1',
+      challenges: {
+        cpp: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Follow the approach discussed in the video.'],
+          bp: 'int solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'int solve() {\n    return 1;\n}'
+        },
+        java: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the logic from the tutorial.'],
+          bp: 'public class Solution {\n    public static int solve() {\n        // Write your logic here\n        return 1;\n    }\n}',
+          sol: 'public static int solve() {\n    return 1;\n}'
+        },
+        python: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Python implementation of the algorithm.'],
+          bp: 'def solve():\n    # Write your logic here\n    return 1',
+          sol: 'def solve():\n    return 1'
+        },
+        javascript: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the approach step-by-step.'],
+          bp: 'function solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'function solve() {\n    return 1;\n}'
+        }
+      }
+    },
+    graph_cp34: {
+      title: 'G34 Dijkstras Algorithm Why PQ and not Q Intuition Time Complexity Derivation Pa',
+      subtitle: 'G34 Dijkstras Algorithm Why PQ and not Q Intuition Time Complexity Derivation Part 3',
+      videoEmbedUrl: 'https://www.youtube.com/embed/3dINsjyfooY?rel=0&modestbranding=1',
+      challenges: {
+        cpp: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Follow the approach discussed in the video.'],
+          bp: 'int solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'int solve() {\n    return 1;\n}'
+        },
+        java: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the logic from the tutorial.'],
+          bp: 'public class Solution {\n    public static int solve() {\n        // Write your logic here\n        return 1;\n    }\n}',
+          sol: 'public static int solve() {\n    return 1;\n}'
+        },
+        python: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Python implementation of the algorithm.'],
+          bp: 'def solve():\n    # Write your logic here\n    return 1',
+          sol: 'def solve():\n    return 1'
+        },
+        javascript: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the approach step-by-step.'],
+          bp: 'function solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'function solve() {\n    return 1;\n}'
+        }
+      }
+    },
+    graph_cp35: {
+      title: 'G35 Print Shortest Path Dijkstras Algorithm',
+      subtitle: 'G35 Print Shortest Path Dijkstras Algorithm',
+      videoEmbedUrl: 'https://www.youtube.com/embed/rp1SMw7HSO8?rel=0&modestbranding=1',
+      challenges: {
+        cpp: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Follow the approach discussed in the video.'],
+          bp: 'int solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'int solve() {\n    return 1;\n}'
+        },
+        java: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the logic from the tutorial.'],
+          bp: 'public class Solution {\n    public static int solve() {\n        // Write your logic here\n        return 1;\n    }\n}',
+          sol: 'public static int solve() {\n    return 1;\n}'
+        },
+        python: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Python implementation of the algorithm.'],
+          bp: 'def solve():\n    # Write your logic here\n    return 1',
+          sol: 'def solve():\n    return 1'
+        },
+        javascript: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the approach step-by-step.'],
+          bp: 'function solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'function solve() {\n    return 1;\n}'
+        }
+      }
+    },
+    graph_cp36: {
+      title: 'G36 Shortest Distance in a Binary Maze',
+      subtitle: 'G36 Shortest Distance in a Binary Maze',
+      videoEmbedUrl: 'https://www.youtube.com/embed/U5Mw4eyUmw4?rel=0&modestbranding=1',
+      challenges: {
+        cpp: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Follow the approach discussed in the video.'],
+          bp: 'int solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'int solve() {\n    return 1;\n}'
+        },
+        java: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the logic from the tutorial.'],
+          bp: 'public class Solution {\n    public static int solve() {\n        // Write your logic here\n        return 1;\n    }\n}',
+          sol: 'public static int solve() {\n    return 1;\n}'
+        },
+        python: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Python implementation of the algorithm.'],
+          bp: 'def solve():\n    # Write your logic here\n    return 1',
+          sol: 'def solve():\n    return 1'
+        },
+        javascript: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the approach step-by-step.'],
+          bp: 'function solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'function solve() {\n    return 1;\n}'
+        }
+      }
+    },
+    graph_cp37: {
+      title: 'G37 Path With Minimum Effort',
+      subtitle: 'G37 Path With Minimum Effort',
+      videoEmbedUrl: 'https://www.youtube.com/embed/0ytpZyiZFhA?rel=0&modestbranding=1',
+      challenges: {
+        cpp: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Follow the approach discussed in the video.'],
+          bp: 'int solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'int solve() {\n    return 1;\n}'
+        },
+        java: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the logic from the tutorial.'],
+          bp: 'public class Solution {\n    public static int solve() {\n        // Write your logic here\n        return 1;\n    }\n}',
+          sol: 'public static int solve() {\n    return 1;\n}'
+        },
+        python: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Python implementation of the algorithm.'],
+          bp: 'def solve():\n    # Write your logic here\n    return 1',
+          sol: 'def solve():\n    return 1'
+        },
+        javascript: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the approach step-by-step.'],
+          bp: 'function solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'function solve() {\n    return 1;\n}'
+        }
+      }
+    },
+    graph_cp38: {
+      title: 'G38 Cheapest Flights Within K Stops',
+      subtitle: 'G38 Cheapest Flights Within K Stops',
+      videoEmbedUrl: 'https://www.youtube.com/embed/9XybHVqTHcQ?rel=0&modestbranding=1',
+      challenges: {
+        cpp: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Follow the approach discussed in the video.'],
+          bp: 'int solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'int solve() {\n    return 1;\n}'
+        },
+        java: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the logic from the tutorial.'],
+          bp: 'public class Solution {\n    public static int solve() {\n        // Write your logic here\n        return 1;\n    }\n}',
+          sol: 'public static int solve() {\n    return 1;\n}'
+        },
+        python: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Python implementation of the algorithm.'],
+          bp: 'def solve():\n    # Write your logic here\n    return 1',
+          sol: 'def solve():\n    return 1'
+        },
+        javascript: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the approach step-by-step.'],
+          bp: 'function solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'function solve() {\n    return 1;\n}'
+        }
+      }
+    },
+    graph_cp39: {
+      title: 'G39 Minimum Multiplications to Reach End',
+      subtitle: 'G39 Minimum Multiplications to Reach End',
+      videoEmbedUrl: 'https://www.youtube.com/embed/_BvEJ3VIDWw?rel=0&modestbranding=1',
+      challenges: {
+        cpp: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Follow the approach discussed in the video.'],
+          bp: 'int solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'int solve() {\n    return 1;\n}'
+        },
+        java: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the logic from the tutorial.'],
+          bp: 'public class Solution {\n    public static int solve() {\n        // Write your logic here\n        return 1;\n    }\n}',
+          sol: 'public static int solve() {\n    return 1;\n}'
+        },
+        python: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Python implementation of the algorithm.'],
+          bp: 'def solve():\n    # Write your logic here\n    return 1',
+          sol: 'def solve():\n    return 1'
+        },
+        javascript: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the approach step-by-step.'],
+          bp: 'function solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'function solve() {\n    return 1;\n}'
+        }
+      }
+    },
+    graph_cp40: {
+      title: 'G40 Number of Ways to Arrive at Destination',
+      subtitle: 'G40 Number of Ways to Arrive at Destination',
+      videoEmbedUrl: 'https://www.youtube.com/embed/_-0mx0SmYxA?rel=0&modestbranding=1',
+      challenges: {
+        cpp: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Follow the approach discussed in the video.'],
+          bp: 'int solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'int solve() {\n    return 1;\n}'
+        },
+        java: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the logic from the tutorial.'],
+          bp: 'public class Solution {\n    public static int solve() {\n        // Write your logic here\n        return 1;\n    }\n}',
+          sol: 'public static int solve() {\n    return 1;\n}'
+        },
+        python: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Python implementation of the algorithm.'],
+          bp: 'def solve():\n    # Write your logic here\n    return 1',
+          sol: 'def solve():\n    return 1'
+        },
+        javascript: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the approach step-by-step.'],
+          bp: 'function solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'function solve() {\n    return 1;\n}'
+        }
+      }
+    },
+    graph_cp41: {
+      title: 'G41 Bellman Ford Algorithm',
+      subtitle: 'G41 Bellman Ford Algorithm',
+      videoEmbedUrl: 'https://www.youtube.com/embed/0vVofAhAYjc?rel=0&modestbranding=1',
+      challenges: {
+        cpp: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Follow the approach discussed in the video.'],
+          bp: 'int solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'int solve() {\n    return 1;\n}'
+        },
+        java: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the logic from the tutorial.'],
+          bp: 'public class Solution {\n    public static int solve() {\n        // Write your logic here\n        return 1;\n    }\n}',
+          sol: 'public static int solve() {\n    return 1;\n}'
+        },
+        python: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Python implementation of the algorithm.'],
+          bp: 'def solve():\n    # Write your logic here\n    return 1',
+          sol: 'def solve():\n    return 1'
+        },
+        javascript: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the approach step-by-step.'],
+          bp: 'function solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'function solve() {\n    return 1;\n}'
+        }
+      }
+    },
+    graph_cp42: {
+      title: 'G42 Floyd Warshall Algorithm',
+      subtitle: 'G42 Floyd Warshall Algorithm',
+      videoEmbedUrl: 'https://www.youtube.com/embed/YbY8cVwWAvw?rel=0&modestbranding=1',
+      challenges: {
+        cpp: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Follow the approach discussed in the video.'],
+          bp: 'int solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'int solve() {\n    return 1;\n}'
+        },
+        java: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the logic from the tutorial.'],
+          bp: 'public class Solution {\n    public static int solve() {\n        // Write your logic here\n        return 1;\n    }\n}',
+          sol: 'public static int solve() {\n    return 1;\n}'
+        },
+        python: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Python implementation of the algorithm.'],
+          bp: 'def solve():\n    # Write your logic here\n    return 1',
+          sol: 'def solve():\n    return 1'
+        },
+        javascript: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the approach step-by-step.'],
+          bp: 'function solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'function solve() {\n    return 1;\n}'
+        }
+      }
+    },
+    graph_cp43: {
+      title: 'G43 Find the City With the Smallest Number of Neighbours at a Threshold Distance',
+      subtitle: 'G43 Find the City With the Smallest Number of Neighbours at a Threshold Distance',
+      videoEmbedUrl: 'https://www.youtube.com/embed/PwMVNSJ5SLI?rel=0&modestbranding=1',
+      challenges: {
+        cpp: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Follow the approach discussed in the video.'],
+          bp: 'int solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'int solve() {\n    return 1;\n}'
+        },
+        java: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the logic from the tutorial.'],
+          bp: 'public class Solution {\n    public static int solve() {\n        // Write your logic here\n        return 1;\n    }\n}',
+          sol: 'public static int solve() {\n    return 1;\n}'
+        },
+        python: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Python implementation of the algorithm.'],
+          bp: 'def solve():\n    # Write your logic here\n    return 1',
+          sol: 'def solve():\n    return 1'
+        },
+        javascript: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the approach step-by-step.'],
+          bp: 'function solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'function solve() {\n    return 1;\n}'
+        }
+      }
+    },
+    graph_cp44: {
+      title: 'G44 Minimum Spanning Tree Theory',
+      subtitle: 'G44 Minimum Spanning Tree Theory',
+      videoEmbedUrl: 'https://www.youtube.com/embed/ZSPjZuZWCME?rel=0&modestbranding=1',
+      challenges: {
+        cpp: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Follow the approach discussed in the video.'],
+          bp: 'int solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'int solve() {\n    return 1;\n}'
+        },
+        java: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the logic from the tutorial.'],
+          bp: 'public class Solution {\n    public static int solve() {\n        // Write your logic here\n        return 1;\n    }\n}',
+          sol: 'public static int solve() {\n    return 1;\n}'
+        },
+        python: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Python implementation of the algorithm.'],
+          bp: 'def solve():\n    # Write your logic here\n    return 1',
+          sol: 'def solve():\n    return 1'
+        },
+        javascript: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the approach step-by-step.'],
+          bp: 'function solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'function solve() {\n    return 1;\n}'
+        }
+      }
+    },
+    graph_cp45: {
+      title: 'G45 Prims Algorithm Minimum Spanning Tree C and Java',
+      subtitle: 'G45 Prims Algorithm Minimum Spanning Tree C and Java',
+      videoEmbedUrl: 'https://www.youtube.com/embed/mJcZjjKzeqk?rel=0&modestbranding=1',
+      challenges: {
+        cpp: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Follow the approach discussed in the video.'],
+          bp: 'int solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'int solve() {\n    return 1;\n}'
+        },
+        java: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the logic from the tutorial.'],
+          bp: 'public class Solution {\n    public static int solve() {\n        // Write your logic here\n        return 1;\n    }\n}',
+          sol: 'public static int solve() {\n    return 1;\n}'
+        },
+        python: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Python implementation of the algorithm.'],
+          bp: 'def solve():\n    # Write your logic here\n    return 1',
+          sol: 'def solve():\n    return 1'
+        },
+        javascript: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the approach step-by-step.'],
+          bp: 'function solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'function solve() {\n    return 1;\n}'
+        }
+      }
+    },
+    graph_cp46: {
+      title: 'G46 Disjoint Set Union by Rank Union by Size Path Compression',
+      subtitle: 'G46 Disjoint Set Union by Rank Union by Size Path Compression',
+      videoEmbedUrl: 'https://www.youtube.com/embed/aBxjDBC4M1U?rel=0&modestbranding=1',
+      challenges: {
+        cpp: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Follow the approach discussed in the video.'],
+          bp: 'int solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'int solve() {\n    return 1;\n}'
+        },
+        java: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the logic from the tutorial.'],
+          bp: 'public class Solution {\n    public static int solve() {\n        // Write your logic here\n        return 1;\n    }\n}',
+          sol: 'public static int solve() {\n    return 1;\n}'
+        },
+        python: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Python implementation of the algorithm.'],
+          bp: 'def solve():\n    # Write your logic here\n    return 1',
+          sol: 'def solve():\n    return 1'
+        },
+        javascript: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the approach step-by-step.'],
+          bp: 'function solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'function solve() {\n    return 1;\n}'
+        }
+      }
+    },
+    graph_cp47: {
+      title: 'G47 Kruskals Algorithm Minimum Spanning Tree C and Java',
+      subtitle: 'G47 Kruskals Algorithm Minimum Spanning Tree C and Java',
+      videoEmbedUrl: 'https://www.youtube.com/embed/DMnDM_sxVig?rel=0&modestbranding=1',
+      challenges: {
+        cpp: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Follow the approach discussed in the video.'],
+          bp: 'int solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'int solve() {\n    return 1;\n}'
+        },
+        java: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the logic from the tutorial.'],
+          bp: 'public class Solution {\n    public static int solve() {\n        // Write your logic here\n        return 1;\n    }\n}',
+          sol: 'public static int solve() {\n    return 1;\n}'
+        },
+        python: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Python implementation of the algorithm.'],
+          bp: 'def solve():\n    # Write your logic here\n    return 1',
+          sol: 'def solve():\n    return 1'
+        },
+        javascript: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the approach step-by-step.'],
+          bp: 'function solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'function solve() {\n    return 1;\n}'
+        }
+      }
+    },
+    graph_cp48: {
+      title: 'G48 Number of Provinces Disjoint Set',
+      subtitle: 'G48 Number of Provinces Disjoint Set',
+      videoEmbedUrl: 'https://www.youtube.com/embed/ZGr5nX-Gi6Y?rel=0&modestbranding=1',
+      challenges: {
+        cpp: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Follow the approach discussed in the video.'],
+          bp: 'int solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'int solve() {\n    return 1;\n}'
+        },
+        java: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the logic from the tutorial.'],
+          bp: 'public class Solution {\n    public static int solve() {\n        // Write your logic here\n        return 1;\n    }\n}',
+          sol: 'public static int solve() {\n    return 1;\n}'
+        },
+        python: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Python implementation of the algorithm.'],
+          bp: 'def solve():\n    # Write your logic here\n    return 1',
+          sol: 'def solve():\n    return 1'
+        },
+        javascript: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the approach step-by-step.'],
+          bp: 'function solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'function solve() {\n    return 1;\n}'
+        }
+      }
+    },
+    graph_cp49: {
+      title: 'G49 Number of Operations to Make Network Connected DSU',
+      subtitle: 'G49 Number of Operations to Make Network Connected DSU',
+      videoEmbedUrl: 'https://www.youtube.com/embed/FYrl7iz9_ZU?rel=0&modestbranding=1',
+      challenges: {
+        cpp: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Follow the approach discussed in the video.'],
+          bp: 'int solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'int solve() {\n    return 1;\n}'
+        },
+        java: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the logic from the tutorial.'],
+          bp: 'public class Solution {\n    public static int solve() {\n        // Write your logic here\n        return 1;\n    }\n}',
+          sol: 'public static int solve() {\n    return 1;\n}'
+        },
+        python: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Python implementation of the algorithm.'],
+          bp: 'def solve():\n    # Write your logic here\n    return 1',
+          sol: 'def solve():\n    return 1'
+        },
+        javascript: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the approach step-by-step.'],
+          bp: 'function solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'function solve() {\n    return 1;\n}'
+        }
+      }
+    },
+    graph_cp50: {
+      title: 'G50 Accounts Merge DSU',
+      subtitle: 'G50 Accounts Merge DSU',
+      videoEmbedUrl: 'https://www.youtube.com/embed/FMwpt_aQOGw?rel=0&modestbranding=1',
+      challenges: {
+        cpp: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Follow the approach discussed in the video.'],
+          bp: 'int solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'int solve() {\n    return 1;\n}'
+        },
+        java: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the logic from the tutorial.'],
+          bp: 'public class Solution {\n    public static int solve() {\n        // Write your logic here\n        return 1;\n    }\n}',
+          sol: 'public static int solve() {\n    return 1;\n}'
+        },
+        python: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Python implementation of the algorithm.'],
+          bp: 'def solve():\n    # Write your logic here\n    return 1',
+          sol: 'def solve():\n    return 1'
+        },
+        javascript: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the approach step-by-step.'],
+          bp: 'function solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'function solve() {\n    return 1;\n}'
+        }
+      }
+    },
+    graph_cp51: {
+      title: 'G51 Number of Islands II Online Queries DSU',
+      subtitle: 'G51 Number of Islands II Online Queries DSU',
+      videoEmbedUrl: 'https://www.youtube.com/embed/Rn6B-Q4SNyA?rel=0&modestbranding=1',
+      challenges: {
+        cpp: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Follow the approach discussed in the video.'],
+          bp: 'int solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'int solve() {\n    return 1;\n}'
+        },
+        java: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the logic from the tutorial.'],
+          bp: 'public class Solution {\n    public static int solve() {\n        // Write your logic here\n        return 1;\n    }\n}',
+          sol: 'public static int solve() {\n    return 1;\n}'
+        },
+        python: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Python implementation of the algorithm.'],
+          bp: 'def solve():\n    # Write your logic here\n    return 1',
+          sol: 'def solve():\n    return 1'
+        },
+        javascript: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the approach step-by-step.'],
+          bp: 'function solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'function solve() {\n    return 1;\n}'
+        }
+      }
+    },
+    graph_cp52: {
+      title: 'G52 Making a Large Island DSU',
+      subtitle: 'G52 Making a Large Island DSU',
+      videoEmbedUrl: 'https://www.youtube.com/embed/lgiz0Oup6gM?rel=0&modestbranding=1',
+      challenges: {
+        cpp: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Follow the approach discussed in the video.'],
+          bp: 'int solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'int solve() {\n    return 1;\n}'
+        },
+        java: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the logic from the tutorial.'],
+          bp: 'public class Solution {\n    public static int solve() {\n        // Write your logic here\n        return 1;\n    }\n}',
+          sol: 'public static int solve() {\n    return 1;\n}'
+        },
+        python: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Python implementation of the algorithm.'],
+          bp: 'def solve():\n    # Write your logic here\n    return 1',
+          sol: 'def solve():\n    return 1'
+        },
+        javascript: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the approach step-by-step.'],
+          bp: 'function solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'function solve() {\n    return 1;\n}'
+        }
+      }
+    },
+    graph_cp53: {
+      title: 'G53 Most Stones Removed with Same Row or Column DSU',
+      subtitle: 'G53 Most Stones Removed with Same Row or Column DSU',
+      videoEmbedUrl: 'https://www.youtube.com/embed/OwMNX8SPavM?rel=0&modestbranding=1',
+      challenges: {
+        cpp: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Follow the approach discussed in the video.'],
+          bp: 'int solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'int solve() {\n    return 1;\n}'
+        },
+        java: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the logic from the tutorial.'],
+          bp: 'public class Solution {\n    public static int solve() {\n        // Write your logic here\n        return 1;\n    }\n}',
+          sol: 'public static int solve() {\n    return 1;\n}'
+        },
+        python: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Python implementation of the algorithm.'],
+          bp: 'def solve():\n    # Write your logic here\n    return 1',
+          sol: 'def solve():\n    return 1'
+        },
+        javascript: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the approach step-by-step.'],
+          bp: 'function solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'function solve() {\n    return 1;\n}'
+        }
+      }
+    },
+    graph_cp54: {
+      title: 'G54 Strongly Connected Components Kosarajus Algorithm',
+      subtitle: 'G54 Strongly Connected Components Kosarajus Algorithm',
+      videoEmbedUrl: 'https://www.youtube.com/embed/R6uoSjZ2imo?rel=0&modestbranding=1',
+      challenges: {
+        cpp: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Follow the approach discussed in the video.'],
+          bp: 'int solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'int solve() {\n    return 1;\n}'
+        },
+        java: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the logic from the tutorial.'],
+          bp: 'public class Solution {\n    public static int solve() {\n        // Write your logic here\n        return 1;\n    }\n}',
+          sol: 'public static int solve() {\n    return 1;\n}'
+        },
+        python: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Python implementation of the algorithm.'],
+          bp: 'def solve():\n    # Write your logic here\n    return 1',
+          sol: 'def solve():\n    return 1'
+        },
+        javascript: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the approach step-by-step.'],
+          bp: 'function solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'function solve() {\n    return 1;\n}'
+        }
+      }
+    },
+    graph_cp55: {
+      title: 'G55 Bridges in Graph Using Tarjans Algorithm of time in and low time',
+      subtitle: 'G55 Bridges in Graph Using Tarjans Algorithm of time in and low time',
+      videoEmbedUrl: 'https://www.youtube.com/embed/qrAub5z8FeA?rel=0&modestbranding=1',
+      challenges: {
+        cpp: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Follow the approach discussed in the video.'],
+          bp: 'int solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'int solve() {\n    return 1;\n}'
+        },
+        java: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the logic from the tutorial.'],
+          bp: 'public class Solution {\n    public static int solve() {\n        // Write your logic here\n        return 1;\n    }\n}',
+          sol: 'public static int solve() {\n    return 1;\n}'
+        },
+        python: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Python implementation of the algorithm.'],
+          bp: 'def solve():\n    # Write your logic here\n    return 1',
+          sol: 'def solve():\n    return 1'
+        },
+        javascript: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the approach step-by-step.'],
+          bp: 'function solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'function solve() {\n    return 1;\n}'
+        }
+      }
+    },
+    graph_cp56: {
+      title: 'G56 Articulation Point in Graph',
+      subtitle: 'G56 Articulation Point in Graph',
+      videoEmbedUrl: 'https://www.youtube.com/embed/j1QDfU21iZk?rel=0&modestbranding=1',
+      challenges: {
+        cpp: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Follow the approach discussed in the video.'],
+          bp: 'int solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'int solve() {\n    return 1;\n}'
+        },
+        java: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the logic from the tutorial.'],
+          bp: 'public class Solution {\n    public static int solve() {\n        // Write your logic here\n        return 1;\n    }\n}',
+          sol: 'public static int solve() {\n    return 1;\n}'
+        },
+        python: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Python implementation of the algorithm.'],
+          bp: 'def solve():\n    # Write your logic here\n    return 1',
+          sol: 'def solve():\n    return 1'
+        },
+        javascript: {
+          title: 'Implement Concept',
+          desc: 'Watch the video tutorial and write your implementation in the editor below.',
+          functionName: 'solve',
+          constraints: 'Depends on the specific problem.',
+          testCases: [
+            { input: '"test"', expected: '1' }
+          ],
+          hints: ['Implement the approach step-by-step.'],
+          bp: 'function solve() {\n    // Write your logic here\n    return 1;\n}',
+          sol: 'function solve() {\n    return 1;\n}'
+        }
+      }
+    },
   };
 
   const cp = checkpoints[checkpointId];
   if (!cp) return null;
 
   const langChallenge = cp.challenges[language] || cp.challenges.cpp;
-  const isLastCheckpoint = checkpointId === 'graph_cp3';
+  const isLastCheckpoint = checkpointId === 'graph_cp56';
 
   return {
     title: cp.title,

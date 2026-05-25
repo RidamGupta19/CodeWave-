@@ -12,6 +12,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import Editor from '@monaco-editor/react';
 import { getDsaLanguageContent, getCheckpointContent } from '../utils/dsaContent';
 import { getLessonAssessment, normalizeDsaLanguage } from '../utils/dsaPersonalization';
+import RecursionVisualizer from '../components/RecursionVisualizer';
 
 // Audio Feedback Sound Engine for high gamification engagement
 const playSoundEffect = (type) => {
@@ -538,9 +539,14 @@ const TopicDetail = () => {
 
     if (lang === 'python') {
       // Basic Python to JS transpiler
+      js = js.replace(/#\s*(.*)$/gm, '// $1');
+      js = js.replace(/\bpass\b/g, '');
       js = js.replace(/import\s+\w+/g, '');
       js = js.replace(/from\s+\w+\s+import\s+\w+/g, '');
       js = js.replace(/class\s+(\w+):/g, 'class $1 {');
+      js = js.replace(/\bif\s+(.+?):/g, 'if ($1):');
+      js = js.replace(/\belif\s+(.+?):/g, 'elif ($1):');
+      js = js.replace(/\bwhile\s+(.+?):/g, 'while ($1):');
       
       // Remove type annotations in parameter lists and functions
       js = js.replace(/^(\s*)def\s+(\w+)\(([^)]*)\)\s*(->\s*[\w[\]]+)?:/gm, (match, indent, name, params) => {
@@ -629,7 +635,9 @@ const TopicDetail = () => {
       }
 
       // C++/Java to JS Type and Object translations
-      js = js.replace(/#include\s+<\w+>/g, '');
+      js = js.replace(/#include\s+[<"][\w\/\.\+]+[>"]/g, '');
+      js = js.replace(/import\s+java\..*;/g, '');
+      js = js.replace(/package\s+[\w\.]+;/g, '');
       js = js.replace(/using\s+namespace\s+\w+;/g, '');
       js = js.replace(/\bstd::/g, '');
       js = js.replace(/(?:public\s+)?class\s+\w+\s*\{/g, ''); // strip outer wrapper class
@@ -1227,9 +1235,14 @@ const TopicDetail = () => {
           }
         } catch (err) {
           setCompilerStatus('compile_error');
-          setConsoleLogs(prev => [...prev, `💥 Compilation Error: ${err.message}`]);
+          if (err.message.includes('Maximum call stack size exceeded')) {
+            setConsoleLogs(prev => [...prev, `💥 AI MENTOR: Stack Overflow Detected! You missed a base case or your recursive call isn't reducing the problem size.`]);
+            toast.error('AI Mentor: Stack Overflow! Check your base case.');
+          } else {
+            setConsoleLogs(prev => [...prev, `💥 Compilation Error: ${err.message}`]);
+            toast.error('Compilation Error — check your syntax!');
+          }
           playSoundEffect('error');
-          toast.error('Compilation Error — check your syntax!');
         }
       }, 1000);
     };
@@ -1481,6 +1494,13 @@ const TopicDetail = () => {
                 </div>
               )}
 
+              {/* VISUALIZER SECTION */}
+              {cpContent && cpContent.visualizationData && (
+                <div className="p-5 border-b border-[var(--border)] h-[600px]">
+                  <RecursionVisualizer visualizationData={cpContent.visualizationData} />
+                </div>
+              )}
+
               {/* CHALLENGE SECTION */}
               {cpContent && (
                 <div className="p-5 space-y-4">
@@ -1650,6 +1670,26 @@ const TopicDetail = () => {
               </div>
             </div>
 
+            {cpContent?.assessmentType === 'mcq' || cpContent?.assessmentType === 'tracing' ? (
+              <div className="flex-1 overflow-y-auto p-8 flex flex-col items-center justify-center text-center">
+                <div className="text-6xl mb-4">🧠</div>
+                <h3 className="text-xl font-black text-white mb-2">Interactive {cpContent.assessmentType === 'mcq' ? 'Knowledge Check' : 'Tracing Challenge'}</h3>
+                <p className="text-zinc-400 mb-6 max-w-md">
+                  This checkpoint focuses on conceptual understanding. Answer the questions on the left panel (or mark as done) to proceed.
+                </p>
+                <button
+                  onClick={() => {
+                    setChallengePassed(true);
+                    setCheckpointCodePassed(true);
+                    toast.success('Assessment completed! You can now mark this checkpoint as done.');
+                  }}
+                  className="px-6 py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl shadow-lg transition-colors"
+                >
+                  Simulate Assessment Pass ✅
+                </button>
+              </div>
+            ) : (
+            <>
             {/* Monaco Editor */}
             <div className="flex-1 overflow-hidden" style={{ minHeight: 0 }}>
               <Editor
@@ -1751,6 +1791,8 @@ const TopicDetail = () => {
                 )}
               </div>
             </div>
+            </>
+            )}
           </div>
         </div>
       </div>
