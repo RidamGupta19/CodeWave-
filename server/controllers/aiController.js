@@ -156,7 +156,8 @@ const calculatePerformanceInsights = async (userId) => {
     totalTestsAttempted,
     readinessPercent,
     insights,
-    recommendations
+    recommendations,
+    onboardingAnswers: user.profile?.onboardingAnswers || {}
   };
 };
 
@@ -265,7 +266,64 @@ Here is your calculated standing:
 *You're making incredible progress, keep pushing the boundaries daily! 🚀*`;
   }
 
-  // 6. Default/Fallback
+  // 6. Where to start / Onboarding analysis
+  if (lowerMsg.includes('start') || lowerMsg.includes('how to start') || lowerMsg.includes('where to start') || lowerMsg.includes('onboarding')) {
+    const skillLevel = ins.onboardingAnswers?.coding_experience || 'beginner';
+    const studyTime = ins.onboardingAnswers?.daily_time || '60';
+    const goal = ins.onboardingAnswers?.goal || 'placements';
+    const language = ins.preferredLang || 'JavaScript';
+
+    return `### 🚀 Welcome to your CareerForge Onboarding Blueprint!
+    
+I've analyzed the onboarding answers you chose when setting up your **${ins.domain}** domain. Let's get you aligned on exactly where and how to start:
+
+* **Onboarding Skill Level:** \`${skillLevel.toUpperCase()}\`
+* **Primary Target Goal:** \`${goal.toUpperCase()}\`
+* **Daily Commitment Plan:** \`${studyTime} minutes / day\`
+* **Primary Language/Tech:** \`${language}\`
+
+#### 🗺️ Where to Start:
+1. Open your **[Mission Map](file:///roadmap)**. Since your roadmap has been calibrated to your background, your starting phase is **Level ${ins.phase}**. Your first active level node is unlocked!
+2. Click on the first unlocked node (e.g. **Arrays** or **HTML Structure**) to enter its learning module.
+
+#### 💡 How to Start & Proceed:
+- **Watch the Tutorial**: Every level starts with a high-quality video lesson (e.g., Striver's recursion playlist) embedded directly in the Left Panel.
+- **Trace the Logic**: If the lesson covers algorithms (like recursion), pay attention to the **interactive Call Stack tree visualizer** right below the video player. It helps you trace variables and stack frames!
+- **Guided Assessments**: Complete guided theory MCQs or variable-tracing challenges in the Right Panel to build your foundational knowledge.
+- **Solve Coding Checkpoints**: Once you unlock coding challenges, write your code directly in the Monaco editor and click **Run Code**. When all test cases pass, click **Complete Checkpoint** to earn **+50 XP** and unlock the next level!
+
+*Remember: I am incredibly proud of you for starting this journey! Learning coding is a marathon, and consistency is your superpower. Let's make today a great day of learning! 🌟*`;
+  }
+
+  // 7. ChatGPT style fallback for general questions
+  if (!lowerMsg.includes('weak') && !lowerMsg.includes('learn next') && !lowerMsg.includes('weekly') && !lowerMsg.includes('project') && !lowerMsg.includes('readiness') && !lowerMsg.includes('internship') && !lowerMsg.includes('job')) {
+    if (lowerMsg.length < 10) {
+      return `### 👋 Hello! I'm your CareerForge Mentor!
+      
+I am absolutely thrilled to support your learning journey today! Your dedication to mastering **${ins.domain}** is super inspiring. 
+
+Tell me, what concepts or challenges are you exploring today? I can help you with:
+- Explaining tricky code syntax and design patterns.
+- Telling you **"where should I start?"** to review your onboarding plan.
+- Generating custom study schedules or placement tips.
+
+Let's smash your goals today! What's on your mind? 🚀`;
+    }
+
+    return `### 💡 CareerForge Mentor Insights
+    
+That is a brilliant question! I love your curiosity and commitment to learning. Here is some personalized guidance to help you navigate:
+
+1. **Write and Test Code**: When learning concepts (like recursion or styling layouts), type out the logic in the sandbox editor and run custom print statements. Experiencing the execution flow makes it stick!
+2. **Celebrate the Small Wins**: Building a coding career is a step-by-step process. Appreciate how far you've come from choosing your **${ins.domain}** domain.
+3. **Targeted Commitment**: Dedicate 15-30 minutes of focused practice today. Daily consistency is worth far more than cramming over weekends.
+
+*Note: As your mentor, I want to appreciate your curiosity! Keep asking questions. If you hook up a valid API key, I will be able to answer any custom code questions with full ChatGPT capabilities.*
+
+What else would you like to explore next? I'm here to support you! 💪`;
+  }
+
+  // 8. Default fallback
   return `### ⚡ CareerForge AI Adaptive Mentor Board
 
 Welcome! I've run a deep diagnostic on your progress:
@@ -280,6 +338,7 @@ Welcome! I've run a deep diagnostic on your progress:
 * Ask me: **"Create my weekly plan"** to generate a study blueprint.
 * Ask me: **"Suggest a project for my level"** to see tailored projects.
 * Ask me: **"How close am I to internship readiness?"** to run a job audit.
+* Ask me: **"Where should I start?"** to see your onboarding guide.
 
 How can I coach you to success today? 🚀`;
 };
@@ -312,6 +371,13 @@ exports.chat = async (req, res) => {
         let body;
         let headers = { 'Content-Type': 'application/json' };
 
+        const onboardingSummary = user.profile?.onboardingAnswers 
+          ? Object.entries(user.profile.onboardingAnswers)
+              .filter(([k]) => k !== 'dsaAnalysis')
+              .map(([key, val]) => `- ${key.replace(/_/g, ' ')}: ${Array.isArray(val) ? val.join(', ') : val}`)
+              .join('\n')
+          : 'None provided';
+
         const systemInstructions = `You are CareerForge AI, a premium personalized coding mentor and adaptive learning coach for engineering students.
         
         You NEVER generate generic chatbot responses. You speak directly to the student's actual performance.
@@ -329,11 +395,15 @@ exports.chat = async (req, res) => {
         - Consistency standing: ${insights.consistency}
         - Internship Readiness Percentile: ${insights.readinessPercent}%
         
+        Student's Onboarding Background & Goal Parameters:
+        ${onboardingSummary}
+        
         Guidelines:
-        1. Adapt your tone: Be humanized, highly encouraging, practical, and highly data-driven.
-        2. Reference their actual metrics. If they ask about next steps, guide them to Phase ${insights.phase}.
+        1. Adapt your tone: Be humanized, extremely encouraging, practical, and highly data-driven. Always appreciate their efforts, celebrate small milestones, and motivate them to continue learning! Never demotivate them.
+        2. Reference their actual metrics and onboarding context (experience level, goals, daily study time). Tell them exactly where to start and how to start their learning path on CareerForge based on their current stage.
         3. If they are weak at "${insights.weakestTopic}", suggest specific actionable code approaches or tracing strategies.
-        4. Render your response beautifully in GitHub-flavored markdown with clean list metrics, code blocks, bold headers, and supportive emojis. Keep it concise but highly valuable.`;
+        4. Render your response beautifully in GitHub-flavored markdown with clean list metrics, code blocks, bold headers, and supportive emojis. Keep it concise but highly valuable.
+        5. You are like ChatGPT — you can answer ANY general questions about programming, career prep, design, and software engineering. Do not restrict yourself to only performance reports.`;
 
         if (isGemini) {
           url = `${process.env.AI_API_URL}?key=${process.env.AI_API_KEY}`;

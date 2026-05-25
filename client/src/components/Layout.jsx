@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import Navbar from './Navbar';
+import GlobalAiChat from './GlobalAiChat';
 
 const Layout = ({ isAdmin = false }) => {
   const [theme, setTheme] = useState(() => localStorage.getItem('careerforge_theme') || 'light');
@@ -39,6 +40,7 @@ const Layout = ({ isAdmin = false }) => {
           <Outlet />
         </main>
       </div>
+      <GlobalAiChat />
     </div>
   );
 };
