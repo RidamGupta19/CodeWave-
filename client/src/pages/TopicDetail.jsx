@@ -5,7 +5,8 @@ import { useAuth } from '../context/AuthContext';
 import { 
   FiCheckCircle, FiPlay, FiBook, FiYoutube, FiCode, FiArrowLeft, 
   FiMessageSquare, FiZap, FiAward, FiClock, FiArrowRight, FiInfo,
-  FiBookOpen, FiTerminal, FiAward as FiTrophy, FiChevronRight, FiMaximize2, FiMinimize2
+  FiBookOpen, FiTerminal, FiAward as FiTrophy, FiChevronRight, FiMaximize2, FiMinimize2,
+  FiList
 } from 'react-icons/fi';
 import toast from 'react-hot-toast';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -81,6 +82,17 @@ const TopicDetail = () => {
   const [studyTime, setStudyTime] = useState(30);
   const [notes, setNotes] = useState('');
   const [submitting, setSubmitting] = useState(false);
+
+  const [isCpSidebarOpen, setIsCpSidebarOpen] = useState(false);
+  const [activeWorkspaceTab, setActiveWorkspaceTab] = useState('learn');
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 1024);
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   const advanceStep = () => setLearningStep(prev => Math.min(prev + 1, 2));
   const isChallengeUnlocked = true;
@@ -1248,10 +1260,24 @@ const TopicDetail = () => {
     };
 
     return (
-      <div className="flex h-[calc(100vh-64px)] w-full overflow-hidden bg-[var(--bg-main)]">
+      <div className="flex h-[calc(100vh-64px)] w-full overflow-hidden bg-[var(--bg-main)] relative">
+
+        {/* Backdrop overlay for Checkpoint sidebar on mobile */}
+        {isMobile && isCpSidebarOpen && (
+          <div 
+            className="absolute inset-0 bg-black/60 backdrop-blur-xs z-40 transition-opacity duration-300 cursor-pointer"
+            onClick={() => setIsCpSidebarOpen(false)}
+          />
+        )}
 
         {/* ── CHECKPOINT SIDEBAR ────────────────────────────────────────────── */}
-        <div className="w-72 flex-shrink-0 bg-[var(--bg-card)] border-r border-[var(--border)] flex flex-col h-full overflow-hidden">
+        <div className={`bg-[var(--bg-card)] border-r border-[var(--border)] flex flex-col h-full overflow-hidden transition-transform duration-300 ease-in-out shrink-0
+          ${isMobile 
+            ? 'absolute top-0 left-0 bottom-0 z-50 w-72 shadow-2xl' 
+            : 'w-72'
+          }
+          ${isMobile && !isCpSidebarOpen ? '-translate-x-full' : 'translate-x-0'}
+        `}>
 
           {/* Header: gradient brand block */}
           <div className="p-4 border-b border-[var(--border)] bg-gradient-to-br from-indigo-600 via-indigo-700 to-purple-800 shrink-0">
@@ -1323,6 +1349,7 @@ const TopicDetail = () => {
                     setCompilerStatus('idle');
                     setTestResults([]);
                     setConsoleLogs([]);
+                    setIsCpSidebarOpen(false);
                   }}
                   className={`w-full flex items-center gap-3 p-3 rounded-xl border text-left transition-all duration-200 ${
                     isActive
@@ -1404,10 +1431,52 @@ const TopicDetail = () => {
         </div>
 
         {/* ── MAIN SPLIT WORKSPACE ──────────────────────────────────────────── */}
-        <div className="flex-1 flex flex-col lg:flex-row h-full overflow-hidden">
+        <div className="flex-1 flex flex-col h-full overflow-hidden">
 
-          {/* LEFT: Video + Problem */}
-          <div style={{ width: `${leftWidth}%` }} className="h-full flex flex-col border-r border-[var(--border)] bg-[var(--bg-card)] overflow-hidden shrink-0">
+          {/* Mobile Tabs Header */}
+          {isMobile && (
+            <div className="flex bg-[var(--bg-sub)] border-b border-[var(--border)] shrink-0 items-center justify-between px-4 py-1.5">
+              <div className="flex flex-1 gap-1">
+                <button
+                  onClick={() => setActiveWorkspaceTab('learn')}
+                  className={`flex-1 py-2 rounded-lg text-[10px] font-black uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all ${
+                    activeWorkspaceTab === 'learn'
+                      ? 'bg-[var(--primary)] text-white shadow-sm'
+                      : 'text-[var(--text-muted)] hover:text-[var(--text-main)]'
+                  }`}
+                >
+                  🎬 Learn
+                </button>
+                <button
+                  onClick={() => setActiveWorkspaceTab('code')}
+                  className={`flex-1 py-2 rounded-lg text-[10px] font-black uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all ${
+                    activeWorkspaceTab === 'code'
+                      ? 'bg-[var(--primary)] text-white shadow-sm'
+                      : 'text-[var(--text-muted)] hover:text-[var(--text-main)]'
+                  }`}
+                >
+                  ⚡ Code
+                </button>
+              </div>
+              <button
+                onClick={() => setIsCpSidebarOpen(!isCpSidebarOpen)}
+                className="ml-4 p-2 bg-[var(--bg-card)] border border-[var(--border)] rounded-xl text-[var(--text-muted)] hover:text-[var(--text-main)] shrink-0 flex items-center justify-center shadow-xs"
+                title="Toggle Journey"
+              >
+                <FiList className="text-base" />
+              </button>
+            </div>
+          )}
+
+          <div className="flex-1 flex flex-col lg:flex-row h-full overflow-hidden">
+
+            {/* LEFT: Video + Problem */}
+            <div 
+              style={{ width: isMobile ? '100%' : `${leftWidth}%` }} 
+              className={`h-full flex flex-col border-r border-[var(--border)] bg-[var(--bg-card)] overflow-hidden shrink-0
+                ${isMobile && activeWorkspaceTab !== 'learn' ? 'hidden' : 'flex'}
+              `}
+            >
 
             {/* Checkpoint header bar */}
             <div className="bg-[var(--bg-sub)] border-b border-[var(--border)] px-5 py-3 flex items-center justify-between shrink-0">
@@ -1637,13 +1706,17 @@ const TopicDetail = () => {
           </div>
 
           {/* RESIZE HANDLE */}
-          <div
-            className="w-1 h-full bg-[var(--border)] hover:bg-[var(--primary)] transition-colors cursor-col-resize flex-shrink-0"
-            onMouseDown={startResize}
-          />
+          {!isMobile && (
+            <div
+              className="w-1 h-full bg-[var(--border)] hover:bg-[var(--primary)] transition-colors cursor-col-resize flex-shrink-0"
+              onMouseDown={startResize}
+            />
+          )}
 
           {/* RIGHT: Monaco Editor + Console */}
-          <div className="flex-1 h-full flex flex-col overflow-hidden bg-[#1e1e1e] min-w-0">
+          <div className={`flex-1 h-full flex flex-col overflow-hidden bg-[#1e1e1e] min-w-0
+            ${isMobile && activeWorkspaceTab !== 'code' ? 'hidden' : 'flex'}
+          `}>
 
             {/* Editor toolbar */}
             <div className="flex items-center justify-between px-4 py-2 bg-[#252526] border-b border-[#3e3e42] shrink-0">
@@ -1796,6 +1869,7 @@ const TopicDetail = () => {
           </div>
         </div>
       </div>
+    </div>
     );
   }
 

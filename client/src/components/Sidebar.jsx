@@ -3,11 +3,12 @@ import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { 
   FiMap, FiList, FiCheckSquare, 
-  FiMessageSquare, FiSettings, FiLogOut, FiUsers, FiGift, FiUser, FiBookOpen, FiZap
+  FiMessageSquare, FiSettings, FiLogOut, FiUsers, FiGift, FiUser, FiBookOpen, FiZap,
+  FiX
 } from 'react-icons/fi';
 import { MdOutlineDashboard } from "react-icons/md";
 
-const Sidebar = ({ isAdmin }) => {
+const Sidebar = ({ isAdmin, isOpen, onClose }) => {
   const { logout, user } = useAuth();
   const navigate = useNavigate();
 
@@ -35,16 +36,38 @@ const Sidebar = ({ isAdmin }) => {
   const links = isAdmin ? adminLinks : studentLinks;
 
   return (
-    <div className="sidebar hidden lg:flex transition-colors duration-300">
-      <div className="flex flex-col h-full w-full">
-        {/* Brand */}
-        <div className="mb-10 px-4 flex items-center gap-4">
-          <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-[var(--primary)] to-[var(--secondary)] flex items-center justify-center text-white font-black text-xl shadow-lg shadow-indigo-500/25">CF</div>
-          <div>
-            <h1 className="text-2xl font-black tracking-tight text-[var(--text-main)]">CareerForge</h1>
-            <div className="text-[9px] font-black text-[var(--primary)] uppercase tracking-[0.2em] -mt-1">Future Architect</div>
+    <>
+      {/* Mobile Sidebar backdrop */}
+      {isOpen && (
+        <div 
+          className="fixed inset-0 bg-black/60 backdrop-blur-xs z-40 lg:hidden cursor-pointer"
+          onClick={onClose}
+        />
+      )}
+
+      {/* Sidebar Drawer Container */}
+      <div className={`sidebar flex transition-transform duration-300 ease-in-out
+        ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
+      `}>
+        <div className="flex flex-col h-full w-full">
+          {/* Brand & Mobile Close button */}
+          <div className="mb-10 px-4 flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-[var(--primary)] to-[var(--secondary)] flex items-center justify-center text-white font-black text-xl shadow-lg shadow-indigo-500/25">CF</div>
+              <div>
+                <h1 className="text-2xl font-black tracking-tight text-[var(--text-main)]">CareerForge</h1>
+                <div className="text-[9px] font-black text-[var(--primary)] uppercase tracking-[0.2em] -mt-1">Future Architect</div>
+              </div>
+            </div>
+            <button 
+              onClick={onClose}
+              className="lg:hidden p-2 hover:bg-[var(--bg-sub)] rounded-xl text-[var(--text-muted)] hover:text-[var(--text-main)] transition-colors"
+              title="Close Menu"
+            >
+              <FiX className="text-xl" />
+            </button>
           </div>
-        </div>
+
 
         {/* Navigation */}
         <nav className="flex-1 flex flex-col gap-1 overflow-y-auto pr-1 no-scrollbar">
@@ -106,6 +129,7 @@ const Sidebar = ({ isAdmin }) => {
         </div>
       </div>
     </div>
+    </>
   );
 };
 

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { FiMenu, FiBell, FiSearch, FiSun, FiMoon } from 'react-icons/fi';
 
-const Navbar = () => {
+const Navbar = ({ onMenuClick }) => {
   const { user } = useAuth();
   const [theme, setTheme] = useState(() => localStorage.getItem('careerforge_theme') || 'light');
 
@@ -23,7 +23,10 @@ const Navbar = () => {
   return (
     <header className="h-20 border-b border-[var(--border)] bg-[var(--bg-card)]/80 backdrop-blur-md sticky top-0 z-40 flex items-center justify-between px-6 lg:px-8 transition-colors duration-300">
       <div className="flex items-center gap-6">
-        <button className="lg:hidden text-[var(--text-muted)] hover:text-[var(--text-main)]">
+        <button 
+          onClick={onMenuClick}
+          className="lg:hidden text-[var(--text-muted)] hover:text-[var(--text-main)] p-2 hover:bg-[var(--bg-sub)] rounded-xl transition-all"
+        >
           <FiMenu className="text-2xl" />
         </button>
         <div className="hidden md:flex items-center gap-3 bg-[var(--bg-sub)] border border-[var(--border)] px-4 py-2 rounded-xl w-72">
