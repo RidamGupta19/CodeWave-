@@ -1,112 +1,151 @@
+import { getArraysCheckpointContent } from './arraysContent';
+import { getHashingCheckpointContent } from './hashingContent';
+import { getRecursionCheckpointContent } from './recursionContent';
+import { getLinkedListCheckpointContent } from './linkedListContent';
+import { getStackQueueCheckpointContent } from './stackQueueContent';
+import { getTreesCheckpointContent } from './treesContent';
+import { getGraphCheckpointContent } from './graphContent';
+import { getDpCheckpointContent } from './dpContent';
+import { getGreedyCheckpointContent } from './greedyContent';
+
 // DSA Content Engine - Striver A2Z Aligned with 4 Unlockable Difficulty Levels per Topic
 // Boilerplates are strictly minimal starters (only imports + class/function signatures) - NO solutions/loops prefilled.
 
-export const getDsaLanguageContent = (topicTitle, languageKey = 'cpp', difficulty = 'beginner', useStriverAdvanced = false) => {
+export const getDsaLanguageContent = (topicTitle, languageKey = 'cpp', difficulty = 'beginner', useStriverAdvanced = false, dbYoutubeLink = '') => {
   const t = (topicTitle || '').toLowerCase();
-  const lang = (languageKey || 'cpp').toLowerCase();
+  const lang = (languageKey || 'cpp').toLowerCase() === 'js' ? 'javascript' : (languageKey || 'cpp').toLowerCase();
   const diff = (difficulty || 'beginner').toLowerCase();
 
-  // ─── STRIVER A2Z VIDEO MAP ───────────────────────────────────────────────
-  const striverVideos = {
-    basics:     'EAR7De6Goz4',
-    patterns:   'tNm_NNSB3_w',
-    math:       '1xNbjMdrlGY',
-    stl:        'RRVYpIET_RU',
-    array_easy: '37E9ckMDdTk',
-    array_med:  'tp8JIuCXBaU',
-    array_hard: '9S_p4M7h9Dk',
-    hashing:    'KEs5UyBJ39g',
-    recursion:  'un6PybaEisA',
-    backtrack:  'nwjZ24S_ueM',
-    ll_intro:   'q8gipE-hy80',
-    ll_med:     'D2vI2NwJgdU',
-    stack_q:    'gyPa_m8fW-w',
-    monotonic:  '7PrS72_jwAY',
-    bintree:    'l_7V5uYI2G0',
-    bst:        'fAfR_MstP00',
-    graph:      'M3_pLsDdeuU',
-    topo_dsu:   'V63W7p_p4uE',
-    shortest:   'XpkfK_Mh6vA',
-    dp_intro:   'tyB0ztf0DNY',
-    dp_grid:    '7cELW7O_E9k',
-    greedy:     'n59vC9nJreU',
-    bitmanip:   '5rtVTYAk9KQ',
-    heap:       'HqPJF2L5h9U',
-    trie:       'dBGUmUQhjaM',
+  // â”€â”€â”€ LOVE BABBAR VIDEO MAPS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  const babbarCppVideos = {
+    overview:      'WQoB2z67hvY', // Course Overview
+    basics:        'Pg3Z5Yps5pI', // Flowcharts
+    first_program: 't_1RndyN6U8', // First Program
+    conditionals:  'WR31y7559Pg', // Conditionals & Loops
+    patterns:      'dr-pLfGBG60', // Patterns
+    bitwise:       'y3GDIL83Sww', // Bitwise
+    switch_case:   '83S5U2x2xFA', // Switch Case
+    functions:     '83S5U2x2xFA', // Functions
+    math:          '13W_wGClMlo', // Basic Maths
+    stl:           '3wK530Vqi3Y', // C++ STL
+    array:         'sEj993vN7gY', // Intro to Arrays
+    array_easy:    'sEj993vN7gY',
+    array_med:     'eQ5u5W4G_04',
+    array_hard:    'eQ5u5W4G_04',
+    hashing:       'KEs5UyBJ39g', // Hashmaps
+    recursion:     'B34KqZ4uN6Q', // Recursion
+    backtrack:     'nwjZ24S_ueM', // Backtracking
+    ll:            'q8gipE-hy80', // Singly Linked List
+    stack_q:       'gyPa_m8fW-w', // Stacks
+    tree:          'l_7V5uYI2G0', // Binary Trees
+    bst:           'fAfR_MstP00', // BST
+    heap:          'HqPJF2L5h9U', // Heaps
+    trie:          'dBGUmUQhjaM', // Tries
+    graph:         'M3_pLsDdeuU', // Graphs
+    dp:            'tyB0ztf0DNY', // DP
+    greedy:        'n59vC9nJreU'  // Greedy
   };
 
-  // ─── STRIVER A2Z TOPIC-SPECIFIC PLAYLIST MAP ──────────────────────────────
-  const striverPlaylists = {
-    basics:     'PLgUwDviBIf0oF6QL8m22w1hIDC1vJ_BHz', // Learn the Basics / Foundations
-    patterns:   'PLgUwDviBIf0oF6QL8m22w1hIDC1vJ_BHz',
-    math:       'PLgUwDviBIf0oF6QL8m22w1hIDC1vJ_BHz',
-    stl:        'PLgUwDviBIf0oF6QL8m22w1hIDC1vJ_BHz',
-    array:      'PLgUwDviBIf0rENwdL0nEH0uGom9no0nyB', // Dedicated Arrays Playlist
-    hashing:    'PLgUwDviBIf0oF6QL8m22w1hIDC1vJ_BHz',
-    recursion:  'PLgUwDviBHe0rGlzUA9SfOviYLgNgGdO9B', // Dedicated Recursion & Backtracking Playlist
-    backtrack:  'PLgUwDviBHe0rGlzUA9SfOviYLgNgGdO9B',
-    ll:         'PLgUwDviBHe0rAuz8tVcM0AymmTRyGpCYc', // Dedicated Linked List Playlist
-    stack_q:    'PLgUwDviBHe0pOd51giiqQL1c08xHdyIM_', // Dedicated Stack & Queue Playlist
-    tree:       'PLgUwDviBHe0qAstgDqgPT2WAHE5-Xlhly', // Dedicated Binary Trees / BST Playlist
-    graph:      'PLgUwDviBHe0oE3gA41TKO2H5bUpdZwGrY', // Dedicated Graphs Playlist
-    dp:         'PLgUwDviBHe0qGDkClgDcMbFV85fs-4iGP', // Dedicated DP Playlist
-    greedy:     'PLgUwDviBHe0rFrFrA8HqYkQz24Q_l94vA', // Dedicated Greedy Algorithms Playlist
-    bitmanip:   'PLgUwDviBHe0rV2mP7r4yIu46B708Gg5b2', // Dedicated Bit Manipulation Playlist
-    heap:       'PLgUwDviBHe0oX5J_N-eJd85WvSnU-P4k4', // Dedicated Heap/Priority Queue/Trie Playlist
-    trie:       'PLgUwDviBHe0oX5J_N-eJd85WvSnU-P4k4',
+  const babbarCppPlaylists = {
+    default:     'PLDzeHZWIZsTryvtXdMr6rPh4IDexB5NIA' // Main C++ DSA Playlist
   };
 
-  const getPlaylist = () => {
-    if (t.includes('basics') || t.includes('foundation') || t.includes('thinking')) return striverPlaylists.basics;
-    if (t.includes('pattern')) return striverPlaylists.patterns;
-    if (t.includes('math')) return striverPlaylists.math;
-    if (t.includes('stl') || t.includes('collection')) return striverPlaylists.stl;
-    if (t.includes('array')) return striverPlaylists.array;
-    if (t.includes('hash')) return striverPlaylists.hashing;
-    if (t.includes('backtrack') || t.includes('recursion') || t.includes('fibonacci') || t.includes('subsequence')) return striverPlaylists.recursion;
-    if (t.includes('linked list') || t.includes('introduction to ll') || t.includes('ll warrior') || t.includes('reverse ll')) return striverPlaylists.ll;
-    if (t.includes('stack') || t.includes('queue') || t.includes('monotonic')) return striverPlaylists.stack_q;
-    if (t.includes('binary tree') || t.includes('tree traversal') || t.includes('bst') || t.includes('tree master') || t.includes('tree prop')) return striverPlaylists.tree;
-    if (t.includes('graph') || t.includes('bfs') || t.includes('dfs') || t.includes('topo') || t.includes('dsu') || t.includes('shortest') || t.includes('dijkstra')) return striverPlaylists.graph;
-    if (t.includes('dp') || t.includes('dynamic') || t.includes('grid') || t.includes('knapsack')) return striverPlaylists.dp;
-    if (t.includes('greedy')) return striverPlaylists.greedy;
-    if (t.includes('bit')) return striverPlaylists.bitmanip;
-    if (t.includes('heap')) return striverPlaylists.heap;
-    if (t.includes('trie')) return striverPlaylists.trie;
-    return striverPlaylists.basics;
+  const babbarJavaVideos = {
+    overview:      'yJDv59w5dSc', // Course Overview
+    basics:        'yJDv59w5dSc', // Flowcharts Java
+    first_program: 'eIrMbAQSU34', // First Program Java
+    conditionals:  '52989b6-n8U', // Conditionals & Loops Java
+    patterns:      'tNm_NNSB3_w', // Patterns (generic)
+    bitwise:       'f0UNm_w4g2U', // Bitwise Java
+    switch_case:   'b-71-33H89I', // Switch Statements Java
+    functions:     'vT0f317iypc', // Functions Java
+    math:          '13W_wGClMlo', // Basic Maths
+    stl:           'RRVYpIET_RU', // Collections Framework
+    array:         'sEj993vN7gY', // Intro to Arrays Java
+    array_easy:    'sEj993vN7gY',
+    array_med:     'eQ5u5W4G_04',
+    array_hard:    'eQ5u5W4G_04',
+    hashing:       'KEs5UyBJ39g',
+    recursion:     'B34KqZ4uN6Q',
+    backtrack:     'nwjZ24S_ueM',
+    ll:            'q8gipE-hy80',
+    stack_q:       'gyPa_m8fW-w',
+    tree:          'l_7V5uYI2G0',
+    bst:           'fAfR_MstP00',
+    heap:          'HqPJF2L5h9U',
+    trie:          'dBGUmUQhjaM',
+    graph:         'M3_pLsDdeuU',
+    dp:            'tyB0ztf0DNY',
+    greedy:        'n59vC9nJreU'
+  };
+
+  const babbarJavaPlaylists = {
+    default:     'PLDze6lLwgS7jG30yL76H3_K7v3qO-2v-3' // Main Java DSA Playlist
   };
 
   const getVideo = () => {
-    if (t.includes('basics') || t.includes('foundation') || t.includes('thinking')) return striverVideos.basics;
-    if (t.includes('pattern')) return striverVideos.patterns;
-    if (t.includes('math')) return striverVideos.math;
-    if (t.includes('stl') || t.includes('collection')) return striverVideos.stl;
-    if (t.includes('easy array') || (t.includes('array') && t.includes('easy'))) return striverVideos.array_easy;
-    if (t.includes('medium array') || (t.includes('array') && t.includes('medium'))) return striverVideos.array_med;
-    if (t.includes('hard array') || (t.includes('array') && t.includes('hard'))) return striverVideos.array_hard;
-    if (t.includes('array')) return striverVideos.array_easy;
-    if (t.includes('hash')) return striverVideos.hashing;
-    if (t.includes('backtrack')) return striverVideos.backtrack;
-    if (t.includes('recursion') || t.includes('fibonacci') || t.includes('subsequence')) return striverVideos.recursion;
-    if (t.includes('linked list') || t.includes('introduction to ll')) return striverVideos.ll_intro;
-    if (t.includes('ll warrior') || t.includes('reverse ll')) return striverVideos.ll_med;
-    if (t.includes('stack') || t.includes('queue')) return striverVideos.stack_q;
-    if (t.includes('monotonic')) return striverVideos.monotonic;
-    if (t.includes('binary tree') || t.includes('tree traversal')) return striverVideos.bintree;
-    if (t.includes('bst') || t.includes('tree master') || t.includes('tree prop')) return striverVideos.bst;
-    if (t.includes('graph') || t.includes('bfs') || t.includes('dfs')) return striverVideos.graph;
-    if (t.includes('topo') || t.includes('dsu')) return striverVideos.topo_dsu;
-    if (t.includes('shortest') || t.includes('dijkstra')) return striverVideos.shortest;
-    if (t.includes('dp') || t.includes('dynamic')) return striverVideos.dp_intro;
-    if (t.includes('grid') || t.includes('knapsack')) return striverVideos.dp_grid;
-    if (t.includes('greedy')) return striverVideos.greedy;
-    if (t.includes('bit')) return striverVideos.bitmanip;
-    if (t.includes('heap')) return striverVideos.heap;
-    if (t.includes('trie')) return striverVideos.trie;
-    return striverVideos.basics;
+    // If it is a Level 0 Foundations topic, resolve video by selected language dynamically
+    const normalizedTitle = t.trim();
+    const isLevel0 = normalizedTitle.includes('introduction to programming') ||
+                     normalizedTitle.includes('variables and data types') ||
+                     normalizedTitle.includes('conditionals & decision making') ||
+                     normalizedTitle.includes('loops & iteration') ||
+                     normalizedTitle.includes('functions & modular scope') ||
+                     normalizedTitle.includes('logical pattern printing');
+
+    if (isLevel0) {
+      const vids = {
+        cpp: 'EAR7De6Goz4',       // Mike Dane C++
+        java: 'A74TOX803D0',      // Mike Dane Java
+        python: 'rfscVS0vtbw',    // FreeCodeCamp Python
+        javascript: 'W6NZfCO5SIk' // Mosh JavaScript
+      };
+      return vids[lang] || vids.cpp;
+    }
+
+    if (languageKey === 'cpp' && dbYoutubeLink) {
+      const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+      const match = dbYoutubeLink.match(regExp);
+      if (match && match[2].length === 11) {
+        return match[2];
+      }
+    }
+    const videoMap = (languageKey === 'java') ? babbarJavaVideos : babbarCppVideos;
+    if (t.includes('overview') || t.includes('setup') || t.includes('announcement') || t.includes('introductory')) return videoMap.overview;
+    if (t.includes('flowchart') || t.includes('programming & flowcharts')) return videoMap.basics;
+    if (t.includes('first program') || t.includes('variables') || t.includes('data type')) return videoMap.first_program;
+    if (t.includes('conditional') || t.includes('loop')) return videoMap.conditionals;
+    if (t.includes('bitwise')) return videoMap.bitwise;
+    if (t.includes('switch')) return videoMap.switch_case;
+    if (t.includes('function') || t.includes('method')) return videoMap.functions;
+    if (t.includes('basics') || t.includes('foundation') || t.includes('thinking') || t.includes('print')) return videoMap.basics;
+    if (t.includes('pattern')) return videoMap.patterns;
+    if (t.includes('math')) return videoMap.math;
+    if (t.includes('stl') || t.includes('collection')) return videoMap.stl;
+    if (t.includes('easy array') || (t.includes('array') && t.includes('easy'))) return videoMap.array_easy;
+    if (t.includes('medium array') || (t.includes('array') && t.includes('medium'))) return videoMap.array_med;
+    if (t.includes('hard array') || (t.includes('array') && t.includes('hard'))) return videoMap.array_hard;
+    if (t.includes('array')) return videoMap.array;
+    if (t.includes('hash')) return videoMap.hashing;
+    if (t.includes('backtrack')) return videoMap.backtrack;
+    if (t.includes('recursion') || t.includes('fibonacci') || t.includes('subsequence')) return videoMap.recursion;
+    if (t.includes('linked list') || t.includes('introduction to ll') || t.includes('singly') || t.includes('doubly') || t.includes('circular')) return videoMap.ll;
+    if (t.includes('stack') || t.includes('queue')) return videoMap.stack_q;
+    if (t.includes('binary tree') || t.includes('tree traversal')) return videoMap.tree;
+    if (t.includes('bst') || t.includes('binary search tree')) return videoMap.bst;
+    if (t.includes('heap')) return videoMap.heap;
+    if (t.includes('trie')) return videoMap.trie;
+    if (t.includes('graph') || t.includes('bfs') || t.includes('dfs') || t.includes('cycle') || t.includes('topo') || t.includes('shortest')) return videoMap.graph;
+    if (t.includes('dp') || t.includes('dynamic') || t.includes('knapsack') || t.includes('coin')) return videoMap.dp;
+    if (t.includes('greedy')) return videoMap.greedy;
+    return videoMap.basics;
   };
 
-  // ─── MASTER CATALOG OF GRADUAL QUESTIONS ──────────────────────────────────
+  const getPlaylist = () => {
+    return (languageKey === 'java') ? babbarJavaPlaylists.default : babbarCppPlaylists.default;
+  };
+
+  // â”€â”€â”€ MASTER CATALOG OF GRADUAL QUESTIONS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const catalog = {
     // 1. LEARN THE BASICS (Programming Foundations)
     basics: {
@@ -1325,9 +1364,11 @@ export const getDsaLanguageContent = (topicTitle, languageKey = 'cpp', difficult
     }
   };
 
-  // ─── CATEGORY MATCHING ────────────────────────────────────────────────────
+  // â”€â”€â”€ CATEGORY MATCHING â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   let category = 'basics';
-  if (t.includes('printing') || t.includes('variable')) {
+  if (t.includes('start coding')) {
+    category = 'basics'; // "Start Coding" module uses basics catalog for its final challenge
+  } else if (t.includes('printing') || t.includes('variable')) {
     category = 'printing';
   } else if (t.includes('data type') || t.includes('i/o') || t.includes('input') || t.includes('operator')) {
     category = 'datatypes';
@@ -1373,5 +1414,356 @@ export const getDsaLanguageContent = (topicTitle, languageKey = 'cpp', difficult
       { name: 'Striver A2Z DSA Sheet', url: 'https://takeuforward.org/strivers-a2z-dsa-course/strivers-a2z-dsa-course-sheet-2/' },
       { name: 'CareerForge DSA Community Playground', url: 'https://leetcode.com' },
     ],
+  };
+};
+
+// â”€â”€â”€ CHECKPOINT CONTENT: One content block per checkpoint per language â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// CHECKPOINT CONTENT ENGINE
+// 3 unique checkpoints â†’ 3 unique videos â†’ 3 progressive challenges
+// Video 1: EAR7De6Goz4  (Checkpoint 1 - Intro)
+// Video 2: FPu9Uld7W-E  (Checkpoint 2 - Variables, Conditions)
+// Video 3: tNm_NNSB3_w  (Checkpoint 3 - Loops, Logic)
+// Each video is used EXACTLY ONCE. No repetition.
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+export const getCheckpointContent = (checkpointId, lang = 'cpp') => {
+  if (checkpointId && checkpointId.startsWith('arr_cp')) {
+    return getArraysCheckpointContent(checkpointId, lang);
+  }
+  if (checkpointId && checkpointId.startsWith('hash_cp')) {
+    return getHashingCheckpointContent(checkpointId, lang);
+  }
+  if (checkpointId && checkpointId.startsWith('rec_cp')) {
+    return getRecursionCheckpointContent(checkpointId, lang);
+  }
+  if (checkpointId && checkpointId.startsWith('ll_cp')) {
+    return getLinkedListCheckpointContent(checkpointId, lang);
+  }
+  if (checkpointId && checkpointId.startsWith('sq_cp')) {
+    return getStackQueueCheckpointContent(checkpointId, lang);
+  }
+  if (checkpointId && checkpointId.startsWith('tree_cp')) {
+    return getTreesCheckpointContent(checkpointId, lang);
+  }
+  if (checkpointId && checkpointId.startsWith('graph_cp')) {
+    return getGraphCheckpointContent(checkpointId, lang);
+  }
+  if (checkpointId && checkpointId.startsWith('dp_cp')) {
+    return getDpCheckpointContent(checkpointId, lang);
+  }
+  if (checkpointId && checkpointId.startsWith('greedy_cp')) {
+    return getGreedyCheckpointContent(checkpointId, lang);
+  }
+  const language = (lang || 'cpp').toLowerCase();
+
+
+
+  // â”€â”€â”€ THE 3 CHECKPOINTS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // Each checkpoint has ONE unique video + ONE coding challenge
+  // Videos are NEVER repeated across checkpoints
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  const checkpoints = {
+
+    // â”€â”€â”€ CHECKPOINT 1 â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // VIDEO: https://www.youtube.com/watch?v=EAR7De6Goz4&t=4s
+    // TOPIC: Intro to Programming â€” first program, basic output, syntax
+    // CHALLENGE: Very basic â†’ print, I/O, simple output
+    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    cp1: {
+      title: 'Intro to Programming',
+      subtitle: 'Your first program â€” syntax, output, and the Hello World ritual.',
+      videoEmbedUrl: 'https://www.youtube.com/embed/EAR7De6Goz4?start=4&rel=0&modestbranding=1',
+      challenges: {
+        cpp: {
+          title: 'Print Your Name',
+          desc: `You just watched how to set up a program and write your first line of code.\n\nNow it's your turn!\n\nWrite a function called greetCoder() that returns the string "I am a Coder!" exactly as shown.\n\nðŸŽ¯ Think of this as writing your first real program. Make the compiler smile.`,
+          functionName: 'greetCoder',
+          constraints: 'None â€” just return the exact string.',
+          testCases: [
+            { input: '', expected: 'I am a Coder!' }
+          ],
+          hints: [
+            'Return the string exactly â€” check capitalization and punctuation.',
+            'In C++, a string function needs #include <string> and return type string.',
+            'The function takes no parameters â€” just return the fixed string.'
+          ],
+          bp: `#include <string>\nusing namespace std;\n\nstring greetCoder() {\n    // Your first line of code!\n    // Return the string: "I am a Coder!"\n    \n}`,
+          sol: `string greetCoder() { return "I am a Coder!"; }`
+        },
+        java: {
+          title: 'Print Your Name',
+          desc: `You just watched how to set up a Java program.\n\nNow write a function greetCoder() that returns "I am a Coder!"\n\nðŸŽ¯ This is your first Java function. Make the JVM happy!`,
+          functionName: 'greetCoder',
+          constraints: 'None',
+          testCases: [{ input: '', expected: 'I am a Coder!' }],
+          hints: ['Return the string exactly as shown.', 'The return type is String.'],
+          bp: `public class Solution {\n    public static String greetCoder() {\n        // Return: "I am a Coder!"\n        return "";\n    }\n}`,
+          sol: `public static String greetCoder() { return "I am a Coder!"; }`
+        },
+        python: {
+          title: 'Print Your Name',
+          desc: `You just saw your first Python program.\n\nWrite a function greet_coder() that returns "I am a Coder!"\n\nðŸŽ¯ Clean, simple, powerful â€” that's Python!`,
+          functionName: 'greet_coder',
+          constraints: 'None',
+          testCases: [{ input: '', expected: 'I am a Coder!' }],
+          hints: ['Use return to send back a value.', 'String is in double quotes.'],
+          bp: `def greet_coder() -> str:\n    # Return: "I am a Coder!"\n    pass`,
+          sol: `def greet_coder():\n    return "I am a Coder!"`
+        },
+        javascript: {
+          title: 'Print Your Name',
+          desc: `You just learned your first JavaScript syntax!\n\nWrite a function greetCoder() that returns "I am a Coder!"\n\nðŸŽ¯ The browser is your playground. Let's code!`,
+          functionName: 'greetCoder',
+          constraints: 'None',
+          testCases: [{ input: '', expected: 'I am a Coder!' }],
+          hints: ['Use the return keyword.', 'Strings can use single or double quotes.'],
+          bp: `function greetCoder() {\n    // Return: "I am a Coder!"\n    \n}`,
+          sol: `function greetCoder() { return "I am a Coder!"; }`
+        }
+      }
+    },
+
+    // â”€â”€â”€ CHECKPOINT 2 â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // VIDEO: https://www.youtube.com/watch?v=FPu9Uld7W-E&list=PLgUwDviBIf0oF6QL8m22w1hIDC1vJ_BHz&index=4
+    // TOPIC: Variables, Data Types, Conditions â€” store data and make decisions
+    // CHALLENGE: Beginner logic â†’ variables, conditions, if-else
+    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    cp2: {
+      title: 'Variables & Conditions',
+      subtitle: 'Store data in variables, compare values, make your code decide.',
+      videoEmbedUrl: 'https://www.youtube.com/embed/FPu9Uld7W-E?rel=0&modestbranding=1',
+      challenges: {
+        cpp: {
+          title: 'Even or Odd?',
+          desc: `You just learned variables, data types, and if-else conditions.\n\nNow apply that knowledge!\n\nWrite a function checkEvenOdd(n) that:\nâ€¢ Returns "Even" if n is divisible by 2\nâ€¢ Returns "Odd" if n is not divisible by 2\n\nðŸŽ¯ Use the modulo operator % â€” if n % 2 equals 0, the number is Even.`,
+          functionName: 'checkEvenOdd',
+          constraints: '-10^5 <= n <= 10^5',
+          testCases: [
+            { input: '4', expected: 'Even' },
+            { input: '7', expected: 'Odd' },
+            { input: '0', expected: 'Even' }
+          ],
+          hints: [
+            'Use the % (modulo) operator: n % 2 gives the remainder when n is divided by 2.',
+            'If the remainder is 0, the number is Even. Otherwise it is Odd.',
+            'Use an if-else statement to return the correct string.'
+          ],
+          bp: `#include <string>\nusing namespace std;\n\nstring checkEvenOdd(int n) {\n    // Use % to check divisibility\n    // Return "Even" or "Odd"\n    \n}`,
+          sol: `string checkEvenOdd(int n) { return n % 2 == 0 ? "Even" : "Odd"; }`
+        },
+        java: {
+          title: 'Even or Odd?',
+          desc: `You learned about variables and conditions in Java.\n\nWrite a function checkEvenOdd(n) that returns "Even" if n % 2 == 0, else returns "Odd".\n\nðŸŽ¯ Use an if-else statement â€” the core of decision making!`,
+          functionName: 'checkEvenOdd',
+          constraints: '-10^5 <= n <= 10^5',
+          testCases: [
+            { input: '4', expected: 'Even' },
+            { input: '7', expected: 'Odd' },
+            { input: '0', expected: 'Even' }
+          ],
+          hints: ['n % 2 == 0 means Even.', 'Use if-else to return "Even" or "Odd".'],
+          bp: `public class Solution {\n    public static String checkEvenOdd(int n) {\n        // Check if even or odd\n        return "";\n    }\n}`,
+          sol: `public static String checkEvenOdd(int n) { return n % 2 == 0 ? "Even" : "Odd"; }`
+        },
+        python: {
+          title: 'Even or Odd?',
+          desc: `Great â€” you now know Python variables and conditions!\n\nWrite check_even_odd(n) that returns "Even" or "Odd".\n\nðŸŽ¯ Python's if-else is clean and readable â€” enjoy!`,
+          functionName: 'check_even_odd',
+          constraints: '-10^5 <= n <= 10^5',
+          testCases: [
+            { input: '4', expected: 'Even' },
+            { input: '7', expected: 'Odd' },
+            { input: '0', expected: 'Even' }
+          ],
+          hints: ['n % 2 == 0 â†’ Even.', 'Use a simple if-else.'],
+          bp: `def check_even_odd(n: int) -> str:\n    # Return "Even" or "Odd"\n    pass`,
+          sol: `def check_even_odd(n):\n    return "Even" if n % 2 == 0 else "Odd"`
+        },
+        javascript: {
+          title: 'Even or Odd?',
+          desc: `You now understand variables and conditionals in JavaScript!\n\nWrite checkEvenOdd(n) that returns "Even" or "Odd".\n\nðŸŽ¯ Use ternary operator or if-else â€” your choice!`,
+          functionName: 'checkEvenOdd',
+          constraints: '-10^5 <= n <= 10^5',
+          testCases: [
+            { input: '4', expected: 'Even' },
+            { input: '7', expected: 'Odd' },
+            { input: '0', expected: 'Even' }
+          ],
+          hints: ['n % 2 === 0 â†’ Even.', 'Return strings "Even" or "Odd".'],
+          bp: `function checkEvenOdd(n) {\n    // Return "Even" or "Odd"\n    \n}`,
+          sol: `function checkEvenOdd(n) { return n % 2 === 0 ? "Even" : "Odd"; }`
+        }
+      }
+    },
+
+    // â”€â”€â”€ CHECKPOINT 3 â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // VIDEO: https://www.youtube.com/watch?v=tNm_NNSB3_w&list=PLgUwDviBIf0oF6QL8m22w1hIDC1vJ_BHz&index=5
+    // TOPIC: Loops, Patterns, Iteration â€” repeat actions and build logic
+    // CHALLENGE: Stronger logic â†’ loops, accumulation, iteration
+    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    cp3: {
+      title: 'Loops & Logic Building',
+      subtitle: 'Make your code repeat, accumulate, and iterate â€” the real power of programming.',
+      videoEmbedUrl: 'https://www.youtube.com/embed/tNm_NNSB3_w?rel=0&modestbranding=1',
+      challenges: {
+        cpp: {
+          title: 'Sum from 1 to N',
+          desc: `You just learned about loops â€” the engine that makes code repeat!\n\nNow put that power to work:\n\nWrite a function sumToN(n) that calculates the sum of all integers from 1 to n.\n\nExample: sumToN(5) = 1 + 2 + 3 + 4 + 5 = 15\n\nðŸŽ¯ Use a for loop. Start at 1, go up to n, and keep adding to a running total.`,
+          functionName: 'sumToN',
+          constraints: '1 <= n <= 10000',
+          testCases: [
+            { input: '5', expected: '15' },
+            { input: '10', expected: '55' },
+            { input: '100', expected: '5050' }
+          ],
+          hints: [
+            'Create a variable called sum and set it to 0.',
+            'Use a for loop: for(int i = 1; i <= n; i++)',
+            'Inside the loop, add i to sum each iteration.',
+            'After the loop, return sum.'
+          ],
+          bp: `int sumToN(int n) {\n    // Build a loop from 1 to n\n    // Keep adding each number to a total\n    // Return the total\n    \n}`,
+          sol: `int sumToN(int n) { int s = 0; for(int i = 1; i <= n; i++) s += i; return s; }`
+        },
+        java: {
+          title: 'Sum from 1 to N',
+          desc: `Loops are your superpower!\n\nWrite sumToN(n) that returns 1+2+3+...+n.\n\nExample: sumToN(5) = 15\n\nðŸŽ¯ Use a for loop and a running total variable.`,
+          functionName: 'sumToN',
+          constraints: '1 <= n <= 10000',
+          testCases: [
+            { input: '5', expected: '15' },
+            { input: '10', expected: '55' },
+            { input: '100', expected: '5050' }
+          ],
+          hints: ['int sum = 0; then loop from 1 to n.', 'sum += i inside the loop.', 'return sum at the end.'],
+          bp: `public class Solution {\n    public static int sumToN(int n) {\n        // Loop from 1 to n, accumulate sum\n        return 0;\n    }\n}`,
+          sol: `public static int sumToN(int n) { int s = 0; for(int i = 1; i <= n; i++) s += i; return s; }`
+        },
+        python: {
+          title: 'Sum from 1 to N',
+          desc: `You now know Python loops!\n\nWrite sum_to_n(n) that returns the sum of 1 through n.\n\nExample: sum_to_n(5) = 15\n\nðŸŽ¯ Use a for loop or Python's built-in sum/range.`,
+          functionName: 'sum_to_n',
+          constraints: '1 <= n <= 10000',
+          testCases: [
+            { input: '5', expected: '15' },
+            { input: '10', expected: '55' },
+            { input: '100', expected: '5050' }
+          ],
+          hints: ['Use range(1, n+1) in a for loop.', 'Or use sum(range(1, n+1)) directly.'],
+          bp: `def sum_to_n(n: int) -> int:\n    # Sum all integers from 1 to n\n    pass`,
+          sol: `def sum_to_n(n):\n    return sum(range(1, n + 1))`
+        },
+        javascript: {
+          title: 'Sum from 1 to N',
+          desc: `JavaScript loops are your new tool!\n\nWrite sumToN(n) that returns 1+2+...+n.\n\nExample: sumToN(5) = 15\n\nðŸŽ¯ Use a for loop and a counter variable.`,
+          functionName: 'sumToN',
+          constraints: '1 <= n <= 10000',
+          testCases: [
+            { input: '5', expected: '15' },
+            { input: '10', expected: '55' },
+            { input: '100', expected: '5050' }
+          ],
+          hints: ['let sum = 0; then loop i from 1 to n.', 'sum += i inside the loop.', 'return sum.'],
+          bp: `function sumToN(n) {\n    // Loop and accumulate\n    \n}`,
+          sol: `function sumToN(n) { let s = 0; for(let i = 1; i <= n; i++) s += i; return s; }`
+        }
+      }
+    },
+    cp4: {
+      title: 'STL & Collections',
+      subtitle: 'Learn vectors, lists, sets, maps, and dynamic containers.',
+      videoEmbedUrl: 'https://www.youtube.com/embed/RRVYpIET_RU?rel=0&modestbranding=1',
+      challenges: {
+        cpp: {
+          title: 'Collection Sum',
+          desc: `Standard Template Library (STL) allows you to use dynamic containers like vector instead of raw arrays.\n\nWrite a function sumOfCollection(vec) that returns the sum of all elements in a C++ vector.`,
+          functionName: 'sumOfCollection',
+          constraints: '1 <= vec.size() <= 10^4',
+          testCases: [
+            { input: '[1, 2, 3, 4, 5]', expected: '15' },
+            { input: '[10, -2, 5]', expected: '13' }
+          ],
+          hints: [
+            'Use a range-based for loop: for(int x : vec)',
+            'Or use std::accumulate(vec.begin(), vec.end(), 0).'
+          ],
+          bp: `#include <vector>\nusing namespace std;\n\nint sumOfCollection(vector<int>& vec) {\n    // Accumulate sum of vector elements\n    \n}`,
+          sol: `int sumOfCollection(vector<int>& vec) {\n    int sum = 0;\n    for(int x : vec) sum += x;\n    return sum;\n}`
+        },
+        java: {
+          title: 'Collection Sum',
+          desc: `In Java, the Collections Framework provides dynamic lists like List and ArrayList.\n\nWrite a function sumOfCollection(list) that returns the sum of all elements in a List.`,
+          functionName: 'sumOfCollection',
+          constraints: '1 <= list.size() <= 10^4',
+          testCases: [
+            { input: 'java.util.Arrays.asList(1, 2, 3, 4, 5)', expected: '15' },
+            { input: 'java.util.Arrays.asList(10, -2, 5)', expected: '13' }
+          ],
+          hints: [
+            'Use a standard enhanced for-loop: for(int x : list)',
+            'Accumulate the values and return.'
+          ],
+          bp: `import java.util.List;\n\npublic class Solution {\n    public static int sumOfCollection(List<Integer> list) {\n        // Sum the list elements\n        return 0;\n    }\n}`,
+          sol: `public static int sumOfCollection(List<Integer> list) {\n    int sum = 0;\n    for(int x : list) sum += x;\n    return sum;\n}`
+        },
+        python: {
+          title: 'Collection Sum',
+          desc: `Python has built-in lists which act as dynamic collections.\n\nWrite a function sum_of_collection(lst) that returns the sum of all elements in the list.`,
+          functionName: 'sum_of_collection',
+          constraints: '1 <= len(lst) <= 10^4',
+          testCases: [
+            { input: '[1, 2, 3, 4, 5]', expected: '15' },
+            { input: '[10, -2, 5]', expected: '13' }
+          ],
+          hints: [
+            'You can use the built-in sum() function directly.',
+            'Or iterate through the list and sum elements.'
+          ],
+          bp: `def sum_of_collection(lst: list) -> int:\n    # Return the sum of list elements\n    pass`,
+          sol: `def sum_of_collection(lst):\n    return sum(lst)`
+        },
+        javascript: {
+          title: 'Collection Sum',
+          desc: `In JavaScript, arrays are dynamic collections by default.\n\nWrite a function sumOfCollection(arr) that returns the sum of all elements in the array.`,
+          functionName: 'sumOfCollection',
+          constraints: '1 <= arr.length <= 10^4',
+          testCases: [
+            { input: '[1, 2, 3, 4, 5]', expected: '15' },
+            { input: '[10, -2, 5]', expected: '13' }
+          ],
+          hints: [
+            'Iterate using a for...of loop.',
+            'Or use the reduce() method.'
+          ],
+          bp: `function sumOfCollection(arr) {\n    // Return the sum of array elements\n    \n}`,
+          sol: `function sumOfCollection(arr) {\n    return arr.reduce((acc, curr) => acc + curr, 0);\n}`
+        }
+      }
+    }
+  };
+
+  const cp = checkpoints[checkpointId];
+  if (!cp) return null;
+
+  // Pick language-specific challenge (fallback to cpp)
+  const langChallenge = cp.challenges[language] || cp.challenges.cpp;
+  const isLastCheckpoint = checkpointId === 'cp4';
+
+  return {
+    title: cp.title,
+    subtitle: cp.subtitle,
+    // Each checkpoint has its own unique embed URL â€” NEVER repeated
+    videoEmbedUrl: cp.videoEmbedUrl,
+    challengeTitle: langChallenge.title,
+    challengeDescription: langChallenge.desc,
+    approach: langChallenge.approach || '',
+    code: langChallenge.sol || '',
+    editorBoilerplate: langChallenge.bp || '',
+    testCases: langChallenge.testCases,
+    functionName: langChallenge.functionName,
+    hints: langChallenge.hints,
+    constraints: langChallenge.constraints,
+    hasVideo: true,
+    isLastCheckpoint
   };
 };

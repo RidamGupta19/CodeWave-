@@ -12,5 +12,6 @@ router.post('/submit-code', protect, c.submitCode);
 router.get('/submissions/:topicId', protect, c.getSubmissions);
 router.get('/dashboard', protect, c.getDashboard);
 router.get('/heatmap', protect, c.getHeatmap);
+router.post('/skip-phase', protect, c.skipPhase);
 
 module.exports = router;

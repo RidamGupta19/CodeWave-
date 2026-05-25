@@ -434,19 +434,26 @@ exports.generateRoadmap = async (req, res) => {
 
     // Starting Level Logic
     if (domainSlug === 'dsa') {
-      const complexity = answers.dsa_complexity || 'none';
-      const recursion = answers.dsa_recursion || 'none';
-      const language = answers.dsa_language || 'cpp';
-
-      if (complexity === 'advanced' && recursion === 'advanced') {
-        startingLevel = 5;
-        unlockedLevels = [0, 1, 2, 3, 4, 5];
-      } else if (complexity !== 'none' || recursion !== 'none') {
-        startingLevel = 1;
-        unlockedLevels = [0, 1];
+      if (answers.dsaAnalysis) {
+        startingLevel = answers.dsaAnalysis.startingLevel || 0;
+        unlockedLevels = Array.from({ length: startingLevel + 1 }, (_, index) => index);
       } else {
-        startingLevel = 0;
-        unlockedLevels = [0];
+        const knownTopics = answers.dsa_known_topics || [];
+        const solved = answers.dsa_problem_experience || 'never';
+        const knowsCore = knownTopics.includes('loops') && knownTopics.includes('functions');
+        const knowsArrays = knownTopics.includes('arrays');
+        const knowsRecursion = knownTopics.includes('recursion');
+
+        if (solved === 'regular' || (knowsArrays && knowsRecursion)) {
+          startingLevel = 3;
+        } else if (solved === 'some_leetcode' || knowsArrays) {
+          startingLevel = 2;
+        } else if (solved === 'beginner' || knowsCore) {
+          startingLevel = 1;
+        } else {
+          startingLevel = 0;
+        }
+        unlockedLevels = Array.from({ length: startingLevel + 1 }, (_, index) => index);
       }
     } else {
       // Web Dev Logic
@@ -477,7 +484,15 @@ exports.generateRoadmap = async (req, res) => {
     let roadmapType = 'Steady Pace';
     let recommendedProjects = [];
 
-    if (goal === 'internship') {
+    if (domainSlug === 'dsa' && answers.dsaAnalysis) {
+      roadmapType = answers.dsaAnalysis.roadmapType;
+      recommendedProjects = [
+        'Recursive call-stack visualizer',
+        'Array pattern notebook',
+        'Personal DSA progress tracker'
+      ];
+      xpMultiplier = startingLevel >= 2 ? 1.25 : 1.0;
+    } else if (goal === 'internship') {
       roadmapType = 'Internship-Focused';
       recommendedProjects = ['Personal Portfolio', 'Task Management App', 'E-commerce UI'];
       xpMultiplier = 1.2;
@@ -510,9 +525,15 @@ exports.generateRoadmap = async (req, res) => {
     // Generate AI Summary
     let aiSummary = "";
     if (domainSlug === 'dsa') {
-      const languageMap = { 'cpp': 'C++', 'java': 'Java', 'python': 'Python', 'js': 'JavaScript' };
-      const lang = languageMap[answers.dsa_language] || 'C++';
-      aiSummary = `Since you're targeting ${lang} for DSA, we've optimized your roadmap for it. Based on your ${experience} level, you're starting at Level ${startingLevel}. We've calculated a ${estimatedTimeline} timeline to get you interview-ready.`;
+      if (answers.dsaAnalysis) {
+        estimatedTimeline = answers.dsaAnalysis.estimatedTimeline || estimatedTimeline;
+        recommendedPace = answers.dsaAnalysis.recommendedPace || recommendedPace;
+        aiSummary = answers.dsaAnalysis.aiSummary;
+      } else {
+        const languageMap = { 'cpp': 'C++', 'java': 'Java', 'python': 'Python', 'javascript': 'JavaScript', 'js': 'JavaScript' };
+        const lang = languageMap[answers.dsa_language] || 'C++';
+        aiSummary = `Since you're targeting ${lang} for DSA, we've optimized your roadmap for it. Based on your ${experience} level, you're starting at Level ${startingLevel}. We've calculated a ${estimatedTimeline} timeline to get you interview-ready.`;
+      }
     } else {
       aiSummary = `Based on your ${experience} background and your goal for a ${goal}, we've designed a ${roadmapType} path for you. You'll start at Level ${startingLevel}. We've estimated a ${estimatedTimeline} completion time.`;
     }

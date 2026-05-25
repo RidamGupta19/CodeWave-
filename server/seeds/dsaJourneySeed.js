@@ -77,11 +77,24 @@ async function seedDSA() {
         order: phaseInfo.phaseNumber
       });
 
-      // Add topics for this phase
+      // Add topics for this phase and their individual badges
       const topicKey = `dsa:${phase.phaseNumber}`;
       const topics = topicData[topicKey] || [];
       for (const topicInfo of topics) {
-        await Topic.create({ ...topicInfo, phaseId: phase._id, domainId: domain._id });
+        const topic = await Topic.create({ ...topicInfo, phaseId: phase._id, domainId: domain._id });
+        
+        // One video = One badge
+        await Badge.create({
+          name: `${topic.title} Badge`,
+          description: `Mastered the "${topic.title}" topic from Love Babbar's course!`,
+          icon: '📜',
+          domainId: domain._id,
+          phaseId: phase._id,
+          topicId: topic._id,
+          type: 'topic-completion',
+          unlockCondition: `Complete the ${topic.title} video and challenge`,
+          order: topic.order
+        });
       }
 
       // Add assessment
@@ -124,6 +137,19 @@ async function seedDSA() {
           unlockCondition: `Master all topics in ${phase.name}`,
           order: phase.phaseNumber
         });
+      }
+    }
+
+    // Seed default streak badges
+    const streakBadges = [
+      { name: 'Bronze Badge', description: 'Maintained a 5-day study streak', icon: '🥉', type: 'streak', unlockCondition: 'Maintain 5-day study streak' },
+      { name: 'Monthly Badge', description: 'Maintained a 30-day study streak', icon: '📅', type: 'streak', unlockCondition: 'Maintain 30-day study streak' },
+      { name: 'First Step', description: 'Completed your first topic', icon: '👣', type: 'special', unlockCondition: 'Complete any topic' }
+    ];
+    for (const sb of streakBadges) {
+      const exists = await Badge.findOne({ name: sb.name });
+      if (!exists) {
+        await Badge.create(sb);
       }
     }
 

@@ -24,7 +24,16 @@ const topicSchema = new mongoose.Schema({
   
   isRequired: { type: Boolean, default: true },
   unlockAfterPreviousTopic: { type: Boolean, default: true },
-  isActive: { type: Boolean, default: true }
+  isActive: { type: Boolean, default: true },
+
+  // Checkpoint Module Support (for Level 0 "Start Coding" style modules)
+  isCheckpointModule: { type: Boolean, default: false },
+  checkpoints: [{
+    id: { type: String },
+    label: { type: String },
+    description: { type: String },
+    youtubeLink: { type: String, default: null }
+  }]
 }, { timestamps: true });
 
 topicSchema.index({ phaseId: 1, order: 1 });

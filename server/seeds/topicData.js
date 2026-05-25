@@ -62,108 +62,485 @@ const topicData = {
     { title: 'Kadane\'s Algorithm & Variants', description: 'Maximum subarray and problems', difficulty: 'intermediate', estimatedTime: '3 hours', order: 2, gfgLink: 'https://www.geeksforgeeks.org/dsa/dsa-tutorial-learn-data-structures-and-algorithms/', practiceLink: 'https://www.hackerrank.com/domains/algorithms' }
   ],
   'dsa:0': [
-    { title: 'Printing & Variables', description: 'Learn to print output and store data in variables', instructor: 'Striver', difficulty: 'beginner', estimatedTime: '1 hour', order: 1, youtubeLink: 'https://www.youtube.com/watch?v=EAR7De6Goz4', theoryLink: 'https://takeuforward.org/c-plus-plus/cpp-basics-for-dsa-sheet/', practiceLink: 'https://www.geeksforgeeks.org/c-plus-plus/' },
-    { title: 'Data Types & I/O', description: 'Taking input, data types, and basic operations', instructor: 'Striver', difficulty: 'beginner', estimatedTime: '1 hour', order: 2, youtubeLink: 'https://www.youtube.com/watch?v=EAR7De6Goz4', theoryLink: 'https://takeuforward.org/c-plus-plus/cpp-basics-for-dsa-sheet/', practiceLink: 'https://www.geeksforgeeks.org/c-plus-plus/' },
-    { title: 'Conditions & Logic', description: 'If-Else, Switch cases, and conditional logic', instructor: 'Striver', difficulty: 'beginner', estimatedTime: '1 hour', order: 3, youtubeLink: 'https://www.youtube.com/watch?v=EAR7De6Goz4', theoryLink: 'https://takeuforward.org/c-plus-plus/cpp-basics-for-dsa-sheet/', practiceLink: 'https://www.geeksforgeeks.org/c-plus-plus/' },
-    { title: 'Loops & Iteration', description: 'For loops, while loops, and repetition', instructor: 'Striver', difficulty: 'beginner', estimatedTime: '1.5 hours', order: 4, youtubeLink: 'https://www.youtube.com/watch?v=EAR7De6Goz4', theoryLink: 'https://takeuforward.org/c-plus-plus/cpp-basics-for-dsa-sheet/', practiceLink: 'https://www.geeksforgeeks.org/c-plus-plus/' },
-    { title: 'Functions', description: 'Defining and calling functions, pass by value/reference', instructor: 'Striver', difficulty: 'beginner', estimatedTime: '1.5 hours', order: 5, youtubeLink: 'https://www.youtube.com/watch?v=EAR7De6Goz4', theoryLink: 'https://takeuforward.org/c-plus-plus/cpp-basics-for-dsa-sheet/', practiceLink: 'https://www.geeksforgeeks.org/c-plus-plus/' },
-    { title: 'Patterns', description: 'Build logic through nested loops and printing patterns', instructor: 'Striver', difficulty: 'beginner', estimatedTime: '2 hours', order: 6, youtubeLink: 'https://www.youtube.com/watch?v=tNm_NNSB3_w', theoryLink: 'https://takeuforward.org/strivers-a2z-dsa-course/must-do-pattern-problems-before-starting-dsa/', practiceLink: 'https://www.geeksforgeeks.org/problems/patterns/' },
+    {
+      title: 'Start Coding',
+      description: 'Your first programming journey — from Hello World to writing real functions. This interactive module walks you through 4 progressive checkpoints covering syntax, variables, conditionals, loops, functions, patterns, and STL collections. Watch & code simultaneously!',
+      instructor: 'Mike Dane / Striver',
+      difficulty: 'beginner',
+      estimatedTime: '4 hours',
+      order: 1,
+      isCheckpointModule: true,
+      checkpoints: [
+        {
+          id: 'cp1',
+          label: 'Intro to Programming',
+          description: 'Learn basic programming syntax and write your first Hello World program.',
+          youtubeLink: 'https://www.youtube.com/watch?v=EAR7De6Goz4&t=4s'
+        },
+        {
+          id: 'cp2',
+          label: 'Variables & Conditions',
+          description: 'Understand variables, memory allocation, and if-else conditions.',
+          youtubeLink: 'https://www.youtube.com/watch?v=FPu9Uld7W-E&list=PLgUwDviBIf0oF6QL8m22w1hIDC1vJ_BHz&index=4'
+        },
+        {
+          id: 'cp3',
+          label: 'Loops & Logic',
+          description: 'Iterative processes, loops, accumulation, and logic building.',
+          youtubeLink: 'https://www.youtube.com/watch?v=tNm_NNSB3_w&list=PLgUwDviBIf0oF6QL8m22w1hIDC1vJ_BHz&index=5'
+        },
+        {
+          id: 'cp4',
+          label: 'STL & Collections',
+          description: 'Master dynamic collections, vectors, lists, sets, and maps.',
+          youtubeLink: 'https://www.youtube.com/watch?v=RRVYpIET_RU&list=PLgUwDviBIf0p-INQC6rMuzsSmdZ77EcrH'
+        }
+      ],
+      youtubeLink: 'https://www.youtube.com/watch?v=EAR7De6Goz4&t=4s'
+    }
   ],
   'dsa:1': [
-    { 
-      title: 'Easy Arrays: Fundamentals & Shift Operations', 
-      description: 'Find Largest & Second Largest, Check if Sorted, Remove Duplicates, Left Rotate by One and D Places, Move Zeros to End', 
-      instructor: 'Striver', 
-      difficulty: 'beginner', 
-      estimatedTime: '3 hours', 
-      order: 1, 
-      youtubeLink: 'https://www.youtube.com/playlist?list=PLgUwDviBIf0rENwdL0nEH0uGom9no0nyB', 
-      theoryLink: 'https://takeuforward.org/data-structure/arrays-easy-problems/', 
-      practiceLink: 'https://leetcode.com/tag/array/' 
-    },
-    { 
-      title: 'Easy Arrays: Searching & Two-Pointer Union', 
-      description: 'Linear Search, Union & Intersection of Sorted Arrays, Find Missing Number, Max Consecutive Ones, Number Appears Once', 
-      instructor: 'Striver', 
-      difficulty: 'beginner', 
-      estimatedTime: '3 hours', 
-      order: 2, 
-      youtubeLink: 'https://www.youtube.com/playlist?list=PLgUwDviBIf0rENwdL0nEH0uGom9no0nyB', 
-      theoryLink: 'https://takeuforward.org/data-structure/arrays-easy-problems/', 
-      practiceLink: 'https://leetcode.com/tag/array/' 
-    },
-    { 
-      title: 'Medium Arrays: Core Algorithms & Partitioning', 
-      description: 'Two Sum Problem, Dutch National Flag (Sort 0s 1s 2s), Majority Element (>N/2), Stock Buy and Sell, Rearrange Array Elements by Sign', 
-      instructor: 'Striver', 
-      difficulty: 'intermediate', 
-      estimatedTime: '4 hours', 
-      order: 3, 
-      youtubeLink: 'https://www.youtube.com/playlist?list=PLgUwDviBIf0rENwdL0nEH0uGom9no0nyB', 
-      theoryLink: 'https://takeuforward.org/data-structure/arrays-medium-problems/', 
-      practiceLink: 'https://leetcode.com/tag/array/' 
-    },
-    { 
-      title: 'Medium Arrays: Subarrays & Matrix Rotations', 
-      description: 'Kadane\'s Algorithm (Max Subarray), Next Permutation, Leaders in Array, Longest Consecutive Sequence, Set Matrix Zeros, Rotate Matrix 90°, Spiral Traversal, Subarray Sum Equals K', 
-      instructor: 'Striver', 
-      difficulty: 'intermediate', 
-      estimatedTime: '4 hours', 
-      order: 4, 
-      youtubeLink: 'https://www.youtube.com/playlist?list=PLgUwDviBIf0rENwdL0nEH0uGom9no0nyB', 
-      theoryLink: 'https://takeuforward.org/data-structure/arrays-medium-problems/', 
-      practiceLink: 'https://leetcode.com/tag/array/' 
-    },
-    { 
-      title: 'Hard Arrays: Advanced Partitioning & Intervals', 
-      description: 'Pascal\'s Triangle, Majority Element II (>N/3), 3-Sum & 4-Sum, Subarrays with XOR Sum K, Merge Overlapping Intervals, Merge Sorted Arrays, Repeating & Missing, Count Inversions, Reverse Pairs, Max Product Subarray', 
-      instructor: 'Striver', 
-      difficulty: 'advanced', 
-      estimatedTime: '6 hours', 
-      order: 5, 
-      youtubeLink: 'https://www.youtube.com/playlist?list=PLgUwDviBIf0rENwdL0nEH0uGom9no0nyB', 
-      theoryLink: 'https://takeuforward.org/data-structure/arrays-hard-problems/', 
-      practiceLink: 'https://leetcode.com/tag/array/' 
+    {
+      title: 'Arrays Explorer',
+      description: 'Master arrays from beginner to advanced level through 28 checkpoints using Striver\'s Arrays Playlist. Watch tutorials, solve coding challenges, and track your progress in real-time!',
+      instructor: 'Striver',
+      difficulty: 'beginner',
+      estimatedTime: '25 hours',
+      order: 1,
+      isCheckpointModule: true,
+      checkpoints: [
+        {
+          id: 'arr_cp1',
+          label: 'Second Largest Element',
+          description: 'Identify the second largest element in an array in a single O(N) pass.',
+          youtubeLink: 'https://www.youtube.com/embed/37E9ckMDdTk?rel=0&modestbranding=1'
+        },
+        {
+          id: 'arr_cp2',
+          label: 'Rotate Array by K Places',
+          description: 'Left rotate an array by K places in-place or with minimal space.',
+          youtubeLink: 'https://www.youtube.com/embed/wvcQg43_V8U?rel=0&modestbranding=1'
+        },
+        {
+          id: 'arr_cp3',
+          label: 'Find Single Element',
+          description: 'Find the element that appears once while all other elements appear twice.',
+          youtubeLink: 'https://www.youtube.com/embed/bYWLJb3vCWY?rel=0&modestbranding=1'
+        },
+        {
+          id: 'arr_cp4',
+          label: 'Longest Subarray with Sum K',
+          description: 'Find the length of the longest contiguous subarray whose sum equals K.',
+          youtubeLink: 'https://www.youtube.com/embed/frf7qxiN2qU?rel=0&modestbranding=1'
+        },
+        {
+          id: 'arr_cp5',
+          label: 'Two Sum',
+          description: 'Find two indices in the array that add up to target K.',
+          youtubeLink: 'https://www.youtube.com/embed/UXDSeD9mN-k?rel=0&modestbranding=1'
+        },
+        {
+          id: 'arr_cp6',
+          label: 'Sort Array of 0s, 1s, and 2s',
+          description: 'Sort the array in-place without library sort functions (Dutch National Flag Algorithm).',
+          youtubeLink: 'https://www.youtube.com/embed/tp8JIuCXBaU?rel=0&modestbranding=1'
+        },
+        {
+          id: 'arr_cp7',
+          label: 'Majority Element I',
+          description: 'Find the element that appears more than n/2 times in the array (Boyer-Moore Voting Algorithm).',
+          youtubeLink: 'https://www.youtube.com/embed/nP_ns3uSh80?rel=0&modestbranding=1'
+        },
+        {
+          id: 'arr_cp8',
+          label: 'Maximum Subarray Sum',
+          description: 'Find the maximum sum of a contiguous subarray (Kadane\'s Algorithm).',
+          youtubeLink: 'https://www.youtube.com/embed/AHZpyENo7k4?rel=0&modestbranding=1'
+        },
+        {
+          id: 'arr_cp9',
+          label: 'Rearrange Array by Sign',
+          description: 'Rearrange elements in-place or out-of-place alternately by their sign.',
+          youtubeLink: 'https://www.youtube.com/embed/h4aBagy4Uok?rel=0&modestbranding=1'
+        },
+        {
+          id: 'arr_cp10',
+          label: 'Buy and Sell Stock',
+          description: 'Maximize profit by buying and selling a stock once.',
+          youtubeLink: 'https://www.youtube.com/embed/excAOvwF_Wk?rel=0&modestbranding=1'
+        },
+        {
+          id: 'arr_cp11',
+          label: 'Next Permutation',
+          description: 'Rearrange numbers into the lexicographically next greater permutation.',
+          youtubeLink: 'https://www.youtube.com/embed/JDOXKqF60RQ?rel=0&modestbranding=1'
+        },
+        {
+          id: 'arr_cp12',
+          label: 'Leaders in an Array',
+          description: 'Identify all elements which are greater than all elements to their right.',
+          youtubeLink: 'https://www.youtube.com/embed/cHrH9CQ8pmY?rel=0&modestbranding=1'
+        },
+        {
+          id: 'arr_cp13',
+          label: 'Longest Consecutive Sequence',
+          description: 'Find the length of the longest consecutive elements sequence in O(N).',
+          youtubeLink: 'https://www.youtube.com/embed/oO5uLE7EUlM?rel=0&modestbranding=1'
+        },
+        {
+          id: 'arr_cp14',
+          label: 'Set Matrix Zeroes',
+          description: 'Zero rows and columns containing zeros in-place with minimal space complexity.',
+          youtubeLink: 'https://www.youtube.com/embed/N0MgLvceX7M?rel=0&modestbranding=1'
+        },
+        {
+          id: 'arr_cp15',
+          label: 'Rotate Matrix 90 Degrees',
+          description: 'Rotate an NxN matrix by 90 degrees clockwise in-place.',
+          youtubeLink: 'https://www.youtube.com/embed/Z0R2u6gd3GU?rel=0&modestbranding=1'
+        },
+        {
+          id: 'arr_cp16',
+          label: 'Spiral Matrix Traversal',
+          description: 'Traverse an MxN matrix in spiral clockwise order.',
+          youtubeLink: 'https://www.youtube.com/embed/3Zv-s9UUrFM?rel=0&modestbranding=1'
+        },
+        {
+          id: 'arr_cp17',
+          label: 'Subarray Sum Equals K',
+          description: 'Find total number of subarrays whose sum equals K.',
+          youtubeLink: 'https://www.youtube.com/embed/xvNwoz-ufXA?rel=0&modestbranding=1'
+        },
+        {
+          id: 'arr_cp18',
+          label: 'Pascal\'s Triangle',
+          description: 'Generate the first N rows of Pascal\'s Triangle.',
+          youtubeLink: 'https://www.youtube.com/embed/bR7mQgwQ_o8?rel=0&modestbranding=1'
+        },
+        {
+          id: 'arr_cp19',
+          label: 'Majority Element II',
+          description: 'Find all elements that appear more than n/3 times in the array (Boyer-Moore Extension).',
+          youtubeLink: 'https://www.youtube.com/embed/vwZj1K0e9U8?rel=0&modestbranding=1'
+        },
+        {
+          id: 'arr_cp20',
+          label: '3Sum',
+          description: 'Find all unique triplets that sum to 0 in O(N^2) time and O(1) extra space.',
+          youtubeLink: 'https://www.youtube.com/embed/DhFh8Kw7ymk?rel=0&modestbranding=1'
+        },
+        {
+          id: 'arr_cp21',
+          label: '4Sum',
+          description: 'Find all unique quadruplets that sum to target.',
+          youtubeLink: 'https://www.youtube.com/embed/eD95WRfh81c?rel=0&modestbranding=1'
+        },
+        {
+          id: 'arr_cp22',
+          label: 'Subarrays with XOR K',
+          description: 'Find total number of subarrays whose bitwise XOR sum equals K.',
+          youtubeLink: 'https://www.youtube.com/embed/eZr-6p0B7ME?rel=0&modestbranding=1'
+        },
+        {
+          id: 'arr_cp23',
+          label: 'Merge Overlapping Intervals',
+          description: 'Merge overlapping intervals in O(N log N) time.',
+          youtubeLink: 'https://www.youtube.com/embed/IexN60k62jo?rel=0&modestbranding=1'
+        },
+        {
+          id: 'arr_cp24',
+          label: 'Merge Arrays In-Place',
+          description: 'Merge two sorted arrays in-place using O(1) extra space.',
+          youtubeLink: 'https://www.youtube.com/embed/n7uwj04E0I4?rel=0&modestbranding=1'
+        },
+        {
+          id: 'arr_cp25',
+          label: 'Missing and Repeating',
+          description: 'Find the missing and repeating numbers in an array from 1 to N.',
+          youtubeLink: 'https://www.youtube.com/embed/2D0D8HE6uak?rel=0&modestbranding=1'
+        },
+        {
+          id: 'arr_cp26',
+          label: 'Count Inversions',
+          description: 'Count inversions in an array in O(N log N) using Merge Sort.',
+          youtubeLink: 'https://www.youtube.com/embed/AseUmwVNaoY?rel=0&modestbranding=1'
+        },
+        {
+          id: 'arr_cp27',
+          label: 'Reverse Pairs',
+          description: 'Count reverse pairs (i < j where arr[i] > 2 * arr[j]) in O(N log N).',
+          youtubeLink: 'https://www.youtube.com/embed/0e4bZaP3MDI?rel=0&modestbranding=1'
+        },
+        {
+          id: 'arr_cp28',
+          label: 'Maximum Product Subarray',
+          description: 'Find the contiguous subarray within an array that has the largest product.',
+          youtubeLink: 'https://www.youtube.com/embed/hnswaLJvr6g?rel=0&modestbranding=1'
+        }
+      ],
+      youtubeLink: 'https://www.youtube.com/watch?v=37E9ckMDdTk&list=PLgUwDviBIf0rENwdL0nEH0uGom9no0nyB'
     }
   ],
   'dsa:2': [
-    { title: 'Hashing Basics', description: 'Introduction to Hashing, Number and Character hashing', instructor: 'Striver', difficulty: 'beginner', estimatedTime: '3 hours', order: 1, youtubeLink: 'https://www.youtube.com/watch?v=KEs5UyBJ39g', theoryLink: 'https://takeuforward.org/data-structure/hashing-basics-for-dsa/', practiceLink: 'https://www.geeksforgeeks.org/hashing-data-structure/' },
-    { title: 'Hashing Hunter Challenges', description: 'Count frequencies, find pairs, handle collisions', instructor: 'Striver', difficulty: 'intermediate', estimatedTime: '4 hours', order: 2, youtubeLink: 'https://www.youtube.com/watch?v=KEs5UyBJ39g', theoryLink: 'https://takeuforward.org/data-structure/hashing-basics-for-dsa/', practiceLink: 'https://leetcode.com/tag/hash-table/' }
+    {
+      title: 'Hashing Explorer',
+      description: 'Master frequency tracking, detecting duplicates, and finding unique elements using Hash Maps. Watch tutorials, solve coding challenges, and track your progress in real-time!',
+      instructor: 'Striver',
+      difficulty: 'beginner',
+      estimatedTime: '4 hours',
+      order: 1,
+      isCheckpointModule: true,
+      checkpoints: [
+        {
+          id: 'hash_cp1',
+          label: 'Frequency Tracker',
+          description: 'Identify the maximum frequency of elements in an array using hashing.',
+          youtubeLink: 'https://www.youtube.com/embed/KEs5UyBJ39g?rel=0&modestbranding=1'
+        },
+        {
+          id: 'hash_cp2',
+          label: 'Find Duplicates',
+          description: 'Find the count of elements that appear more than once using hashing.',
+          youtubeLink: 'https://www.youtube.com/embed/KEs5UyBJ39g?rel=0&modestbranding=1'
+        },
+        {
+          id: 'hash_cp3',
+          label: 'First Unique Element',
+          description: 'Identify the first element that appears exactly once in the array.',
+          youtubeLink: 'https://www.youtube.com/embed/KEs5UyBJ39g?rel=0&modestbranding=1'
+        }
+      ],
+      youtubeLink: 'https://www.youtube.com/watch?v=KEs5UyBJ39g'
+    }
   ],
   'dsa:3': [
-    { title: 'Recursion Basics', description: 'Printing 1 to N, Fibonacci, String palindrome, Reverse Array', instructor: 'Striver', difficulty: 'beginner', estimatedTime: '4 hours', order: 1, youtubeLink: 'https://www.youtube.com/watch?v=un6PybaEisA', theoryLink: 'https://takeuforward.org/recursion/recursion-introduction/', practiceLink: 'https://www.geeksforgeeks.org/recursion/' },
-    { title: 'Subsequences Patterns', description: 'Print all subsequences, Sum of subsequences, Combination Sum', instructor: 'Striver', difficulty: 'intermediate', estimatedTime: '5 hours', order: 2, youtubeLink: 'https://www.youtube.com/watch?v=AxNNVECce8c', theoryLink: 'https://takeuforward.org/recursion/print-all-subsequences-power-set/', practiceLink: 'https://leetcode.com/tag/recursion/' },
-    { title: 'Backtracking Hero', description: 'N-Queens, Sudoku Solver, M-Coloring, Rat in a Maze', instructor: 'Striver', difficulty: 'advanced', estimatedTime: '6 hours', order: 3, youtubeLink: 'https://www.youtube.com/watch?v=nwjZ24S_ueM', theoryLink: 'https://takeuforward.org/data-structure/n-queen-problem-backtracking/', practiceLink: 'https://leetcode.com/tag/backtracking/' }
+    {
+      title: 'Recursion Explorer',
+      description: 'Master the core concepts of recursion from base cases to recurrence relations. Watch tutorials, solve coding challenges, and track your progress in real-time!',
+      instructor: 'Striver',
+      difficulty: 'beginner',
+      estimatedTime: '6 hours',
+      order: 1,
+      isCheckpointModule: true,
+      checkpoints: [
+        {
+          id: 'rec_cp1',
+          label: 'Sum of N Numbers',
+          description: 'Calculate the sum of first N natural numbers recursively.',
+          youtubeLink: 'https://www.youtube.com/embed/yVdKa8dnKiE?rel=0&modestbranding=1'
+        },
+        {
+          id: 'rec_cp2',
+          label: 'Reverse String',
+          description: 'Reverse a string recursively.',
+          youtubeLink: 'https://www.youtube.com/embed/92Z4_N0Uew0?rel=0&modestbranding=1'
+        },
+        {
+          id: 'rec_cp3',
+          label: 'Power Recursive',
+          description: 'Calculate base raised to exponent power recursively.',
+          youtubeLink: 'https://www.youtube.com/embed/kvRjFhrYpiA?rel=0&modestbranding=1'
+        }
+      ],
+      youtubeLink: 'https://www.youtube.com/watch?v=yVdKa8dnKiE&list=PLgUwDviBIf0rGlzIn_7rsaR2FQ5e6ZOL9'
+    }
   ],
   'dsa:4': [
-    { title: 'Introduction to LL', description: 'Singly Linked List, Doubly Linked List operations', instructor: 'Striver', difficulty: 'beginner', estimatedTime: '3 hours', order: 1, youtubeLink: 'https://www.youtube.com/watch?v=q8gipE-hy80', theoryLink: 'https://takeuforward.org/data-structure/linked-list-introduction/', practiceLink: 'https://leetcode.com/tag/linked-list/' },
-    { title: 'LL Warrior Techniques', description: 'Reverse LL, Middle of LL, Detect cycle, Find starting point', instructor: 'Striver', difficulty: 'intermediate', estimatedTime: '5 hours', order: 2, youtubeLink: 'https://www.youtube.com/watch?v=D2vI2NwJgdU', theoryLink: 'https://takeuforward.org/data-structure/reverse-a-linked-list/', practiceLink: 'https://leetcode.com/tag/linked-list/' }
+    {
+      title: 'Linked List Explorer',
+      description: 'Understand singly linked lists, traverse nodes, find the middle node, and search elements. Watch tutorials, solve coding challenges, and track your progress in real-time!',
+      instructor: 'Striver',
+      difficulty: 'beginner',
+      estimatedTime: '8 hours',
+      order: 1,
+      isCheckpointModule: true,
+      checkpoints: [
+        {
+          id: 'll_cp1',
+          label: 'Linked List Length',
+          description: 'Find the total number of nodes in a singly linked list.',
+          youtubeLink: 'https://www.youtube.com/embed/cg6JGiXhQ9c?rel=0&modestbranding=1'
+        },
+        {
+          id: 'll_cp2',
+          label: 'Find Middle Value',
+          description: 'Identify the value of the middle node of the linked list in one pass.',
+          youtubeLink: 'https://www.youtube.com/embed/83bB4P0L6W4?rel=0&modestbranding=1'
+        },
+        {
+          id: 'll_cp3',
+          label: 'Search List',
+          description: 'Determine if a specific element exists in the linked list.',
+          youtubeLink: 'https://www.youtube.com/embed/MRe4UsRad5k?rel=0&modestbranding=1'
+        }
+      ],
+      youtubeLink: 'https://www.youtube.com/watch?v=cg6JGiXhQ9c&list=PLgUwDviBIf0rAuz8tVcM0AymmhTRsfaLU'
+    }
   ],
   'dsa:5': [
-    { title: 'Stack & Queue Implementation', description: 'Implement using Arrays, Linked Lists', instructor: 'Striver', difficulty: 'beginner', estimatedTime: '3 hours', order: 1, youtubeLink: 'https://www.youtube.com/watch?v=gyPa_m8fW-w', theoryLink: 'https://takeuforward.org/data-structure/stack-and-queue-implementation/', practiceLink: 'https://www.geeksforgeeks.org/stack-data-structure/' },
-    { title: 'Monotonic Stack Master', description: 'Next Greater Element, Largest Rectangle, Trapping Rainwater', instructor: 'Striver', difficulty: 'advanced', estimatedTime: '6 hours', order: 2, youtubeLink: 'https://www.youtube.com/watch?v=7PrS72_jwAY', theoryLink: 'https://takeuforward.org/data-structure/next-greater-element-using-stack/', practiceLink: 'https://leetcode.com/tag/monotonic-stack/' }
+    {
+      title: 'Stack & Queue Explorer',
+      description: 'Master linear data structures, LIFO/FIFO patterns, bracket balancing, next greater element search, and queue summaries. Watch tutorials, solve coding challenges, and track your progress in real-time!',
+      instructor: 'Striver',
+      difficulty: 'intermediate',
+      estimatedTime: '8 hours',
+      order: 1,
+      isCheckpointModule: true,
+      checkpoints: [
+        {
+          id: 'sq_cp1',
+          label: 'Valid Parentheses',
+          description: 'Use a stack to validate parenthesis balance in a string.',
+          youtubeLink: 'https://www.youtube.com/embed/tqQ5fTamIN4?rel=0&modestbranding=1'
+        },
+        {
+          id: 'sq_cp2',
+          label: 'Next Greater Element',
+          description: 'Use a stack to find the next greater element in O(N).',
+          youtubeLink: 'https://www.youtube.com/embed/N7m7yP8r8pY?rel=0&modestbranding=1'
+        },
+        {
+          id: 'sq_cp3',
+          label: 'Queue Sum',
+          description: 'Calculate the total sum of elements in a dynamic FIFO queue.',
+          youtubeLink: 'https://www.youtube.com/embed/m4N0e_fKxZc?rel=0&modestbranding=1'
+        }
+      ],
+      youtubeLink: 'https://www.youtube.com/watch?v=tqQ5fTamIN4&list=PLgUwDviBIf0pOd5zvVVSzgpo6BaCpHT9c'
+    }
   ],
   'dsa:6': [
-    { title: 'Binary Tree Traversal', description: 'Preorder, Inorder, Postorder, Level order, Iterative Traversal', instructor: 'Striver', difficulty: 'beginner', estimatedTime: '5 hours', order: 1, youtubeLink: 'https://www.youtube.com/watch?v=l_7V5uYI2G0', theoryLink: 'https://takeuforward.org/binary-tree/binary-tree-traversal/', practiceLink: 'https://leetcode.com/tag/tree/' },
-    { title: 'Tree Master: Properties', description: 'Height, Diameter, Balanced, Identical, Boundary traversal', instructor: 'Striver', difficulty: 'intermediate', estimatedTime: '6 hours', order: 2, youtubeLink: 'https://www.youtube.com/watch?v=fAfR_MstP00', theoryLink: 'https://takeuforward.org/data-structure/maximum-depth-in-a-binary-tree/', practiceLink: 'https://leetcode.com/tag/tree/' }
+    {
+      title: 'Trees Explorer',
+      description: 'Learn binary tree representations, node traversal sums, calculating max depth, and leaf node counts. Watch tutorials, solve coding challenges, and track your progress in real-time!',
+      instructor: 'Striver',
+      difficulty: 'intermediate',
+      estimatedTime: '12 hours',
+      order: 1,
+      isCheckpointModule: true,
+      checkpoints: [
+        {
+          id: 'tree_cp1',
+          label: 'Tree Node Sum',
+          description: 'Perform a depth-first traversal to sum all values in a binary tree.',
+          youtubeLink: 'https://www.youtube.com/embed/OYqYEM1bMK8?rel=0&modestbranding=1'
+        },
+        {
+          id: 'tree_cp2',
+          label: 'Max Depth',
+          description: 'Calculate the maximum height/depth of the binary tree recursively.',
+          youtubeLink: 'https://www.youtube.com/embed/eD4w3H1n8u4?rel=0&modestbranding=1'
+        },
+        {
+          id: 'tree_cp3',
+          label: 'Leaf Node Count',
+          description: 'Identify and count leaf nodes (nodes without children) in a binary tree.',
+          youtubeLink: 'https://www.youtube.com/embed/x1C0nU2sP9Y?rel=0&modestbranding=1'
+        }
+      ],
+      youtubeLink: 'https://www.youtube.com/watch?v=OYqYEM1bMK8&list=PLgUwDviBIf0q8Hkd7bK2Bpryj2xVJk8Vk'
+    }
   ],
   'dsa:7': [
-    { title: 'Graph Introduction', description: 'Representation, BFS, DFS', instructor: 'Striver', difficulty: 'beginner', estimatedTime: '5 hours', order: 1, youtubeLink: 'https://www.youtube.com/watch?v=M3_pLsDdeuU', theoryLink: 'https://takeuforward.org/graph/graph-introduction/', practiceLink: 'https://www.geeksforgeeks.org/graph-data-structure/' },
-    { title: 'Topo Sort & DSU', description: 'Directed/Undirected Graphs, Kahn\'s Algorithm, Path Compression', instructor: 'Striver', difficulty: 'intermediate', estimatedTime: '5 hours', order: 2, youtubeLink: 'https://www.youtube.com/watch?v=V63W7p_p4uE', theoryLink: 'https://takeuforward.org/data-structure/topological-sort-bfs/', practiceLink: 'https://leetcode.com/tag/graph/' },
-    { title: 'Shortest Path Algorithms', description: 'Dijkstra, Bellman Ford, Floyd Warshall', instructor: 'Striver', difficulty: 'advanced', estimatedTime: '6 hours', order: 3, youtubeLink: 'https://www.youtube.com/watch?v=XpkfK_Mh6vA', theoryLink: 'https://takeuforward.org/graph/dijkstra-algorithm-shortest-path/', practiceLink: 'https://leetcode.com/tag/graph/' }
+    {
+      title: 'Graph Explorer',
+      description: 'Learn graph representations, path existence checks via BFS, and counting connected components via DFS. Watch tutorials, solve coding challenges, and track your progress in real-time!',
+      instructor: 'Striver',
+      difficulty: 'intermediate',
+      estimatedTime: '12 hours',
+      order: 1,
+      isCheckpointModule: true,
+      checkpoints: [
+        {
+          id: 'graph_cp1',
+          label: 'Find Node Degree',
+          description: 'Calculate the degree of a given node from the graph adjacency list.',
+          youtubeLink: 'https://www.youtube.com/embed/M3_pLsDdeuU?rel=0&modestbranding=1'
+        },
+        {
+          id: 'graph_cp2',
+          label: 'Find Path',
+          description: 'Use Breadth-First Search (BFS) to check if a path exists between two nodes.',
+          youtubeLink: 'https://www.youtube.com/embed/V63W7p_p4uE?rel=0&modestbranding=1'
+        },
+        {
+          id: 'graph_cp3',
+          label: 'Count Connected Components',
+          description: 'Identify and count disjoint subgraphs in an undirected graph.',
+          youtubeLink: 'https://www.youtube.com/embed/XpkfK_Mh6vA?rel=0&modestbranding=1'
+        }
+      ],
+      youtubeLink: 'https://www.youtube.com/watch?v=M3_pLsDdeuU&list=PLgUwDviBIf0oE3gA41TKO2H5bHpPd7fzn'
+    }
   ],
   'dsa:8': [
-    { title: 'Introduction to DP', description: 'Memoization vs Tabulation, Fibonacci, Frog Jump', instructor: 'Striver', difficulty: 'intermediate', estimatedTime: '4 hours', order: 1, youtubeLink: 'https://www.youtube.com/watch?v=tyB0ztf0DNY', theoryLink: 'https://takeuforward.org/dynamic-programming/introduction-to-dynamic-programming/', practiceLink: 'https://leetcode.com/tag/dynamic-programming/' },
-    { title: 'DP on Grids & Subsequences', description: 'Unique Paths, Knapsack, Subset Sum, Target Sum', instructor: 'Striver', difficulty: 'advanced', estimatedTime: '8 hours', order: 2, youtubeLink: 'https://www.youtube.com/watch?v=7cELW7O_E9k', theoryLink: 'https://takeuforward.org/dynamic-programming/striver-dp-series-dynamic-programming-problems/', practiceLink: 'https://leetcode.com/tag/dynamic-programming/' },
-    { title: 'DP on Strings & Stocks', description: 'LCS, Edit Distance, Stock Buy Sell (Multiple variants)', instructor: 'Striver', difficulty: 'advanced', estimatedTime: '7 hours', order: 3, youtubeLink: 'https://www.youtube.com/watch?v=NPZn9jBrX8U', theoryLink: 'https://takeuforward.org/dynamic-programming/longest-common-subsequence/', practiceLink: 'https://leetcode.com/tag/dynamic-programming/' }
+    {
+      title: 'Dynamic Programming Explorer',
+      description: 'Master memoization and bottom-up tabulation to optimize recursive algorithms. Watch tutorials, solve coding challenges, and track your progress in real-time!',
+      instructor: 'Striver',
+      difficulty: 'advanced',
+      estimatedTime: '15 hours',
+      order: 1,
+      isCheckpointModule: true,
+      checkpoints: [
+        {
+          id: 'dp_cp1',
+          label: 'Climbing Stairs',
+          description: 'Use Dynamic Programming to count distinct ways to climb stairs.',
+          youtubeLink: 'https://www.youtube.com/embed/tyB0ztf0DNY?rel=0&modestbranding=1'
+        },
+        {
+          id: 'dp_cp2',
+          label: 'House Robber',
+          description: 'Find the maximum amount of money you can rob without alerting police.',
+          youtubeLink: 'https://www.youtube.com/embed/7cELW7O_E9k?rel=0&modestbranding=1'
+        },
+        {
+          id: 'dp_cp3',
+          label: 'Min Path Sum',
+          description: 'Find the minimum sum path from top-left to bottom-right in a grid.',
+          youtubeLink: 'https://www.youtube.com/embed/NPZn9jBrX8U?rel=0&modestbranding=1'
+        }
+      ],
+      youtubeLink: 'https://www.youtube.com/watch?v=tyB0ztf0DNY&list=PLgUwDviBIf0pwFf-BnpkXxs0Ra0eU2sJY'
+    }
   ],
   'dsa:9': [
-    { title: 'Greedy Algorithms Basics', description: 'Assign Cookies, Fractional Knapsack, Activity Selection, Job Sequencing', instructor: 'Striver', difficulty: 'intermediate', estimatedTime: '4 hours', order: 1, youtubeLink: 'https://www.youtube.com/watch?v=n59vC9nJreU', theoryLink: 'https://takeuforward.org/greedy-algorithm/greedy-algorithm-introduction/', practiceLink: 'https://www.geeksforgeeks.org/greedy-algorithms/' }
+    {
+      title: 'Greedy Explorer',
+      description: 'Master greedy choice properties and local optimization strategies. Watch tutorials, solve coding challenges, and track your progress in real-time!',
+      instructor: 'Striver',
+      difficulty: 'intermediate',
+      estimatedTime: '10 hours',
+      order: 1,
+      isCheckpointModule: true,
+      checkpoints: [
+        {
+          id: 'greedy_cp1',
+          label: 'Lemonade Change',
+          description: 'Use a greedy strategy to count bills and decide if change can be provided.',
+          youtubeLink: 'https://www.youtube.com/embed/Fqd5aB8S624?rel=0&modestbranding=1'
+        },
+        {
+          id: 'greedy_cp2',
+          label: 'Assign Cookies',
+          description: 'Greedily satisfy maximum children matching cookie sizes.',
+          youtubeLink: 'https://www.youtube.com/embed/HZOUwK5El5U?rel=0&modestbranding=1'
+        },
+        {
+          id: 'greedy_cp3',
+          label: 'Fractional Knapsack',
+          description: 'Greedily sort items by density value to maximize total value.',
+          youtubeLink: 'https://www.youtube.com/embed/n59vC9nJreU?rel=0&modestbranding=1'
+        }
+      ],
+      youtubeLink: 'https://www.youtube.com/watch?v=tyB0ztf0DNY&list=PLgUwDviBIf0pwFf-BnpkXxs0Ra0eU2sJY'
+    }
   ],
   'dsa:10': [
-    { title: 'Bit Manipulation Master', description: 'Power of 2, Count set bits, Single Number, Subsets', instructor: 'Striver', difficulty: 'intermediate', estimatedTime: '3 hours', order: 1, youtubeLink: 'https://www.youtube.com/watch?v=5rtVTYAk9KQ', theoryLink: 'https://takeuforward.org/bit-manipulation/bit-manipulation-introduction/', practiceLink: 'https://leetcode.com/tag/bit-manipulation/' },
-    { title: 'Heaps & Priority Queues', description: 'Implementation, K-th largest, Merge M sorted lists', instructor: 'Striver', difficulty: 'intermediate', estimatedTime: '4 hours', order: 2, youtubeLink: 'https://www.youtube.com/watch?v=HqPJF2L5h9U', theoryLink: 'https://takeuforward.org/data-structure/heap-data-structure/', practiceLink: 'https://leetcode.com/tag/heap-priority-queue/' },
-    { title: 'Advanced Topics & Tries', description: 'Trie implementation, Search, Insert, Count words', instructor: 'Striver', difficulty: 'advanced', estimatedTime: '4 hours', order: 3, youtubeLink: 'https://www.youtube.com/watch?v=dBGUmUQhjaM', theoryLink: 'https://takeuforward.org/trie/trie-introduction/', practiceLink: 'https://leetcode.com/tag/trie/' }
+    { title: 'Heaps & Heapify', description: 'Max/Min Heap representations, insertion/deletion, Heapify, and HeapSort.', instructor: 'Love Babbar', difficulty: 'intermediate', estimatedTime: '4 hours', order: 1, youtubeLink: 'https://www.youtube.com/watch?v=HqPJF2L5h9U', theoryLink: 'https://www.geeksforgeeks.org/heap-data-structure/', practiceLink: 'https://leetcode.com/tag/heap-priority-queue/' },
+    { title: 'Heap Interview Questions', description: 'Kth smallest element, merge heaps, median in a stream.', instructor: 'Love Babbar', difficulty: 'advanced', estimatedTime: '5 hours', order: 2, youtubeLink: 'https://www.youtube.com/watch?v=HqPJF2L5h9U', theoryLink: 'https://www.geeksforgeeks.org/heap-data-structure/', practiceLink: 'https://leetcode.com/problems/find-median-from-data-stream/' },
+    { title: 'Tries & Implementation', description: 'Prefix trees, insertion, search, and prefix matching algorithms.', instructor: 'Love Babbar', difficulty: 'intermediate', estimatedTime: '4 hours', order: 3, youtubeLink: 'https://www.youtube.com/watch?v=dBGUmUQhjaM', theoryLink: 'https://www.geeksforgeeks.org/trie-insert-and-search/', practiceLink: 'https://leetcode.com/problems/implement-trie-prefix-tree/' }
   ]
 
 };

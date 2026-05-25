@@ -80,8 +80,8 @@ const startServer = async () => {
         const domainCount = await Domain.countDocuments();
         if (domainCount === 0) {
           console.log('🌱 Database is empty. Running auto-seed...');
-          const seedAllDomains = require('./seeds/webDevSeed');
-          await seedAllDomains();
+          const seedDB = require('./seeds/seedAll');
+          await seedDB();
           console.log('✅ Auto-seed completed!\n');
         }
       } catch (err) {

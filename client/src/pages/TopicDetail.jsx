@@ -10,7 +10,8 @@ import {
 import toast from 'react-hot-toast';
 import { motion, AnimatePresence } from 'framer-motion';
 import Editor from '@monaco-editor/react';
-import { getDsaLanguageContent } from '../utils/dsaContent';
+import { getDsaLanguageContent, getCheckpointContent } from '../utils/dsaContent';
+import { getLessonAssessment, normalizeDsaLanguage } from '../utils/dsaPersonalization';
 
 // Audio Feedback Sound Engine for high gamification engagement
 const playSoundEffect = (type) => {
@@ -72,14 +73,16 @@ const TopicDetail = () => {
   const [topic, setTopic] = useState(null);
   // Learning flow step state: 1=Video,2=Concept,3=Guided Practice,4=Challenge,5=Completed
   const [learningStep, setLearningStep] = useState(1);
+  const [isVideoFinished, setIsVideoFinished] = useState(false);
+  const playerRef = useRef(null);
   const [allTopics, setAllTopics] = useState([]);
   const [loading, setLoading] = useState(true);
   const [studyTime, setStudyTime] = useState(30);
   const [notes, setNotes] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
-  const advanceStep = () => setLearningStep(prev => Math.min(prev + 1, 5));
-  const isChallengeUnlocked = learningStep >= 4;
+  const advanceStep = () => setLearningStep(prev => Math.min(prev + 1, 2));
+  const isChallengeUnlocked = true;
 
   const isCompleted = useMemo(() => {
     return user?.completedTopics?.some(t => t.topicId === id || t.topicId?._id === id);
@@ -98,8 +101,9 @@ const TopicDetail = () => {
   // Persist learning step in localStorage per topic
   useEffect(() => {
     if (!id) return;
+    setIsVideoFinished(false);
     if (isCompleted) {
-      setLearningStep(5);
+      setLearningStep(2);
     } else {
       const savedStep = localStorage.getItem(`dsa_learning_step_${id}`);
       setLearningStep(savedStep ? parseInt(savedStep, 10) : 1);
@@ -113,7 +117,7 @@ const TopicDetail = () => {
   }, [id, learningStep]);
   
   // Custom Dynamic Languages & Tracks State
-  const [selectedLang, setSelectedLang] = useState(() => localStorage.getItem('dsa_lang') || 'cpp');
+  const [selectedLang, setSelectedLang] = useState(() => normalizeDsaLanguage(localStorage.getItem('dsa_lang') || 'cpp'));
   const [useStriverAdvanced, setUseStriverAdvanced] = useState(() => localStorage.getItem('striver_advanced') === 'true');
   
   const langDisplayMap = { cpp: 'C++', java: 'Java', python: 'Python', javascript: 'JavaScript' };
@@ -144,12 +148,97 @@ const TopicDetail = () => {
 
   // Progressive Question Difficulty State
   const [activeDifficulty, setActiveDifficulty] = useState(() => localStorage.getItem(`dsa_difficulty_${id}`) || 'beginner');
+  const [lessonAnswers, setLessonAnswers] = useState({});
   
   useEffect(() => {
     if (id) {
       setActiveDifficulty(localStorage.getItem(`dsa_difficulty_${id}`) || 'beginner');
+      setLessonAnswers({});
     }
   }, [id]);
+
+  // ─── CHECKPOINT MODULE STATE (for "Start Coding" Level 0 & "Arrays Explorer" Level 1) ────
+  // Derived dynamically from database metadata
+  const CHECKPOINTS = useMemo(() => {
+    if (!topic || !topic.checkpoints || topic.checkpoints.length === 0) {
+      return ['cp1', 'cp2', 'cp3'];
+    }
+    return topic.checkpoints.map(cp => cp.id);
+  }, [topic]);
+
+  const CHECKPOINT_LABELS = useMemo(() => {
+    if (!topic || !topic.checkpoints || topic.checkpoints.length === 0) {
+      return {
+        cp1: 'Intro to Programming',
+        cp2: 'Variables & Conditions',
+        cp3: 'Loops & Logic'
+      };
+    }
+    const labels = {};
+    topic.checkpoints.forEach(cp => {
+      labels[cp.id] = cp.label;
+    });
+    return labels;
+  }, [topic]);
+
+  const CHECKPOINT_ICONS = useMemo(() => {
+    if (!topic || !topic.checkpoints || topic.checkpoints.length === 0) {
+      return { cp1: '👋', cp2: '🔀', cp3: '🔁' };
+    }
+    const icons = {};
+    topic.checkpoints.forEach((cp, idx) => {
+      const emojis = ['👋', '🔀', '🔁', '🧱', '🔍', '🔄', '📐', '🎯', '⚡', '🏆', '💎', '🚀', '🔥', '🧗', '🛠️', '🧬', '🧠', '⚙️', '🌟', '🎖️', '🎨', '🔮', '🗺️', '🏰', '🏹', '🛡️', '⚔️', '👑'];
+      icons[cp.id] = emojis[idx % emojis.length];
+    });
+    return icons;
+  }, [topic]);
+
+  const [activeCheckpoint, setActiveCheckpoint] = useState('cp1');
+  const [checkpointVideoFinished, setCheckpointVideoFinished] = useState(false);
+  const [checkpointCodePassed, setCheckpointCodePassed] = useState(false);
+  // Track which checkpoints have been completed for this topic
+  const [completedCheckpoints, setCompletedCheckpoints] = useState(() => {
+    try { return JSON.parse(localStorage.getItem(`dsa_cp_done_${id}`) || '[]'); } catch { return []; }
+  });
+  const checkpointPlayerRef = useRef(null);
+
+  useEffect(() => {
+    if (id && topic) {
+      const firstCp = (topic.checkpoints && topic.checkpoints.length > 0) ? topic.checkpoints[0].id : 'cp1';
+      const saved = localStorage.getItem(`dsa_checkpoint_${id}`) || firstCp;
+      
+      const validCps = topic.checkpoints ? topic.checkpoints.map(cp => cp.id) : ['cp1', 'cp2', 'cp3'];
+      if (validCps.includes(saved)) {
+        setActiveCheckpoint(saved);
+      } else {
+        setActiveCheckpoint(firstCp);
+        localStorage.setItem(`dsa_checkpoint_${id}`, firstCp);
+      }
+      
+      setCheckpointVideoFinished(false);
+      setCheckpointCodePassed(false);
+      try {
+        setCompletedCheckpoints(JSON.parse(localStorage.getItem(`dsa_cp_done_${id}`) || '[]'));
+      } catch { setCompletedCheckpoints([]); }
+    }
+  }, [id, topic]);
+
+  const markCheckpointComplete = (cpId) => {
+    const updated = completedCheckpoints.includes(cpId) ? completedCheckpoints : [...completedCheckpoints, cpId];
+    setCompletedCheckpoints(updated);
+    localStorage.setItem(`dsa_cp_done_${id}`, JSON.stringify(updated));
+    const idx = CHECKPOINTS.indexOf(cpId);
+    if (idx < CHECKPOINTS.length - 1) {
+      const next = CHECKPOINTS[idx + 1];
+      setActiveCheckpoint(next);
+      localStorage.setItem(`dsa_checkpoint_${id}`, next);
+      setCheckpointVideoFinished(false);
+      setCheckpointCodePassed(false);
+      toast.success(`✅ Checkpoint ${idx + 1} done! Now: ${CHECKPOINT_LABELS[next]} 🚀`);
+    } else {
+      toast.success(`🏆 All ${CHECKPOINTS.length} checkpoints complete! Topic Mastered!`);
+    }
+  };
 
   useEffect(() => {
     if (id) {
@@ -212,10 +301,26 @@ const TopicDetail = () => {
     };
   }, [isDragging]);
 
+  // Load YouTube IFrame API script once
+  useEffect(() => {
+    if (!window.YT) {
+      const tag = document.createElement('script');
+      tag.src = "https://www.youtube.com/iframe_api";
+      const firstScriptTag = document.getElementsByTagName('script')[0];
+      if (firstScriptTag && firstScriptTag.parentNode) {
+        firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+      } else {
+        document.head.appendChild(tag);
+      }
+    }
+  }, []);
+
+
+
   // Sync initial language with user profile onboarding answers
   useEffect(() => {
     if (user?.profile?.onboardingAnswers?.dsa_language) {
-      const savedLang = localStorage.getItem('dsa_lang') || user.profile.onboardingAnswers.dsa_language;
+      const savedLang = normalizeDsaLanguage(localStorage.getItem('dsa_lang') || user.profile.onboardingAnswers.dsa_language);
       setSelectedLang(savedLang);
     }
   }, [user]);
@@ -300,16 +405,28 @@ const TopicDetail = () => {
   // Dynamic boilerplate loaders
   const isDsaDomain = topic?.domainId?.slug === 'dsa' || topic?.domainId === 'dsa' || 
                       (typeof topic?.domainId === 'object' && topic?.domainId?.slug === 'dsa');
-  const langContent = isDsaDomain ? getDsaLanguageContent(topic?.title, selectedLang, activeDifficulty, useStriverAdvanced) : null;
+  const isCheckpointModule = isDsaDomain && (topic?.isCheckpointModule === true || (topic?.title || '').toLowerCase() === 'start coding');
+  const langContent = isDsaDomain ? getDsaLanguageContent(topic?.title, selectedLang, activeDifficulty, useStriverAdvanced, topic?.youtubeLink) : null;
+  const lessonAssessment = isDsaDomain ? getLessonAssessment(topic?.title, selectedLang) : [];
+  const lessonAssessmentComplete = !isDsaDomain || lessonAssessment.every((_, index) => (lessonAnswers[index] || '').trim().length > 0);
+
+  // Active checkpoint content (only relevant when isCheckpointModule)
+  const activeCheckpointContent = useMemo(() => {
+    if (!isCheckpointModule) return null;
+    return getCheckpointContent(activeCheckpoint, selectedLang);
+  }, [isCheckpointModule, activeCheckpoint, selectedLang]);
+
+  // For checkpoint module: use the unique embed URL baked into each checkpoint
+  // Each checkpoint has its own pre-built videoEmbedUrl — NEVER the same video twice
+  const checkpointVideoEmbedUrl = useMemo(() => {
+    if (!isCheckpointModule || !activeCheckpointContent?.videoEmbedUrl) return null;
+    return activeCheckpointContent.videoEmbedUrl;
+  }, [isCheckpointModule, activeCheckpointContent]);
 
   const activeVideoEmbedUrl = useMemo(() => {
     if (langContent?.youtubeVideoId) {
       if (langContent.youtubeVideoId.length === 11) {
-        let url = `https://www.youtube.com/embed/${langContent.youtubeVideoId}?rel=0&modestbranding=1&showinfo=0`;
-        if (langContent.youtubePlaylistId && langContent.youtubePlaylistId !== 'PLgUwDviBHe0oF1vOXpxS_5t8s_D3E9A9_') {
-          url += `&list=${langContent.youtubePlaylistId}`;
-        }
-        return url;
+        return `https://www.youtube.com/embed/${langContent.youtubeVideoId}?rel=0&modestbranding=1&showinfo=0`;
       }
       return getYouTubeEmbedUrl(langContent.youtubeVideoId);
     }
@@ -321,6 +438,52 @@ const TopicDetail = () => {
     }
     return null;
   }, [langContent, topic]);
+
+  // Hook up YouTube Player state listener
+  useEffect(() => {
+    if (!activeVideoEmbedUrl || learningStep !== 1) return;
+
+    let checkYTInterval = setInterval(() => {
+      if (window.YT && window.YT.Player) {
+        clearInterval(checkYTInterval);
+        
+        try {
+          if (playerRef.current) {
+            playerRef.current.destroy();
+            playerRef.current = null;
+          }
+        } catch (e) {
+          console.warn("Error destroying previous player", e);
+        }
+
+        try {
+          playerRef.current = new window.YT.Player('tutorial-video-iframe', {
+            events: {
+              onStateChange: (event) => {
+                // 0 is YT.PlayerState.ENDED
+                if (event.data === 0) {
+                  setIsVideoFinished(true);
+                  toast.success("Tutorial video completed! Assessment is now unlocked! 🔓");
+                }
+              }
+            }
+          });
+        } catch (err) {
+          console.warn("Failed to instantiate YT.Player:", err);
+        }
+      }
+    }, 1000);
+
+    return () => {
+      clearInterval(checkYTInterval);
+      if (playerRef.current) {
+        try {
+          playerRef.current.destroy();
+          playerRef.current = null;
+        } catch (e) {}
+      }
+    };
+  }, [activeVideoEmbedUrl, learningStep]);
 
   // Reset boilerplate when topic, language, or difficulty changes
   useEffect(() => {
@@ -335,7 +498,7 @@ const TopicDetail = () => {
 
   // Restores a historical submission back into the editor
   const handleLoadSubmission = (subCode, subLang) => {
-    setSelectedLang(subLang);
+    setSelectedLang(normalizeDsaLanguage(subLang));
     setEditorCode(subCode);
     toast.success("Loaded past submission code into the editor!");
   };
@@ -495,14 +658,110 @@ const TopicDetail = () => {
       js = js.replace(/\bempty\b\(\)/g, 'length === 0');
 
       // Convert standalone function declaration without 'function' prefix
-      js = js.replace(/^(\s*)([a-zA-Z_]\w*)\s*\(([^)]*)\)\s*\{/gm, '$1function $2($3) {');
+      js = js.replace(/^(\s*)([a-zA-Z_]\w*)\s*\(([^)]*)\)\s*\{/gm, (match, indent, name, params) => {
+        const reserved = ['if', 'for', 'while', 'switch', 'catch', 'else', 'return'];
+        if (reserved.includes(name)) {
+          return match;
+        }
+        return `${indent}function ${name}(${params}) {`;
+      });
     }
 
     return js;
   };
 
+  // Robust compiler validation checks for statically typed languages & Python syntax rules
+  const syntaxCheck = (code, lang) => {
+    // Strip multi-line comments: /* ... */
+    let cleanCode = code.replace(/\/\*[\s\S]*?\*\//g, '');
+    
+    const lines = cleanCode.split('\n');
+    let openBraces = 0;
+    let openParens = 0;
+    
+    // Check braces/parens count
+    for (let i = 0; i < cleanCode.length; i++) {
+      if (cleanCode[i] === '{') openBraces++;
+      if (cleanCode[i] === '}') openBraces--;
+      if (cleanCode[i] === '(') openParens++;
+      if (cleanCode[i] === ')') openParens--;
+    }
+    
+    if (openBraces !== 0) {
+      throw new Error("Compilation Error: Unmatched curly braces '{' or '}'. Check your code blocks!");
+    }
+    if (openParens !== 0) {
+      throw new Error("Compilation Error: Unmatched parentheses '(' or ')'. Check your function calls/conditionals!");
+    }
+
+    for (let idx = 0; idx < lines.length; idx++) {
+      let line = lines[idx].trim();
+      const lineNum = idx + 1;
+      
+      // Strip trailing single-line comment
+      if (line.includes('//')) {
+        line = line.substring(0, line.indexOf('//')).trim();
+      }
+      
+      // Strip trailing python comment
+      if (lang === 'python' && line.includes('#')) {
+        line = line.substring(0, line.indexOf('#')).trim();
+      }
+      
+      if (!line) continue;
+      
+      if (lang === 'cpp' || lang === 'java') {
+        // Check semicolons on statement lines
+        const isControlStatement = line.startsWith('if') || line.startsWith('else') || 
+                                   line.startsWith('for') || line.startsWith('while') || 
+                                   line.startsWith('switch') || line.startsWith('class') || 
+                                   line.startsWith('public') || line.startsWith('private') || 
+                                   line.startsWith('protected') || line.startsWith('#include') || 
+                                   line.startsWith('using namespace');
+        const endsWithBlock = line.endsWith('{') || line.endsWith('}');
+        
+        if (!isControlStatement && !endsWithBlock && !line.endsWith(';')) {
+          throw new Error(`expected ';' at the end of statement on line ${lineNum}`);
+        }
+        
+        if (lang === 'cpp') {
+          if (line.includes('cout') && line.includes('>>')) {
+            throw new Error(`invalid stream insertion operator '>>' on line ${lineNum}. Did you mean '<<'?`);
+          }
+          if (line.includes('cin') && line.includes('<<')) {
+            throw new Error(`invalid stream extraction operator '<<' on line ${lineNum}. Did you mean '>>'?`);
+          }
+        }
+        
+        if (lang === 'java') {
+          if (line.includes('console.log') || line.includes('print(')) {
+            throw new Error(`Java uses System.out.println() on line ${lineNum}, not console.log/print.`);
+          }
+        }
+      }
+      
+      if (lang === 'python') {
+        const isHeader = line.startsWith('def ') || line.startsWith('if ') || 
+                         line.startsWith('elif ') || line.startsWith('else:') || 
+                         line.startsWith('for ') || line.startsWith('while ');
+        if (isHeader && !line.endsWith(':')) {
+          throw new Error(`expected ':' at the end of header declaration on line ${lineNum}`);
+        }
+        if (line.includes('console.log') || line.includes('System.out') || line.includes('cout')) {
+          throw new Error(`Python uses print() for output on line ${lineNum}.`);
+        }
+      }
+      
+      if (lang === 'javascript') {
+        if (line.includes('System.out') || line.includes('cout') || line.includes('print(')) {
+          throw new Error(`JavaScript uses console.log() for output on line ${lineNum}.`);
+        }
+      }
+    }
+  };
+
   // Genuine Sandboxed Code Execution Engine
-  const executeSandbox = (userCode, lang, testCases) => {
+  const executeSandbox = (userCode, lang, testCases, fnNameOverride = null) => {
     // Standard DS structures and vector prototypes injected in dynamic runner
     const polyfills = `
       class TreeNode {
@@ -518,6 +777,36 @@ const TopicDetail = () => {
           this.next = next;
         }
       }
+      function createList(arr) {
+        if (!arr || arr.length === 0) return null;
+        let head = new ListNode(arr[0]);
+        let curr = head;
+        for (let i = 1; i < arr.length; i++) {
+          curr.next = new ListNode(arr[i]);
+          curr = curr.next;
+        }
+        return head;
+      }
+      function createTree(arr) {
+        if (!arr || arr.length === 0) return null;
+        let root = new TreeNode(arr[0]);
+        let queue = [root];
+        let i = 1;
+        while (queue.length > 0 && i < arr.length) {
+          let curr = queue.shift();
+          if (i < arr.length && arr[i] !== null && arr[i] !== undefined) {
+            curr.left = new TreeNode(arr[i]);
+            queue.push(curr.left);
+          }
+          i++;
+          if (i < arr.length && arr[i] !== null && arr[i] !== undefined) {
+            curr.right = new TreeNode(arr[i]);
+            queue.push(curr.right);
+          }
+          i++;
+        }
+        return root;
+      }
       Array.prototype.back = function() { return this[this.length - 1]; };
       Array.prototype.empty = function() { return this.length === 0; };
       Array.prototype.push_back = function(x) { this.push(x); };
@@ -532,6 +821,14 @@ const TopicDetail = () => {
     if (!userCode || !userCode.trim()) {
       logs.push(`💥 Compilation Error: Solution code is empty!`);
       throw new Error("Compilation Error: Please write your solution code before running or submitting.");
+    }
+
+    // Run robust syntax checker
+    try {
+      syntaxCheck(userCode, lang);
+    } catch (syntaxErr) {
+      logs.push(`💥 Compilation Error: ${syntaxErr.message}`);
+      throw new Error(`Compilation Error: ${syntaxErr.message}`);
     }
 
     logs.push(`📦 Parsing AST and transpiling constructs...`);
@@ -559,7 +856,7 @@ const TopicDetail = () => {
     logs.push(`⚙️ Evaluating standard check assertions...`);
 
     // Completely dynamic function name execution based on active level
-    const fnName = langContent?.functionName || 'solution';
+    const fnName = fnNameOverride || langContent?.functionName || 'solution';
     const getCallExpr = (input) => `return String(${fnName}(${input}));`;
 
     testCases.forEach((tc, idx) => {
@@ -786,7 +1083,7 @@ const TopicDetail = () => {
           const isAlreadyCompleted = user?.completedTopics?.some(t => t.topicId === id || t.topicId?._id === id);
           if (!isAlreadyCompleted) {
             try {
-              await api.post('/progress/complete-topic', { 
+              const res = await api.post('/progress/complete-topic', { 
                 topicId: id,
                 studyTimeMinutes: Number(studyTime),
                 notes: notes || 'Code submitted successfully via editor.',
@@ -794,6 +1091,16 @@ const TopicDetail = () => {
                 confidenceLevel: confidenceLevel || 5,
                 revisionNeeded: false
               });
+              if (res.data.success) {
+                const { newlyEarnedBadges, newlyEarnedCertificate } = res.data.data;
+                if ((newlyEarnedBadges && newlyEarnedBadges.length > 0) || newlyEarnedCertificate) {
+                  setCelebrationData(prev => prev ? {
+                    ...prev,
+                    newlyEarnedBadges,
+                    newlyEarnedCertificate
+                  } : null);
+                }
+              }
             } catch (autoErr) {
               console.error('Failed to auto-complete topic:', autoErr);
             }
@@ -839,7 +1146,7 @@ const TopicDetail = () => {
     if (e) e.preventDefault();
     setSubmitting(true);
     try {
-      await api.post('/progress/complete-topic', { 
+      const res = await api.post('/progress/complete-topic', { 
         topicId: id,
         studyTimeMinutes: Number(studyTime),
         notes,
@@ -849,7 +1156,22 @@ const TopicDetail = () => {
       });
       await refreshUser();
       toast.success('Expedition Completed successfully! +50 XP 🚀');
-      navigate('/roadmap');
+      
+      const { newlyEarnedBadges, newlyEarnedCertificate } = res.data.data;
+      if ((newlyEarnedBadges && newlyEarnedBadges.length > 0) || newlyEarnedCertificate) {
+        setCelebrationData({
+          xpEarned: 50,
+          streak: res.data.data.dailyStreak || 1,
+          quote: "Fantastic work! You have unlocked new badges or certificates.",
+          rank: { badge: "Mastered", title: "Topic Complete", style: "text-emerald-500" },
+          leveledUp: false,
+          newlyEarnedBadges,
+          newlyEarnedCertificate,
+          navigateOnClose: '/roadmap'
+        });
+      } else {
+        navigate('/roadmap');
+      }
     } catch (err) {
       toast.error('Failed to log quest completion progress');
     } finally {
@@ -865,10 +1187,582 @@ const TopicDetail = () => {
 
   if (!topic) return null;
 
+  // ─── CHECKPOINT MODULE FULL RENDER (Start Coding Level 0) ──────────────────
+  if (isCheckpointModule) {
+    const cpContent = activeCheckpointContent;
+    const cpVideoUrl = checkpointVideoEmbedUrl;
+    // isLastCheckpoint comes from the content data itself — no hardcoding
+    const isLastCp = cpContent?.isLastCheckpoint || false;
+    const currentCpIndex = CHECKPOINTS.indexOf(activeCheckpoint);
+    const allDone = completedCheckpoints.length === CHECKPOINTS.length;
+
+    // Run code against checkpoint-specific test cases and function name
+    const handleCheckpointRunCode = () => {
+      if (!cpContent) return;
+      setChallengePassed(false);
+      setCompilerStatus('running');
+      setActiveConsoleTab('result');
+      setConsoleLogs([
+        '⚡ Compiling your code...',
+        `📋 Running ${cpContent.testCases.length} test case(s)...`
+      ]);
+      setTimeout(() => {
+        try {
+          const { results, logs } = executeSandbox(editorCode, selectedLang, cpContent.testCases, cpContent.functionName);
+          setTestResults(results);
+          setConsoleLogs(logs);
+          const passedAll = results.every(r => r.status === 'passed');
+          if (passedAll) {
+            setCompilerStatus('passed');
+            setChallengePassed(true);
+            setCheckpointCodePassed(true);
+            playSoundEffect('success');
+            toast.success('🎉 All test cases passed! You can now complete this checkpoint!');
+          } else {
+            setCompilerStatus('failed');
+            setChallengePassed(false);
+            setCheckpointCodePassed(false);
+            playSoundEffect('error');
+            toast.error('❌ Some tests failed. Check the hints and try again! 💪');
+          }
+        } catch (err) {
+          setCompilerStatus('compile_error');
+          setConsoleLogs(prev => [...prev, `💥 Compilation Error: ${err.message}`]);
+          playSoundEffect('error');
+          toast.error('Compilation Error — check your syntax!');
+        }
+      }, 1000);
+    };
+
+    return (
+      <div className="flex h-[calc(100vh-64px)] w-full overflow-hidden bg-[var(--bg-main)]">
+
+        {/* ── CHECKPOINT SIDEBAR ────────────────────────────────────────────── */}
+        <div className="w-72 flex-shrink-0 bg-[var(--bg-card)] border-r border-[var(--border)] flex flex-col h-full overflow-hidden">
+
+          {/* Header: gradient brand block */}
+          <div className="p-4 border-b border-[var(--border)] bg-gradient-to-br from-indigo-600 via-indigo-700 to-purple-800 shrink-0">
+            <Link to="/roadmap" className="flex items-center gap-1.5 text-white/60 hover:text-white text-[9px] font-black uppercase tracking-widest mb-3 transition-colors group">
+              <FiArrowLeft className="group-hover:-translate-x-0.5 transition-transform" /> Back to Roadmap
+            </Link>
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-10 h-10 rounded-xl bg-white/15 flex items-center justify-center text-xl shadow-inner">🚀</div>
+              <div>
+                <div className="text-white font-black text-sm leading-tight">{topic?.title || 'Start Coding'}</div>
+                <div className="text-white/50 text-[9px] font-bold uppercase tracking-widest mt-0.5">{topic?.difficulty ? `Level 1 · ${topic.difficulty}` : 'Level 0 · Foundations'}</div>
+              </div>
+            </div>
+            {/* Progress bar */}
+            <div className="space-y-1.5">
+              <div className="flex items-center justify-between">
+                <span className="text-white/50 text-[9px] font-black uppercase tracking-wider">Your Progress</span>
+                <span className="text-white text-[9px] font-black">{completedCheckpoints.length} / {CHECKPOINTS.length} done</span>
+              </div>
+              <div className="h-2 bg-white/15 rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-gradient-to-r from-emerald-400 to-teal-400 rounded-full transition-all duration-700 ease-out"
+                  style={{ width: `${(completedCheckpoints.length / CHECKPOINTS.length) * 100}%` }}
+                />
+              </div>
+              {allDone && (
+                <div className="text-[9px] font-black text-emerald-400 text-center pt-0.5">🎓 Level 0 Mastered!</div>
+              )}
+            </div>
+          </div>
+
+          {/* Language selector */}
+          <div className="px-4 pt-3 pb-3 border-b border-[var(--border)] shrink-0">
+            <div className="text-[8px] font-black text-[var(--text-light)] uppercase tracking-wider mb-2">Coding Language</div>
+            <div className="flex gap-1">
+              {[{ key: 'cpp', label: 'C++' }, { key: 'java', label: 'Java' }, { key: 'python', label: 'Python' }, { key: 'javascript', label: 'JS' }].map(l => (
+                <button
+                  key={l.key}
+                  onClick={() => { setSelectedLang(l.key); setEditorCode(''); }}
+                  className={`flex-1 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-wider transition-all ${selectedLang === l.key ? 'bg-[var(--primary)] text-white shadow-sm' : 'bg-[var(--bg-sub)] text-[var(--text-muted)] hover:text-[var(--text-main)]'}`}
+                >
+                  {l.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Checkpoint navigation list */}
+          <div className="flex-1 overflow-y-auto custom-scrollbar p-3 space-y-2">
+            <div className="text-[8px] font-black text-[var(--text-light)] uppercase tracking-widest px-1 mb-1">Your Journey</div>
+            {CHECKPOINTS.map((cpId, idx) => {
+              const isActive = activeCheckpoint === cpId;
+              const isDone = completedCheckpoints.includes(cpId);
+              const isLocked = idx > 0 && !completedCheckpoints.includes(CHECKPOINTS[idx - 1]);
+              const cpLabel = CHECKPOINT_LABELS[cpId];
+              const cpIcon = CHECKPOINT_ICONS[cpId];
+
+              return (
+                <button
+                  key={cpId}
+                  disabled={isLocked}
+                  onClick={() => {
+                    if (isLocked) { toast.error('Complete the previous checkpoint first! 🔒'); return; }
+                    setActiveCheckpoint(cpId);
+                    localStorage.setItem(`dsa_checkpoint_${id}`, cpId);
+                    setCheckpointVideoFinished(false);
+                    setCheckpointCodePassed(false);
+                    setEditorCode('');
+                    setCompilerStatus('idle');
+                    setTestResults([]);
+                    setConsoleLogs([]);
+                  }}
+                  className={`w-full flex items-center gap-3 p-3 rounded-xl border text-left transition-all duration-200 ${
+                    isActive
+                      ? 'bg-[var(--primary-light)] border-[var(--primary)]/40 shadow-sm ring-1 ring-[var(--primary)]/20'
+                      : isDone
+                        ? 'bg-emerald-500/8 border-emerald-500/25 hover:bg-emerald-500/12 cursor-pointer'
+                        : isLocked
+                          ? 'bg-[var(--bg-sub)] border-dashed border-[var(--border)] opacity-35 cursor-not-allowed'
+                          : 'bg-[var(--bg-sub)] border-[var(--border)] hover:bg-[var(--bg-card)] cursor-pointer'
+                  }`}
+                >
+                  {/* Status indicator */}
+                  <div className={`w-8 h-8 rounded-full flex-shrink-0 flex items-center justify-center text-sm font-black shadow-sm border ${
+                    isDone
+                      ? 'bg-emerald-500 border-emerald-500 text-white'
+                      : isActive
+                        ? 'bg-[var(--primary)] border-[var(--primary)] text-white'
+                        : isLocked
+                          ? 'bg-zinc-800 border-zinc-700 text-zinc-600'
+                          : 'bg-[var(--bg-card)] border-[var(--border)] text-[var(--text-muted)]'
+                  }`}>
+                    {isDone ? '✓' : isLocked ? '🔒' : cpIcon}
+                  </div>
+
+                  <div className="flex-1 min-w-0">
+                    <div className={`text-[11px] font-black leading-tight truncate ${
+                      isActive ? 'text-[var(--primary)]' : isDone ? 'text-emerald-500' : 'text-[var(--text-main)]'
+                    }`}>
+                      {cpLabel}
+                    </div>
+                    <div className="text-[9px] text-[var(--text-muted)] font-semibold mt-0.5">
+                      {isDone ? '✅ Completed' : isActive ? '▶ In progress' : isLocked ? '🔒 Locked' : `Watch · Code · Unlock`}
+                    </div>
+                  </div>
+
+                  {/* Checkpoint number badge */}
+                  <div className={`text-[8px] font-black rounded-full w-5 h-5 flex items-center justify-center flex-shrink-0 ${
+                    isDone ? 'bg-emerald-500/20 text-emerald-500' : isActive ? 'bg-[var(--primary)]/20 text-[var(--primary)]' : 'bg-[var(--bg-card)] text-[var(--text-muted)]'
+                  }`}>
+                    {idx + 1}
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+
+          {/* All-done: Claim rewards button */}
+          {allDone && (
+            <div className="p-4 border-t border-[var(--border)] bg-gradient-to-r from-emerald-500/10 to-teal-500/10 shrink-0">
+              <div className="text-center space-y-3">
+                <div className="text-3xl">🎓</div>
+                <div>
+                  <div className="text-sm font-black text-emerald-500">{topic?.title || 'Start Coding'} Complete!</div>
+                  <div className="text-[9px] text-[var(--text-muted)] font-semibold mt-0.5">You've mastered all {CHECKPOINTS.length} checkpoints</div>
+                </div>
+                <button
+                  onClick={async () => {
+                    try {
+                      setSubmitting(true);
+                      await api.post('/progress/complete-topic', {
+                        topicId: id, studyTimeMinutes: 90,
+                        notes: `Completed all ${CHECKPOINTS.length} checkpoints for ${topic?.title || 'Start Coding'}!`,
+                        difficultyFeedback: 'easy', confidenceLevel: 5, revisionNeeded: false
+                      });
+                      await refreshUser();
+                      toast.success(`🚀 ${topic?.title || 'Start Coding'} Complete! +150 XP earned!`);
+                      navigate('/roadmap');
+                    } catch { toast.error('Failed to save. Try again.'); }
+                    finally { setSubmitting(false); }
+                  }}
+                  disabled={submitting}
+                  className="w-full py-2.5 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white rounded-xl text-[10px] font-black uppercase tracking-wider transition-all shadow-md shadow-emerald-500/20"
+                >
+                  Claim Rewards 🏆
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* ── MAIN SPLIT WORKSPACE ──────────────────────────────────────────── */}
+        <div className="flex-1 flex flex-col lg:flex-row h-full overflow-hidden">
+
+          {/* LEFT: Video + Problem */}
+          <div style={{ width: `${leftWidth}%` }} className="h-full flex flex-col border-r border-[var(--border)] bg-[var(--bg-card)] overflow-hidden shrink-0">
+
+            {/* Checkpoint header bar */}
+            <div className="bg-[var(--bg-sub)] border-b border-[var(--border)] px-5 py-3 flex items-center justify-between shrink-0">
+              <div className="flex items-center gap-2.5">
+                <div className="text-xl">{CHECKPOINT_ICONS[activeCheckpoint]}</div>
+                <div>
+                  <div className="text-[9px] font-black text-[var(--text-light)] uppercase tracking-widest">
+                    Checkpoint {currentCpIndex + 1} of {CHECKPOINTS.length}
+                  </div>
+                  <div className="text-sm font-black text-[var(--text-main)] leading-tight">{CHECKPOINT_LABELS[activeCheckpoint]}</div>
+                  {cpContent?.subtitle && (
+                    <div className="text-[9px] text-[var(--text-muted)] font-semibold mt-0.5">{cpContent.subtitle}</div>
+                  )}
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                {isLastCp ? (
+                  <div className="px-3 py-1 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-lg text-[9px] font-black shadow tracking-wider flex items-center gap-1.5">
+                    <FiZap size={10} /> Final Challenge
+                  </div>
+                ) : (
+                  <div className="px-3 py-1 bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-lg text-[9px] font-black shadow tracking-wider flex items-center gap-1.5">
+                    <FiYoutube size={10} /> Watch &amp; Code
+                  </div>
+                )}
+                {completedCheckpoints.includes(activeCheckpoint) && (
+                  <div className="px-2.5 py-1 bg-emerald-500/20 text-emerald-500 border border-emerald-500/30 rounded-lg text-[9px] font-black">
+                    ✅ Done
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Scrollable content */}
+            <div className="flex-1 overflow-y-auto custom-scrollbar">
+
+              {/* VIDEO SECTION — every checkpoint has its own unique video */}
+              {cpVideoUrl && (
+                <div className="p-5 space-y-3 border-b border-[var(--border)]">
+                  <div className="flex items-center gap-2">
+                    <FiYoutube className="text-red-500 text-base" />
+                    <div>
+                      <span className="text-xs font-black text-[var(--text-main)]">Tutorial Video</span>
+                      <span className="ml-2 text-[9px] text-[var(--text-muted)] font-semibold">— Unique to this checkpoint</span>
+                    </div>
+                  </div>
+
+                  <div className="aspect-video bg-black rounded-xl overflow-hidden border border-zinc-800 shadow-lg">
+                    <iframe
+                      key={`video-${activeCheckpoint}-${selectedLang}`}
+                      id={`checkpoint-video-${activeCheckpoint}`}
+                      className="w-full h-full"
+                      src={cpVideoUrl}
+                      title={`${CHECKPOINT_LABELS[activeCheckpoint]} Tutorial`}
+                      frameBorder="0"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                    />
+                  </div>
+
+                  {/* Post-video state indicator */}
+                  {!checkpointVideoFinished ? (
+                    <div className="flex items-center justify-between bg-[var(--bg-sub)] rounded-lg px-3 py-2 border border-[var(--border)]">
+                      <span className="text-[10px] text-[var(--text-muted)] font-semibold italic">
+                        👆 Watch the video, then try the challenge below →
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => { setCheckpointVideoFinished(true); toast.success('Video done! Now try it yourself 🚀'); }}
+                        className="text-[9px] text-[var(--primary)] hover:text-[var(--primary-dark)] font-black uppercase tracking-wider cursor-pointer border-none bg-transparent ml-3 whitespace-nowrap"
+                      >
+                        ⚡ Mark Done
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/20 rounded-lg px-3 py-2.5">
+                      <span className="text-emerald-500 text-base">✅</span>
+                      <div>
+                        <div className="text-[10px] font-black text-emerald-500">Video Complete!</div>
+                        <div className="text-[9px] text-[var(--text-muted)] font-semibold">Now try it yourself — solve the challenge on the right! 💪</div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* CHALLENGE SECTION */}
+              {cpContent && (
+                <div className="p-5 space-y-4">
+
+                  {/* "Now try this yourself" motivating header */}
+                  {checkpointVideoFinished && (
+                    <div className="p-4 bg-gradient-to-r from-indigo-500/10 to-purple-500/10 border border-indigo-500/20 rounded-xl space-y-1">
+                      <div className="text-sm font-black text-[var(--text-main)] flex items-center gap-2">
+                        <span>💡</span> Now try this yourself!
+                      </div>
+                      <p className="text-[10px] text-[var(--text-muted)] font-semibold leading-relaxed">
+                        You just watched the concept. Now it's your turn to write the code. Read the problem, think through the logic, and hit Run Code on the right.
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Challenge title */}
+                  {cpContent.challengeTitle && (
+                    <div className="flex items-center gap-2">
+                      <FiCode className="text-[var(--primary)] text-sm" />
+                      <span className="text-sm font-black text-[var(--text-main)]">{cpContent.challengeTitle}</span>
+                    </div>
+                  )}
+
+                  {/* Problem statement */}
+                  <div className="p-4 bg-[var(--bg-sub)] rounded-xl border border-[var(--border)] space-y-2">
+                    <div className="text-[9px] font-black text-[var(--text-light)] uppercase tracking-wider">Problem</div>
+                    <p className="text-xs text-[var(--text-muted)] font-semibold leading-relaxed whitespace-pre-line">
+                      {cpContent.challengeDescription}
+                    </p>
+                  </div>
+
+                  {/* Constraints */}
+                  {cpContent.constraints && cpContent.constraints !== 'None' && cpContent.constraints !== 'None — just return the exact string.' ? (
+                    <div className="p-3 bg-[var(--bg-sub)] rounded-xl border border-[var(--border)]">
+                      <div className="text-[9px] font-black text-[var(--text-light)] uppercase tracking-wider mb-1">Constraints</div>
+                      <div className="font-mono text-[10px] text-[var(--text-main)]">{cpContent.constraints}</div>
+                    </div>
+                  ) : null}
+
+                  {/* Sample test cases */}
+                  <div className="space-y-1.5">
+                    <div className="text-[10px] font-black text-[var(--text-main)] flex items-center gap-1.5">
+                      📋 Sample Test Cases
+                    </div>
+                    {cpContent.testCases.slice(0, 2).map((tc, tidx) => (
+                      <div key={tidx} className="p-3 bg-[var(--bg-sub)] rounded-lg border border-[var(--border)] font-mono text-[10px] flex items-center gap-3">
+                        <div className="text-[var(--text-muted)]">
+                          Input: <span className="text-[var(--text-main)] font-black">{tc.input || '(no input)'}</span>
+                        </div>
+                        <div className="text-zinc-600">→</div>
+                        <div className="text-[var(--text-muted)]">
+                          Expected: <span className="text-emerald-400 font-black">{tc.expected}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Hints */}
+                  {cpContent.hints && cpContent.hints.length > 0 && (
+                    <div className="space-y-1.5">
+                      <div className="text-[10px] font-black text-[var(--text-main)]">💡 Hints (open if stuck)</div>
+                      {cpContent.hints.map((hint, hidx) => (
+                        <details key={hidx} className="group border border-[var(--border)] bg-[var(--bg-sub)] rounded-lg px-3 py-2 cursor-pointer">
+                          <summary className="text-[10px] font-bold text-[var(--text-main)] flex items-center justify-between select-none">
+                            <span>Hint {hidx + 1}</span>
+                            <span className="text-[var(--text-light)] group-open:rotate-180 transition-transform text-xs">▼</span>
+                          </summary>
+                          <p className="mt-2 text-[10px] text-[var(--text-muted)] font-semibold leading-relaxed">{hint}</p>
+                        </details>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Complete checkpoint button */}
+                  <button
+                    onClick={() => {
+                      if (!checkpointVideoFinished) {
+                        toast.error('Watch the video first! Click "Mark Done" when finished. 🎬');
+                        return;
+                      }
+                      if (!checkpointCodePassed) {
+                        toast.error('Pass all test cases first! Write your code and click Run Code. ⚡');
+                        return;
+                      }
+                      markCheckpointComplete(activeCheckpoint);
+                      setCheckpointCodePassed(false);
+                      setEditorCode('');
+                      setCompilerStatus('idle');
+                      setTestResults([]);
+                      setConsoleLogs([]);
+                    }}
+                    disabled={!checkpointVideoFinished || !checkpointCodePassed}
+                    className={`w-full py-3 rounded-xl font-black text-sm uppercase tracking-wider transition-all duration-200 flex items-center justify-center gap-2 mt-2 ${
+                      !checkpointVideoFinished || !checkpointCodePassed
+                        ? 'bg-zinc-800 text-zinc-600 cursor-not-allowed border border-zinc-700'
+                        : 'bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white shadow-lg shadow-emerald-500/25 cursor-pointer hover:scale-[1.01]'
+                    }`}
+                  >
+                    {completedCheckpoints.includes(activeCheckpoint) ? (
+                      <><FiCheckCircle /> Checkpoint Done!</>
+                    ) : !checkpointVideoFinished ? (
+                      <>🔒 Watch the Video First</>
+                    ) : !checkpointCodePassed ? (
+                      <>⚡ Pass All Tests to Unlock</>
+                    ) : isLastCp ? (
+                      <>🏆 Complete {topic?.title || 'Level 0'}!</>
+                    ) : (
+                      <>✅ Complete & Unlock Next →</>
+                    )}
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (window.confirm("Are you sure you want to skip this checkpoint challenge and mark it as completed?")) {
+                        markCheckpointComplete(activeCheckpoint);
+                        setCheckpointVideoFinished(false);
+                        setCheckpointCodePassed(false);
+                        setEditorCode('');
+                        setCompilerStatus('idle');
+                        setTestResults([]);
+                        setConsoleLogs([]);
+                        toast.success('Checkpoint skipped and marked as complete! 🚀');
+                      }
+                    }}
+                    className="w-full py-2 bg-transparent border border-dashed border-zinc-700 hover:border-zinc-500 text-zinc-500 hover:text-zinc-300 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all duration-200 mt-2 flex items-center justify-center gap-1.5 cursor-pointer"
+                  >
+                    ⏭️ Skip &amp; Complete Checkpoint
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* RESIZE HANDLE */}
+          <div
+            className="w-1 h-full bg-[var(--border)] hover:bg-[var(--primary)] transition-colors cursor-col-resize flex-shrink-0"
+            onMouseDown={startResize}
+          />
+
+          {/* RIGHT: Monaco Editor + Console */}
+          <div className="flex-1 h-full flex flex-col overflow-hidden bg-[#1e1e1e] min-w-0">
+
+            {/* Editor toolbar */}
+            <div className="flex items-center justify-between px-4 py-2 bg-[#252526] border-b border-[#3e3e42] shrink-0">
+              <div className="flex items-center gap-2">
+                <FiCode className="text-[var(--primary)] text-sm" />
+                <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Code Editor</span>
+                <span className="text-[9px] font-bold text-zinc-600 bg-zinc-800 px-2 py-0.5 rounded border border-zinc-700">
+                  {selectedLang.toUpperCase()}
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                {/* Challenge title in editor bar */}
+                {cpContent?.challengeTitle && (
+                  <span className="text-[9px] text-zinc-600 font-semibold hidden sm:block">
+                    {cpContent.challengeTitle}
+                  </span>
+                )}
+                <button
+                  onClick={() => { if (cpContent?.editorBoilerplate) setEditorCode(cpContent.editorBoilerplate); }}
+                  className="text-[9px] font-black text-zinc-500 hover:text-zinc-200 uppercase tracking-wider transition-colors px-2.5 py-1 rounded hover:bg-zinc-700 border border-zinc-700"
+                >
+                  Reset ↺
+                </button>
+              </div>
+            </div>
+
+            {/* Monaco Editor */}
+            <div className="flex-1 overflow-hidden" style={{ minHeight: 0 }}>
+              <Editor
+                height="100%"
+                language={selectedLang === 'cpp' ? 'cpp' : selectedLang === 'java' ? 'java' : selectedLang === 'python' ? 'python' : 'javascript'}
+                value={editorCode || (cpContent?.editorBoilerplate || '')}
+                theme={editorTheme}
+                onChange={(val) => setEditorCode(val || '')}
+                options={{
+                  fontSize: 13,
+                  minimap: { enabled: false },
+                  scrollBeyondLastLine: false,
+                  lineNumbers: 'on',
+                  automaticLayout: true,
+                  tabSize: 4,
+                  wordWrap: 'on',
+                  padding: { top: 16 },
+                  fontLigatures: true
+                }}
+              />
+            </div>
+
+            {/* Run/Submit bar */}
+            <div className="px-4 py-2.5 bg-[#252526] border-t border-[#3e3e42] flex items-center gap-3 shrink-0">
+              <button
+                onClick={handleCheckpointRunCode}
+                disabled={compilerStatus === 'running'}
+                className="flex items-center gap-2 px-5 py-2 bg-[#2d7d46] hover:bg-emerald-600 text-white rounded-lg text-[10px] font-black uppercase tracking-wider transition-all disabled:opacity-40 shadow"
+              >
+                <FiPlay size={11} />
+                {compilerStatus === 'running' ? 'Running...' : 'Run Code'}
+              </button>
+
+              {/* Result badge */}
+              {compilerStatus !== 'idle' && (
+                <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-black border ${
+                  compilerStatus === 'passed' ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30' :
+                  compilerStatus === 'failed' ? 'bg-red-500/15 text-red-400 border-red-500/30' :
+                  compilerStatus === 'compile_error' ? 'bg-orange-500/15 text-orange-400 border-orange-500/30' :
+                  'bg-zinc-800 text-zinc-400 border-zinc-700'
+                }`}>
+                  {compilerStatus === 'passed' ? '✅ All Passed!' :
+                   compilerStatus === 'failed' ? '❌ Wrong Answer' :
+                   compilerStatus === 'compile_error' ? '💥 Compile Error' : '⚡ Running...'}
+                </div>
+              )}
+
+              {checkpointCodePassed && (
+                <div className="ml-auto flex items-center gap-1.5 text-emerald-500 text-[10px] font-black">
+                  <FiCheckCircle size={11} /> Ready to unlock!
+                </div>
+              )}
+            </div>
+
+            {/* Console / Test results */}
+            <div className="h-44 bg-[#1a1a1a] border-t border-[#3e3e42] flex flex-col overflow-hidden shrink-0">
+              <div className="flex items-center gap-4 px-4 py-1.5 bg-[#252526] border-b border-[#3e3e42]">
+                <button
+                  onClick={() => setActiveConsoleTab('testcase')}
+                  className={`text-[10px] font-black uppercase tracking-wider pb-0.5 transition-colors ${activeConsoleTab === 'testcase' ? 'text-white border-b-2 border-[var(--primary)]' : 'text-zinc-500 hover:text-zinc-300'}`}
+                >
+                  Test Cases
+                </button>
+                <button
+                  onClick={() => setActiveConsoleTab('result')}
+                  className={`text-[10px] font-black uppercase tracking-wider pb-0.5 transition-colors ${activeConsoleTab === 'result' ? 'text-white border-b-2 border-[var(--primary)]' : 'text-zinc-500 hover:text-zinc-300'}`}
+                >
+                  Output Log
+                </button>
+              </div>
+              <div className="flex-1 overflow-y-auto p-3 custom-scrollbar">
+                {activeConsoleTab === 'testcase' ? (
+                  <div className="space-y-2">
+                    {testResults.length === 0 ? (
+                      <p className="text-zinc-600 text-[10px] font-mono italic">Click "Run Code" to test your solution...</p>
+                    ) : testResults.map((r, i) => (
+                      <div key={i} className={`flex items-center gap-3 p-2.5 rounded-lg text-[10px] font-mono border ${
+                        r.status === 'passed'
+                          ? 'bg-emerald-500/8 text-emerald-400 border-emerald-500/20'
+                          : 'bg-red-500/8 text-red-400 border-red-500/20'
+                      }`}>
+                        <span className="text-sm">{r.status === 'passed' ? '✅' : '❌'}</span>
+                        <span className="text-zinc-500">TC {i + 1}</span>
+                        <span className="text-zinc-600">Expected:</span>
+                        <span className="text-zinc-200 font-black">{r.expected}</span>
+                        <span className="text-zinc-600">Got:</span>
+                        <span className={r.status === 'passed' ? 'text-emerald-400 font-black' : 'text-red-400 font-black'}>{r.actual}</span>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="space-y-1">
+                    {consoleLogs.length === 0 ? (
+                      <p className="text-zinc-600 text-[10px] font-mono italic">No output yet...</p>
+                    ) : consoleLogs.map((log, i) => (
+                      <div key={i} className="text-[10px] font-mono text-zinc-400 leading-relaxed">{log}</div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+
   return (
     <div className="flex flex-col lg:flex-row h-[calc(100vh-64px)] w-full overflow-hidden bg-[var(--bg-main)] transition-colors duration-300 relative select-none">
       
       {/* Background Confetti Elements */}
+
       {showConfetti && (
         <div className="absolute inset-0 pointer-events-none z-50 overflow-hidden">
           {particles.map((p) => (
@@ -965,42 +1859,56 @@ const TopicDetail = () => {
         >
           
           {/* Tabs / Stepper Bar Header */}
-          {learningStep < 5 ? (
-            <div className="bg-[var(--bg-sub)] border-b border-[var(--border)] px-4 py-2 flex flex-wrap items-center justify-between shrink-0 gap-2">
+          <div className="bg-[var(--bg-sub)] border-b border-[var(--border)] px-4 py-2 flex flex-col shrink-0 gap-2">
+            {/* Top Stepper Bar */}
+            <div className="flex items-center justify-between gap-2">
               <div className="flex items-center gap-1.5 overflow-x-auto custom-scrollbar pb-1 sm:pb-0">
                 {[
-                  { step: 1, label: 'Tutorial' },
-                  { step: 2, label: 'Concept' },
-                  { step: 3, label: 'Examples' },
-                  { step: 4, label: 'Practice' },
-                  { step: 5, label: 'Challenge' }
-                ].map(s => (
-                  <button
-                    key={s.step}
-                    onClick={() => { if (learningStep > s.step) setLearningStep(s.step); }}
-                    disabled={learningStep < s.step}
-                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-black uppercase transition-all whitespace-nowrap ${
-                      learningStep === s.step
-                        ? 'bg-[var(--bg-card)] text-[var(--primary)] border border-[var(--border)] shadow-sm'
-                        : learningStep > s.step
-                          ? 'bg-[var(--primary-light)] text-[var(--primary)] border border-transparent cursor-pointer hover:bg-[var(--primary)] hover:text-white'
-                          : 'text-[var(--text-muted)] opacity-50 cursor-not-allowed'
-                    }`}
-                  >
-                    <div className={`w-4 h-4 rounded-full flex items-center justify-center text-[8px] ${learningStep > s.step ? 'bg-[var(--primary)] text-white' : 'border border-current'}`}>
-                      {learningStep > s.step ? <FiCheckCircle size={8} /> : s.step}
-                    </div>
-                    {s.label}
-                  </button>
-                ))}
+                  { step: 1, label: '1. Watch & Code' },
+                  { step: 2, label: '2. Mini Assessment' }
+                ].map(s => {
+                  const isLocked = s.step === 2 && !isCompleted && !isVideoFinished;
+                  return (
+                    <button
+                      key={s.step}
+                      onClick={() => {
+                        if (isLocked) {
+                          toast.error("Please watch the video tutorial to unlock the assessment!");
+                          return;
+                        }
+                        setLearningStep(s.step);
+                      }}
+                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-black uppercase transition-all whitespace-nowrap ${
+                        learningStep === s.step
+                          ? 'bg-[var(--bg-card)] text-[var(--primary)] border border-[var(--border)] shadow-sm'
+                          : !isLocked
+                            ? 'bg-[var(--primary-light)] text-[var(--primary)] border border-transparent cursor-pointer hover:bg-[var(--primary)] hover:text-white'
+                            : 'text-[var(--text-muted)] opacity-50 cursor-pointer'
+                      }`}
+                    >
+                      <div className={`w-4 h-4 rounded-full flex items-center justify-center text-[8px] ${learningStep > s.step || (s.step === 2 && isCompleted) ? 'bg-[var(--primary)] text-white' : 'border border-current'}`}>
+                        {learningStep > s.step || (s.step === 2 && isCompleted) ? <FiCheckCircle size={8} /> : s.step}
+                      </div>
+                      {s.label}
+                    </button>
+                  );
+                })}
               </div>
-              <div className="flex items-center gap-1.5 px-2.5 py-1 bg-gradient-to-r from-emerald-400 to-teal-500 text-white rounded-lg text-[9px] font-black shadow-inner tracking-widest shrink-0">
-                <FiBookOpen /> GUIDED LEARNING
-              </div>
+              
+              {learningStep === 1 ? (
+                <div className="flex items-center gap-1.5 px-2.5 py-1 bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-lg text-[9px] font-black shadow-inner tracking-widest shrink-0">
+                  <FiBookOpen /> INTERACTIVE CLASSROOM
+                </div>
+              ) : (
+                <div className="flex items-center gap-1.5 px-2.5 py-1 bg-gradient-to-r from-amber-400 to-orange-500 text-white rounded-lg text-[9px] font-black shadow-inner tracking-widest shrink-0">
+                  <FiZap /> +100 XP
+                </div>
+              )}
             </div>
-          ) : (
-            <div className="bg-[var(--bg-sub)] border-b border-[var(--border)] px-4 py-2 flex items-center justify-between shrink-0">
-              <div className="flex gap-1.5">
+
+            {/* Tabs (only shown on step 2) */}
+            {learningStep >= 2 && (
+              <div className="flex gap-1.5 mt-1.5 pt-1.5 border-t border-[var(--border)]">
                 {[
                   { id: 'description', label: 'Description', icon: <FiBookOpen size={12} /> },
                   { id: 'approach', label: 'Solution Guide', icon: <FiBook size={12} /> },
@@ -1025,12 +1933,8 @@ const TopicDetail = () => {
                   </button>
                 ))}
               </div>
-              
-              <div className="flex items-center gap-1.5 px-2.5 py-1 bg-gradient-to-r from-amber-400 to-orange-500 text-white rounded-lg text-[9px] font-black shadow-inner tracking-widest shrink-0">
-                <FiZap /> +100 XP
-              </div>
-            </div>
-          )}
+            )}
+          </div>
 
           {/* Left Pane Scrollable Content */}
           <div className="flex-1 overflow-y-auto p-5 space-y-6 custom-scrollbar bg-[var(--bg-card)]">
@@ -1038,144 +1942,97 @@ const TopicDetail = () => {
             {/* --- GUIDED LEARNING STEPS (1 to 4) --- */}
             {learningStep === 1 && (
               <div className="space-y-6 animate-fade-in">
-                <div className="flex flex-col items-center text-center space-y-3 mb-6 mt-4">
-                  <div className="w-16 h-16 bg-red-500/10 text-red-500 rounded-full flex items-center justify-center mb-2">
-                    <FiYoutube size={32} />
+                <div className="flex flex-col items-center text-center space-y-2 mb-4 mt-2">
+                  <div className="w-12 h-12 bg-indigo-500/10 text-[var(--primary)] rounded-full flex items-center justify-center mb-1">
+                    <FiYoutube size={24} />
                   </div>
-                  <h2 className="text-xl font-black text-[var(--text-main)]">Watch Tutorial</h2>
-                  <p className="text-xs text-[var(--text-muted)] max-w-sm">
-                    Before jumping into code, understand the core concepts and logic visually. Watch this entire tutorial carefully.
+                  <h2 className="text-lg font-black text-[var(--text-main)]">Watch & Code Alongside</h2>
+                  <p className="text-xs text-[var(--text-muted)] max-w-sm leading-relaxed">
+                    Watch the video tutorial on the left and write code simultaneously on the right! Change languages in the editor panel to sync the tutorial and start code.
                   </p>
                 </div>
                 
                 {activeVideoEmbedUrl ? (
-                  <div className="aspect-video bg-black shadow rounded-xl overflow-hidden border border-[var(--border)]">
-                    <iframe
-                      className="w-full h-full"
-                      src={activeVideoEmbedUrl}
-                      title={topic.title}
-                      frameBorder="0"
-                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                      allowFullScreen
-                    ></iframe>
+                  <div className="space-y-2">
+                    <div className="aspect-video bg-black shadow-lg rounded-xl overflow-hidden border border-zinc-800 relative group">
+                      <iframe
+                        id="tutorial-video-iframe"
+                        className="w-full h-full"
+                        src={`${activeVideoEmbedUrl}${activeVideoEmbedUrl.includes('?') ? '&' : '?'}enablejsapi=1`}
+                        title={topic.title}
+                        frameBorder="0"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowFullScreen
+                      ></iframe>
+                    </div>
+                    <div className="flex justify-between items-center px-1 text-zinc-500">
+                      <span className="text-[10px] italic font-semibold">Finish the video to unlock the assessment automatically.</span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsVideoFinished(true);
+                          toast.success("Dev Bypass: Video marked as completed! 🔓");
+                        }}
+                        className="text-[10px] text-[var(--primary)] hover:text-[var(--primary-dark)] hover:underline font-black uppercase tracking-wider bg-transparent border-none cursor-pointer"
+                      >
+                        ⚡ Dev Bypass
+                      </button>
+                    </div>
                   </div>
                 ) : (
                   <div className="p-8 text-center border border-[var(--border)] rounded-xl bg-[var(--bg-sub)]">
                     <p className="text-sm font-bold text-[var(--text-muted)]">No video tutorial available for this topic.</p>
                   </div>
                 )}
-                
-                <button
-                  onClick={() => advanceStep()}
-                  className="w-full py-3.5 bg-[var(--primary)] hover:bg-[var(--primary-dark)] text-white rounded-xl font-black uppercase tracking-wider transition-all shadow-md mt-6 flex items-center justify-center gap-2"
-                >
-                  Mark as Watched <FiArrowRight />
-                </button>
-              </div>
-            )}
 
-            {learningStep === 2 && (
-              <div className="space-y-6 animate-fade-in">
-                <div className="flex flex-col items-center text-center space-y-3 mb-6 mt-4">
-                  <div className="w-16 h-16 bg-amber-500/10 text-amber-500 rounded-full flex items-center justify-center mb-2">
-                    <FiBookOpen size={32} />
+                <div className="p-4 rounded-xl bg-indigo-500/5 border border-indigo-500/15 text-xs space-y-2">
+                  <div className="font-black text-indigo-500 uppercase tracking-wider flex items-center gap-1.5">
+                    <FiTerminal /> Guided Bootcamp Mode
                   </div>
-                  <h2 className="text-xl font-black text-[var(--text-main)]">Understand Concept</h2>
-                  <p className="text-xs text-[var(--text-muted)] max-w-sm">
-                    Read through the logic and approach carefully. This is the secret sauce to solving the problem!
-                  </p>
-                </div>
-                
-                <div className="prose dark:prose-invert max-w-none text-[11px] text-[var(--text-main)] font-medium leading-relaxed bg-[var(--bg-sub)] p-5 rounded-xl border border-[var(--border)] shadow-inner">
-                  <p className="whitespace-pre-line">
-                    {langContent?.approach || topic.description || 'Concept notes loading...'}
-                  </p>
-                </div>
-                
-                <button
-                  onClick={() => advanceStep()}
-                  className="w-full py-3.5 bg-[var(--primary)] hover:bg-[var(--primary-dark)] text-white rounded-xl font-black uppercase tracking-wider transition-all shadow-md mt-6 flex items-center justify-center gap-2"
-                >
-                  I Understand <FiArrowRight />
-                </button>
-              </div>
-            )}
-
-            {learningStep === 3 && (
-              <div className="space-y-6 animate-fade-in">
-                <div className="flex flex-col items-center text-center space-y-3 mb-6 mt-4">
-                  <div className="w-16 h-16 bg-blue-500/10 text-blue-500 rounded-full flex items-center justify-center mb-2">
-                    <FiInfo size={32} />
-                  </div>
-                  <h2 className="text-xl font-black text-[var(--text-main)]">Examples & Dry Run</h2>
-                  <p className="text-xs text-[var(--text-muted)] max-w-sm">
-                    Let's trace through some examples to see how the logic actually applies.
-                  </p>
-                </div>
-                
-                <div className="space-y-3">
-                  {langContent?.testCases && langContent.testCases.length > 0 ? (
-                    langContent.testCases.slice(0, 3).map((tc, idx) => (
-                      <div key={idx} className="p-4 bg-[var(--bg-sub)] rounded-xl border border-[var(--border)]">
-                        <div className="text-[10px] font-black text-[var(--text-light)] uppercase tracking-wider mb-2">Example {idx + 1}</div>
-                        <div className="space-y-1 font-mono text-[11px]">
-                          <div className="flex"><span className="text-zinc-500 w-16">Input:</span> <span className="text-blue-400">{tc.input}</span></div>
-                          <div className="flex"><span className="text-zinc-500 w-16">Output:</span> <span className="text-emerald-400">{tc.expected}</span></div>
-                        </div>
-                      </div>
-                    ))
-                  ) : (
-                    <div className="p-4 bg-[var(--bg-sub)] rounded-xl border border-[var(--border)] text-center text-xs text-[var(--text-muted)]">
-                      General syntax examples and logic walkthroughs apply here.
-                    </div>
-                  )}
-                </div>
-                
-                <button
-                  onClick={() => advanceStep()}
-                  className="w-full py-3.5 bg-[var(--primary)] hover:bg-[var(--primary-dark)] text-white rounded-xl font-black uppercase tracking-wider transition-all shadow-md mt-6 flex items-center justify-center gap-2"
-                >
-                  Next Step <FiArrowRight />
-                </button>
-              </div>
-            )}
-
-            {learningStep === 4 && (
-              <div className="space-y-6 animate-fade-in">
-                <div className="flex flex-col items-center text-center space-y-3 mb-6 mt-4">
-                  <div className="w-16 h-16 bg-emerald-500/10 text-emerald-500 rounded-full flex items-center justify-center mb-2">
-                    <FiTerminal size={32} />
-                  </div>
-                  <h2 className="text-xl font-black text-[var(--text-main)]">Guided Practice</h2>
-                  <p className="text-xs text-[var(--text-muted)] max-w-sm">
-                    You're ready! Before jumping to the full editor, review the problem constraints one last time.
-                  </p>
-                </div>
-                
-                <div className="prose dark:prose-invert max-w-none text-xs text-[var(--text-muted)] leading-relaxed font-semibold p-5 rounded-xl border border-[var(--border)] bg-[var(--bg-sub)] shadow-inner">
-                  <p className="whitespace-pre-line leading-relaxed">
-                    {langContent?.challengeDescription || topic.description}
+                  <p className="text-[var(--text-muted)] font-semibold leading-relaxed">
+                    Once you have finished watching and practicing alongside the tutorial, click below to unlock your mini-coding challenge. Pass the test cases to earn XP and unlock the next lesson!
                   </p>
                 </div>
                 
                 <button
                   onClick={async () => {
                     if (isDsaDomain) {
-                      advanceStep();
+                      if (!isCompleted && !isVideoFinished) {
+                        toast.error("Please watch the video tutorial to unlock the assessment!");
+                        return;
+                      }
+                      setLearningStep(2);
+                      setLeftTab('description');
+                      toast.success('Mini Assessment Unlocked! 🚀');
                     } else {
                       try {
                         setSubmitting(true);
-                        await api.post('/progress/complete-topic', { 
+                        const res = await api.post('/progress/complete-topic', { 
                           topicId: id,
                           studyTimeMinutes: Number(studyTime),
-                          notes: notes || 'Completed guided theoretical learning and conceptual steps.',
+                          notes: notes || 'Completed guided learning.',
                           difficultyFeedback: difficultyFeedback || 'easy',
                           confidenceLevel: confidenceLevel || 5,
                           revisionNeeded: false
                         });
                         await refreshUser();
-                        toast.success('Expedition Completed successfully! +50 XP 🚀');
-                        advanceStep(); // Go to step 5 (Completed)
+                        toast.success('Topic Completed successfully! +50 XP 🚀');
+                        
+                        const { newlyEarnedBadges, newlyEarnedCertificate } = res.data.data;
+                        if ((newlyEarnedBadges && newlyEarnedBadges.length > 0) || newlyEarnedCertificate) {
+                          setCelebrationData({
+                            xpEarned: 50,
+                            streak: res.data.data.dailyStreak || 1,
+                            quote: "Congratulations on completing this lesson!",
+                            rank: { badge: "Mastered", title: "Topic Complete", style: "text-emerald-500" },
+                            leveledUp: false,
+                            newlyEarnedBadges,
+                            newlyEarnedCertificate,
+                            navigateOnClose: '/roadmap'
+                          });
+                        } else {
+                          navigate('/roadmap');
+                        }
                       } catch (err) {
                         toast.error('Failed to log quest completion progress');
                       } finally {
@@ -1183,16 +2040,73 @@ const TopicDetail = () => {
                       }
                     }
                   }}
-                  disabled={submitting}
-                  className="w-full py-3.5 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white rounded-xl font-black uppercase tracking-wider transition-all shadow-lg shadow-emerald-500/20 mt-6 flex items-center justify-center gap-2 disabled:opacity-50"
+                  disabled={submitting || (isDsaDomain && !isCompleted && !isVideoFinished)}
+                  className={`w-full py-3 text-white rounded-xl font-black uppercase tracking-wider transition-all shadow-md mt-4 flex items-center justify-center gap-2 ${
+                    isDsaDomain && !isCompleted && !isVideoFinished
+                      ? 'bg-zinc-700 hover:bg-zinc-700 cursor-not-allowed opacity-50'
+                      : 'bg-[var(--primary)] hover:bg-[var(--primary-dark)] cursor-pointer'
+                  }`}
                 >
-                  {isDsaDomain ? 'Unlock Code Editor' : 'Complete Topic & Claim Rewards'} {isDsaDomain ? <FiTerminal /> : <FiCheckCircle />}
+                  {isDsaDomain ? (
+                    (!isCompleted && !isVideoFinished) ? (
+                      <>🔒 Assessment Locked (Watch Video)</>
+                    ) : (
+                      <>Start Mini Assessment <FiArrowRight /></>
+                    )
+                  ) : (
+                    <>Complete Topic & Claim Rewards <FiArrowRight /></>
+                  )}
                 </button>
+                {isDsaDomain && (
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      if (window.confirm("Are you sure you want to skip the assessment and mark this topic as completed?")) {
+                        try {
+                          setSubmitting(true);
+                          const res = await api.post('/progress/complete-topic', { 
+                            topicId: id,
+                            studyTimeMinutes: 10,
+                            notes: 'Skipped coding assessment.',
+                            difficultyFeedback: 'easy',
+                            confidenceLevel: 3,
+                            revisionNeeded: false
+                          });
+                          await refreshUser();
+                          toast.success('Topic completed (assessment skipped)! 🚀');
+                          const { newlyEarnedBadges, newlyEarnedCertificate } = res.data.data || {};
+                          if ((newlyEarnedBadges && newlyEarnedBadges.length > 0) || newlyEarnedCertificate) {
+                            setCelebrationData({
+                              xpEarned: 50,
+                              streak: res.data.data.dailyStreak || 1,
+                              quote: "Congratulations on completing this lesson!",
+                              rank: { badge: "Mastered", title: "Topic Complete", style: "text-emerald-500" },
+                              leveledUp: false,
+                              newlyEarnedBadges,
+                              newlyEarnedCertificate,
+                              navigateOnClose: '/roadmap'
+                            });
+                          } else {
+                            navigate('/roadmap');
+                          }
+                        } catch (err) {
+                          toast.error('Failed to skip and complete topic');
+                        } finally {
+                          setSubmitting(false);
+                        }
+                      }
+                    }}
+                    disabled={submitting}
+                    className="w-full py-2.5 bg-transparent border border-dashed border-zinc-700 hover:border-zinc-500 text-zinc-500 hover:text-zinc-300 rounded-xl font-bold uppercase tracking-wider text-[9px] transition-all cursor-pointer mt-2 text-center"
+                  >
+                    Skip Assessment & Mark Completed ⏭️
+                  </button>
+                )}
               </div>
             )}
 
-            {/* --- ORIGINAL CODING CHALLENGE TABS (Shown only on Step 5) --- */}
-            {learningStep >= 5 && (
+            {/* --- ORIGINAL CODING CHALLENGE TABS (Shown only on Step 2) --- */}
+            {learningStep >= 2 && (
               <>
                 {/* TAB 1: PROBLEM DESCRIPTION */}
                 {leftTab === 'description' && (
@@ -1555,27 +2469,6 @@ const TopicDetail = () => {
 
         {/* RIGHT PANE: Code Monaco Editor & Console Terminal */}
         {isDsaDomain && (
-          learningStep < 5 ? (
-          <div className="flex-1 h-full flex flex-col items-center justify-center bg-[#09090b] text-center p-10 shrink-0 border-l border-zinc-800">
-            <div className="w-24 h-24 bg-zinc-900 rounded-full flex items-center justify-center mb-6 shadow-xl border border-zinc-800">
-              <FiTerminal className="text-4xl text-zinc-600" />
-            </div>
-            <h2 className="text-2xl font-black text-white mb-3">Code Editor Locked</h2>
-            <p className="text-sm text-zinc-400 max-w-md leading-relaxed mb-8 font-medium">
-              A true engineer understands the logic before writing the code. Complete the guided learning steps on the left to unlock this coding challenge.
-            </p>
-            <div className="flex gap-2.5 items-center bg-zinc-900/50 p-3 rounded-2xl border border-zinc-800/50">
-              {[1, 2, 3, 4, 5].map(step => (
-                <React.Fragment key={step}>
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center text-[10px] font-black transition-all duration-500 ${learningStep >= step ? 'bg-[var(--primary)] text-white shadow-md' : 'bg-zinc-800 text-zinc-600 border border-zinc-700'}`}>
-                    {learningStep > step ? <FiCheckCircle size={12} /> : step}
-                  </div>
-                  {step < 5 && <div className={`w-6 h-0.5 rounded-full transition-all duration-500 ${learningStep > step ? 'bg-[var(--primary)]' : 'bg-zinc-800'}`}></div>}
-                </React.Fragment>
-              ))}
-            </div>
-          </div>
-        ) : (
         <div 
           style={{ width: isFullscreen ? '100%' : `${100 - leftWidth}%` }} 
           className={`flex-1 h-full flex flex-col overflow-hidden bg-[#09090b] transition-all duration-150 shrink-0 ${
@@ -1839,6 +2732,36 @@ const TopicDetail = () => {
               
               <div className="flex gap-2">
                 <button
+                  type="button"
+                  onClick={async () => {
+                    if (window.confirm("Skip this challenge and mark it as passed?")) {
+                      setCompilerStatus('passed');
+                      setChallengePassed(true);
+                      handleGamificationUpdate();
+                      const isAlreadyCompleted = user?.completedTopics?.some(t => t.topicId === id || t.topicId?._id === id);
+                      if (!isAlreadyCompleted) {
+                        try {
+                          const res = await api.post('/progress/complete-topic', { 
+                            topicId: id,
+                            studyTimeMinutes: 10,
+                            notes: 'Skipped coding challenge.',
+                            difficultyFeedback: 'easy',
+                            confidenceLevel: 3,
+                            revisionNeeded: false
+                          });
+                          await refreshUser();
+                        } catch (autoErr) {
+                          console.error('Failed to auto-complete topic:', autoErr);
+                        }
+                      }
+                      toast.success('Challenge skipped and marked as complete! 🚀');
+                    }
+                  }}
+                  className="px-3 py-2 bg-zinc-950 hover:bg-zinc-900 text-zinc-400 hover:text-white border border-dashed border-zinc-800 rounded-lg text-[9px] font-black uppercase tracking-wider transition-all flex items-center gap-1 cursor-pointer"
+                >
+                  ⏭️ Skip Challenge
+                </button>
+                <button
                   onClick={handleRunCode}
                   disabled={compilerStatus === 'running'}
                   className="px-4 py-2 bg-zinc-900 border border-zinc-800 hover:bg-zinc-800 text-white rounded-lg text-[9px] font-black uppercase tracking-wider shadow-sm transition-all flex items-center gap-1.5 disabled:opacity-50 cursor-pointer"
@@ -1858,7 +2781,6 @@ const TopicDetail = () => {
           </div>
 
         </div>
-        )
         )}
 
       </div>
@@ -1964,6 +2886,39 @@ const TopicDetail = () => {
                 </p>
               </div>
 
+              {/* Newly Earned Badges Section */}
+              {celebrationData.newlyEarnedBadges && celebrationData.newlyEarnedBadges.length > 0 && (
+                <div className="w-full p-4 bg-amber-500/10 border border-amber-500/25 rounded-2xl text-center space-y-3 relative z-10">
+                  <div className="text-[9px] text-amber-500 font-black uppercase tracking-widest">
+                    🎉 New Badges Unlocked!
+                  </div>
+                  <div className="flex flex-wrap justify-center gap-3">
+                    {celebrationData.newlyEarnedBadges.map((badge, idx) => (
+                      <div key={idx} className="flex flex-col items-center gap-0.5 max-w-[85px] bg-[var(--bg-sub)] p-2 rounded-xl border border-[var(--border)]">
+                        <div className="text-3xl filter drop-shadow animate-pulse">{badge.icon || '🏅'}</div>
+                        <div className="text-[8px] font-black text-[var(--text-main)] truncate w-full mt-1">{badge.name}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Newly Earned Certificate Section */}
+              {celebrationData.newlyEarnedCertificate && (
+                <div className="w-full p-4 bg-emerald-500/10 border border-emerald-500/25 rounded-2xl text-center space-y-2 relative z-10">
+                  <div className="text-[9px] text-emerald-500 font-black uppercase tracking-widest">
+                    🎓 Course Certified!
+                  </div>
+                  <div className="text-3xl filter drop-shadow animate-bounce">🏆</div>
+                  <div className="text-xs font-black text-[var(--text-main)]">
+                    You earned the {celebrationData.newlyEarnedCertificate.title}!
+                  </div>
+                  <p className="text-[8px] text-[var(--text-muted)] font-semibold leading-normal">
+                    View and print your official certificate on the Dashboard.
+                  </p>
+                </div>
+              )}
+
               {/* XP and Streak stats */}
               <div className="flex gap-4 w-full mt-2">
                 <div className="flex-1 p-4 bg-[var(--bg-sub)] border border-[var(--border)] rounded-2xl flex flex-col items-center justify-center gap-0.5 shadow-inner">
@@ -1999,7 +2954,13 @@ const TopicDetail = () => {
 
               {/* Action Button */}
               <button
-                onClick={() => setCelebrationData(null)}
+                onClick={() => {
+                  const dest = celebrationData.navigateOnClose;
+                  setCelebrationData(null);
+                  if (dest) {
+                    navigate(dest);
+                  }
+                }}
                 className="w-full py-3.5 bg-gradient-to-r from-[var(--primary)] to-[var(--secondary)] hover:shadow-lg text-white font-black text-xs uppercase tracking-widest rounded-2xl shadow-md transition-all active:scale-[0.98] cursor-pointer"
               >
                 Continue Quest

@@ -31,12 +31,15 @@ const cloudCredits = [
   { title: 'Render Free Tier', description: 'Free web services and databases', link: 'https://render.com/', platform: 'Render', icon: '⚡', category: 'hosting', order: 10 },
   { title: 'Railway Free Plan', description: 'Deploy apps with free monthly credits', link: 'https://railway.app/', platform: 'Railway', icon: '🚂', category: 'hosting', order: 11 }
 ];
-
 async function seedDB() {
   try {
-    const uri = process.env.MONGODB_URI || 'mongodb://localhost:27017/careerforge';
-    await mongoose.connect(uri);
-    console.log('✅ Connected to MongoDB');
+    if (mongoose.connection.readyState === 0) {
+      const uri = process.env.MONGODB_URI || 'mongodb://localhost:27017/careerforge';
+      await mongoose.connect(uri);
+      console.log('✅ Connected to MongoDB');
+    } else {
+      console.log('✅ Already connected to MongoDB');
+    }
 
     // Clear existing data
     await Promise.all([
@@ -84,7 +87,20 @@ async function seedDB() {
         const topicKey = `${domain.slug}:${phase.phaseNumber}`;
         const topics = topicData[topicKey] || [];
         for (const topicInfo of topics) {
-          await Topic.create({ ...topicInfo, phaseId: phase._id, domainId: domain._id });
+          const topic = await Topic.create({ ...topicInfo, phaseId: phase._id, domainId: domain._id });
+          
+          // Create topic completion badge (One video = One badge)
+          await Badge.create({
+            name: `${topic.title} Badge`,
+            description: `Completed "${topic.title}" in ${domain.name}`,
+            icon: '📜',
+            domainId: domain._id,
+            phaseId: phase._id,
+            topicId: topic._id,
+            type: 'topic-completion',
+            unlockCondition: `Complete the ${topic.title} topic`,
+            order: topic.order
+          });
         }
 
         // Add default assessment for each phase
@@ -133,8 +149,8 @@ async function seedDB() {
 
     // Streak badges
     const streakBadges = [
-      { name: '7-Day Streak', description: 'Studied 7 days in a row', icon: '🔥', type: 'streak', unlockCondition: 'Maintain 7-day study streak' },
-      { name: '30-Day Streak', description: 'Studied 30 days in a row', icon: '💎', type: 'streak', unlockCondition: 'Maintain 30-day study streak' },
+      { name: 'Bronze Badge', description: 'Studied 5 days in a row', icon: '🥉', type: 'streak', unlockCondition: 'Maintain 5-day study streak' },
+      { name: 'Monthly Badge', description: 'Studied 30 days in a row', icon: '📅', type: 'streak', unlockCondition: 'Maintain 30-day study streak' },
       { name: 'First Step', description: 'Completed your first topic', icon: '👣', type: 'special', unlockCondition: 'Complete any topic' }
     ];
     await Badge.insertMany(streakBadges);
@@ -142,11 +158,16 @@ async function seedDB() {
     console.log('\n🎉 Database seeded successfully!');
     console.log(`📧 Admin: ${process.env.ADMIN_EMAIL || 'admin@careerforge.com'}`);
     console.log(`🔑 Password: ${process.env.ADMIN_PASSWORD || 'Admin@123'}`);
-    process.exit(0);
   } catch (error) {
     console.error('❌ Seed error:', error.message);
-    process.exit(1);
+    throw error;
   }
 }
 
-seedDB();
+if (require.main === module) {
+  seedDB()
+    .then(() => process.exit(0))
+    .catch(() => process.exit(1));
+}
+
+module.exports = seedDB;

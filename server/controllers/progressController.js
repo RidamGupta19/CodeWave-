@@ -80,14 +80,6 @@ exports.completeTopic = async (req, res) => {
     if (difficultyFeedback && difficultyFeedback !== 'unsolved') {
       user.dsaStats.totalProblemsSolved += 1;
       user.dsaStats.lastSolvedAt = new Date();
-      
-      // Update streak if it's a new day
-      const today = new Date().toISOString().split('T')[0];
-      const lastSolved = user.dsaStats.lastSolvedAt ? user.dsaStats.lastSolvedAt.toISOString().split('T')[0] : null;
-      
-      if (lastSolved !== today) {
-        // Streak logic is already handled globally, but we can add DSA specific streak if needed
-      }
     }
 
     // Update total study minutes and XP with Streak Multiplier
@@ -113,7 +105,6 @@ exports.completeTopic = async (req, res) => {
 
     // Update streak
     const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
-    const hadActivityYesterday = user.activityLog.find(l => l.date === yesterday);
     if (user.lastActiveDate) {
       const lastActive = user.lastActiveDate.toISOString().split('T')[0];
       if (lastActive === yesterday) {
@@ -125,6 +116,53 @@ exports.completeTopic = async (req, res) => {
       user.dailyStreak = 1;
     }
     user.lastActiveDate = new Date();
+
+    const newlyEarnedBadges = [];
+    let newlyEarnedCertificate = null;
+
+    // 1. Topic completion badge (One video = One badge)
+    const topicBadge = await Badge.findOne({ topicId });
+    if (topicBadge) {
+      const alreadyEarned = user.earnedBadges.some(b => b.badgeId.toString() === topicBadge._id.toString());
+      if (!alreadyEarned) {
+        user.earnedBadges.push({ badgeId: topicBadge._id, earnedAt: new Date() });
+        newlyEarnedBadges.push(topicBadge);
+      }
+    }
+
+    // 2. First Step badge check
+    if (user.completedTopics.length === 1) {
+      const firstStepBadge = await Badge.findOne({ name: 'First Step' });
+      if (firstStepBadge) {
+        const alreadyEarned = user.earnedBadges.some(b => b.badgeId.toString() === firstStepBadge._id.toString());
+        if (!alreadyEarned) {
+          user.earnedBadges.push({ badgeId: firstStepBadge._id, earnedAt: new Date() });
+          newlyEarnedBadges.push(firstStepBadge);
+        }
+      }
+    }
+
+    // 3. Streak badges check
+    if (user.dailyStreak >= 5) {
+      const bronzeBadge = await Badge.findOne({ name: 'Bronze Badge' });
+      if (bronzeBadge) {
+        const alreadyEarned = user.earnedBadges.some(b => b.badgeId.toString() === bronzeBadge._id.toString());
+        if (!alreadyEarned) {
+          user.earnedBadges.push({ badgeId: bronzeBadge._id, earnedAt: new Date() });
+          newlyEarnedBadges.push(bronzeBadge);
+        }
+      }
+    }
+    if (user.dailyStreak >= 30) {
+      const monthlyBadge = await Badge.findOne({ name: 'Monthly Badge' });
+      if (monthlyBadge) {
+        const alreadyEarned = user.earnedBadges.some(b => b.badgeId.toString() === monthlyBadge._id.toString());
+        if (!alreadyEarned) {
+          user.earnedBadges.push({ badgeId: monthlyBadge._id, earnedAt: new Date() });
+          newlyEarnedBadges.push(monthlyBadge);
+        }
+      }
+    }
 
     // Calculate overall progress and auto-advance phase
     if (user.selectedDomain) {
@@ -139,8 +177,6 @@ exports.completeTopic = async (req, res) => {
           topicsInPhase.some(tp => tp._id.toString() === ct.topicId.toString())
         );
 
-        // AI ADAPTATION: If user is doing exceptionally well, they can skip or advance faster
-        // If they have high confidence in all topics of current phase, they advance.
         const averageConfidence = completedInPhase.length > 0 
           ? completedInPhase.reduce((acc, curr) => acc + (curr.confidenceLevel || 3), 0) / completedInPhase.length 
           : 0;
@@ -156,13 +192,27 @@ exports.completeTopic = async (req, res) => {
             const alreadyEarned = user.earnedBadges.some(b => b.badgeId.toString() === badge._id.toString());
             if (!alreadyEarned) {
               user.earnedBadges.push({ badgeId: badge._id, earnedAt: new Date() });
+              newlyEarnedBadges.push(badge);
             }
           }
         } else if (averageConfidence >= 4.5 && completedInPhase.length >= topicsInPhase.length * 0.7) {
-          // AI FAST-TRACK: If confidence is very high and 70% topics done, unlock next level
-          // But don't increment phase yet, just allow access? 
-          // Actually, let's keep it simple: if they are doing great, give more XP.
           user.xp = (user.xp || 0) + 100; // Fast-track bonus
+        }
+      }
+
+      // Check if domain is fully completed (overallProgress === 100)
+      if (user.overallProgress >= 100) {
+        const existingCert = await Certificate.findOne({ userId: user._id, domainId: user.selectedDomain });
+        if (!existingCert) {
+          const domainObj = await Domain.findById(user.selectedDomain);
+          const cert = await Certificate.create({
+            userId: user._id,
+            domainId: user.selectedDomain,
+            title: `${domainObj.name} Completion Certificate`,
+            description: `Successfully completed the full course of ${domainObj.name} including all phases, coding exercises, and assessments.`,
+            completionPercentage: 100
+          });
+          newlyEarnedCertificate = cert;
         }
       }
     }
@@ -181,7 +231,9 @@ exports.completeTopic = async (req, res) => {
       data: { 
         overallProgress: user.overallProgress, 
         dailyStreak: user.dailyStreak,
-        xp: user.xp
+        xp: user.xp,
+        newlyEarnedBadges,
+        newlyEarnedCertificate
       }
     });
   } catch (error) {
@@ -269,7 +321,10 @@ exports.getDashboard = async (req, res) => {
           overallProgress: user.overallProgress,
           dailyStreak: user.dailyStreak,
           totalStudyMinutes: user.totalStudyMinutes,
-          xp: user.xp || 0
+          xp: user.xp || 0,
+          dsaStats: user.dsaStats,
+          earnedBadges: user.earnedBadges,
+          completedTopics: user.completedTopics
         },
         currentPhaseData,
         upcomingAssessment,
@@ -426,6 +481,108 @@ exports.getSubmissions = async (req, res) => {
     res.json({ 
       success: true, 
       data: submissions.sort((a, b) => new Date(b.submittedAt) - new Date(a.submittedAt)) 
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// @desc    Skip a whole level (phase)
+// @route   POST /api/progress/skip-phase
+exports.skipPhase = async (req, res) => {
+  try {
+    const { phaseId } = req.body;
+    const user = await User.findById(req.user._id);
+
+    const phase = await Phase.findById(phaseId);
+    if (!phase) {
+      return res.status(404).json({ success: false, message: 'Phase not found' });
+    }
+
+    if (phase.domainId.toString() !== user.selectedDomain.toString()) {
+      return res.status(400).json({ success: false, message: 'Phase does not belong to selected domain' });
+    }
+
+    if (phase.phaseNumber !== user.currentPhase) {
+      return res.status(400).json({ success: false, message: 'You can only skip your current active level' });
+    }
+
+    const topicsInPhase = await Topic.find({ phaseId: phase._id, isActive: true });
+
+    const now = new Date();
+    let topicsCompletedCount = 0;
+    topicsInPhase.forEach(topic => {
+      const alreadyCompleted = user.completedTopics.find(t => t.topicId.toString() === topic._id.toString());
+      if (!alreadyCompleted) {
+        user.completedTopics.push({
+          topicId: topic._id,
+          completedAt: now,
+          studyTimeMinutes: 0,
+          notes: 'Skipped as part of a level skip.',
+          confidenceLevel: 3,
+          revisionNeeded: false
+        });
+        topicsCompletedCount++;
+
+        if (user.dsaStats) {
+          user.dsaStats.totalProblemsSolved += 1;
+        }
+      }
+    });
+
+    if (user.dsaStats && topicsCompletedCount > 0) {
+      user.dsaStats.lastSolvedAt = now;
+    }
+
+    user.currentPhase += 1;
+    user.xp = (user.xp || 0) + 500;
+
+    const newlyEarnedBadges = [];
+    const badge = await Badge.findOne({ phaseId: phase._id });
+    if (badge) {
+      const alreadyEarned = user.earnedBadges.some(b => b.badgeId.toString() === badge._id.toString());
+      if (!alreadyEarned) {
+        user.earnedBadges.push({ badgeId: badge._id, earnedAt: now });
+        newlyEarnedBadges.push(badge);
+      }
+    }
+
+    const totalTopicsInDomain = await Topic.countDocuments({ domainId: user.selectedDomain, isActive: true });
+    user.overallProgress = totalTopicsInDomain > 0 ? Math.round((user.completedTopics.length / totalTopicsInDomain) * 100) : 0;
+
+    let newlyEarnedCertificate = null;
+    if (user.overallProgress >= 100) {
+      const existingCert = await Certificate.findOne({ userId: user._id, domainId: user.selectedDomain });
+      if (!existingCert) {
+        const domainObj = await Domain.findById(user.selectedDomain);
+        const cert = await Certificate.create({
+          userId: user._id,
+          domainId: user.selectedDomain,
+          title: `${domainObj.name} Completion Certificate`,
+          description: `Successfully completed the full course of ${domainObj.name} including all phases, coding exercises, and assessments.`,
+          completionPercentage: 100
+        });
+        newlyEarnedCertificate = cert;
+      }
+    }
+
+    const populatedUser = await User.findById(user._id).populate('selectedDomain');
+    if (populatedUser.selectedDomain && populatedUser.selectedDomain.slug === 'dsa') {
+      updateDSAStats(user);
+    }
+
+    await user.save();
+
+    res.json({
+      success: true,
+      message: 'Level skipped successfully',
+      data: {
+        currentPhase: user.currentPhase,
+        overallProgress: user.overallProgress,
+        xp: user.xp,
+        newlyEarnedBadges,
+        newlyEarnedCertificate
+      }
     });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });

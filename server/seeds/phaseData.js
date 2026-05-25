@@ -161,14 +161,14 @@ const phaseData = {
   'dsa': [
     { phaseNumber: 0, name: 'Programming Foundations', description: 'Language basics, Math for DSA, and Logic building.', estimatedDuration: '1 week' },
     { phaseNumber: 1, name: 'Arrays Explorer', description: 'Master 1D and 2D arrays with Easy, Medium, and Hard problems.', estimatedDuration: '2 weeks' },
-    { phaseNumber: 2, name: 'Hashing Hunter', description: 'Frequency counting, Hash Maps, and Set operations.', estimatedDuration: '3 days' },
-    { phaseNumber: 3, name: 'Recursion Survivor', description: 'Recursion patterns, Backtracking, and classic recursive problems.', estimatedDuration: '1 week' },
-    { phaseNumber: 4, name: 'Linked List Warrior', description: 'Singly, Doubly, and Circular Linked Lists with complex operations.', estimatedDuration: '1 week' },
-    { phaseNumber: 5, name: 'Stack & Queue Master', description: 'Implementation, Monotonic Stack, and Queue conversions.', estimatedDuration: '1 week' },
-    { phaseNumber: 6, name: 'Tree Master', description: 'Binary Trees, BSTs, Traversals, and complex tree algorithms.', estimatedDuration: '2 weeks' },
-    { phaseNumber: 7, name: 'Graph Adventurer', description: 'BFS/DFS, Topo Sort, Shortest Path, MST, and Disjoint Set.', estimatedDuration: '2 weeks' },
-    { phaseNumber: 8, name: 'Dynamic Programming Beast', description: '1D/2D/3D DP, Grids, Subsequences, Strings, Stocks, and LIS.', estimatedDuration: '3 weeks' },
-    { phaseNumber: 9, name: 'Greedy Strategist', description: 'Master Greedy algorithms with real-world problem scenarios.', estimatedDuration: '1 week' },
+    { phaseNumber: 2, name: 'Hashing Explorer', description: 'Frequency counting, Hash Maps, and Set operations.', estimatedDuration: '3 days' },
+    { phaseNumber: 3, name: 'Recursion Explorer', description: 'Recursion patterns, Backtracking, and classic recursive problems.', estimatedDuration: '1 week' },
+    { phaseNumber: 4, name: 'Linked List Explorer', description: 'Singly, Doubly, and Circular Linked Lists with complex operations.', estimatedDuration: '1 week' },
+    { phaseNumber: 5, name: 'Stack & Queue Explorer', description: 'Implementation, Monotonic Stack, and Queue conversions.', estimatedDuration: '1 week' },
+    { phaseNumber: 6, name: 'Trees Explorer', description: 'Binary Trees, BSTs, Traversals, and complex tree algorithms.', estimatedDuration: '2 weeks' },
+    { phaseNumber: 7, name: 'Graph Explorer', description: 'BFS/DFS, Topo Sort, Shortest Path, MST, and Disjoint Set.', estimatedDuration: '2 weeks' },
+    { phaseNumber: 8, name: 'Dynamic Programming Explorer', description: '1D/2D/3D DP, Grids, Subsequences, Strings, Stocks, and LIS.', estimatedDuration: '3 weeks' },
+    { phaseNumber: 9, name: 'Greedy Explorer', description: 'Master Greedy algorithms with real-world problem scenarios.', estimatedDuration: '1 week' },
     { phaseNumber: 10, name: 'Placement Challenger', description: 'Bit Manipulation, Heaps, and high-frequency placement problems.', estimatedDuration: '2 weeks' }
   ],
   'open-source-contribution': [

@@ -8,6 +8,7 @@ import {
 } from 'react-icons/fi';
 import toast from 'react-hot-toast';
 import { motion, AnimatePresence } from 'framer-motion';
+import { analyzeDsaProfile, DSA_LEVELS, DSA_LANGUAGE_LABELS, getDsaBadgeForLevel, getStreakRank, normalizeDsaLanguage } from '../utils/dsaPersonalization';
 
 // Beautiful gamified icons for DSA and Generic roadmaps
 const getLevelIcon = (index, domainSlug) => {
@@ -24,19 +25,7 @@ const getLevelThreshold = (index) => {
 };
 
 // DSA specific gamified level titles
-const dsaLevelNames = [
-  "Programming Foundations",
-  "Arrays Explorer",
-  "Hashing Hunter",
-  "Recursion Survivor",
-  "Linked List Warrior",
-  "Stack & Queue Master",
-  "Tree Master",
-  "Graph Adventurer",
-  "Dynamic Programming Beast",
-  "Greedy Strategist",
-  "Placement Challenger"
-];
+const dsaLevelNames = DSA_LEVELS;
 
 const Roadmap = () => {
   const { user, refreshUser } = useAuth();
@@ -46,7 +35,7 @@ const Roadmap = () => {
   const [activeLevel, setActiveLevel] = useState(null);
 
   // Dynamic language selection state synced with local cache
-  const [selectedLang, setSelectedLang] = useState(() => localStorage.getItem('dsa_lang') || 'cpp');
+  const [selectedLang, setSelectedLang] = useState(() => normalizeDsaLanguage(localStorage.getItem('dsa_lang') || 'cpp'));
   const [useStriverAdvanced, setUseStriverAdvanced] = useState(() => localStorage.getItem('striver_advanced') === 'true');
 
   const domainId = user?.selectedDomain?._id || user?.selectedDomain;
@@ -61,7 +50,7 @@ const Roadmap = () => {
           return;
         }
         if (freshUser?.profile?.onboardingAnswers?.dsa_language) {
-          setSelectedLang(localStorage.getItem('dsa_lang') || freshUser.profile.onboardingAnswers.dsa_language);
+          setSelectedLang(normalizeDsaLanguage(localStorage.getItem('dsa_lang') || freshUser.profile.onboardingAnswers.dsa_language));
         }
       } catch (err) {
         console.error(err);
@@ -117,12 +106,33 @@ const Roadmap = () => {
   const currentXP = user.xp || 0;
   const currentStreak = user.dailyStreak || 0;
   const isDSA = domain.slug === 'dsa';
+  const dsaAnswers = user.profile?.onboardingAnswers || {};
+  const dsaAnalysis = isDSA ? (dsaAnswers.dsaAnalysis || analyzeDsaProfile(dsaAnswers)) : null;
+  const streakRank = getStreakRank(currentStreak);
+  const activeBadge = getDsaBadgeForLevel(user.currentPhase || 0);
 
-  const langNames = {
-    cpp: 'C++',
-    java: 'Java',
-    python: 'Python',
-    javascript: 'JavaScript'
+  const langNames = DSA_LANGUAGE_LABELS;
+
+  const handleSkipLevel = async () => {
+    const levelName = isDSA ? (dsaLevelNames[activeLevel] || phases[activeLevel].name) : phases[activeLevel].name;
+    if (window.confirm(`Are you sure you want to skip the entire "${levelName}" (Level ${activeLevel}) and mark all its topics as completed?`)) {
+      try {
+        const activePhase = phases.find(p => p.phaseNumber === activeLevel);
+        if (!activePhase) return;
+        
+        toast.loading('Processing skip...', { id: 'skip-level' });
+        const res = await api.post('/progress/skip-phase', { phaseId: activePhase._id });
+        
+        if (res.data.success) {
+          toast.success('Level skipped successfully! 🚀', { id: 'skip-level' });
+          await refreshUser();
+          fetchRoadmap(domainId);
+        }
+      } catch (err) {
+        console.error(err);
+        toast.error(err.response?.data?.message || 'Failed to skip level', { id: 'skip-level' });
+      }
+    }
   };
 
   return (
@@ -166,17 +176,53 @@ const Roadmap = () => {
       {/* Main Roadmap Description */}
       <div className="text-center mb-12">
         <div className={`inline-flex items-center gap-2 px-4 py-2 bg-[var(--primary-light)] text-[var(--primary)] rounded-full text-[10px] font-black uppercase tracking-widest mb-6 border border-[var(--border)]`}>
-          <FiZap /> {isDSA ? "Language-Adaptive DSA Track" : (user.profile?.roadmapType || 'Steady Pace')} • {isDSA ? 'Love Babbar & CodeWithHarry' : (user.profile?.estimatedTimeline || '6 Months')}
+          <FiZap /> {isDSA ? `${dsaAnalysis.roadmapType} • ${dsaAnalysis.recommendedPace}` : (user.profile?.roadmapType || 'Steady Pace')} • {isDSA ? dsaAnalysis.estimatedTimeline : (user.profile?.estimatedTimeline || '6 Months')}
         </div>
         <h1 className="text-4xl md:text-5xl font-black mb-4 text-gradient tracking-tight">
           {isDSA ? 'The Ultimate DSA Journey' : `Your ${domain.name} Adventure`}
         </h1>
         <p className="text-[var(--text-muted)] max-w-2xl mx-auto text-sm font-bold leading-relaxed">
           {isDSA 
-            ? "Master variables, trees, recursion, and dynamic algorithms in your selected programming language. Learn from direct visual courses and solve challenges to unlock new level phases."
+            ? dsaAnalysis.aiSummary
             : (user.profile?.aiSummary || "Master each level to unlock the next chapter of your coding journey.")}
         </p>
       </div>
+
+      {isDSA && (
+        <div className="grid lg:grid-cols-4 gap-4 mb-12">
+          {[
+            ['AI Start Point', `Level ${dsaAnalysis.startingLevel}: ${dsaAnalysis.startLevelName}`],
+            ['Detected Skill', dsaAnalysis.skillLevel],
+            ['Current Badge', activeBadge.name],
+            ['Streak Rank', `${streakRank.name} • ${streakRank.next}`]
+          ].map(([label, value]) => (
+            <div key={label} className="bg-[var(--bg-card)] border border-[var(--border)] rounded-2xl p-5 shadow-sm">
+              <div className="text-[9px] font-black uppercase tracking-widest text-[var(--text-light)] mb-2">{label}</div>
+              <div className="text-sm font-black text-[var(--text-main)] leading-snug">{value}</div>
+            </div>
+          ))}
+          <div className="lg:col-span-4 bg-zinc-950 text-white rounded-2xl p-6 border border-indigo-500/20">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div>
+                <div className="text-[9px] font-black uppercase tracking-widest text-indigo-300 mb-2">AI Recommendations</div>
+                <p className="text-sm text-zinc-300 font-semibold leading-relaxed">
+                  {dsaAnalysis.startReason} Focus next on {dsaAnalysis.weakTopics[0] || 'Arrays'}, keep lessons in {langNames[selectedLang]}, and complete the Watch, Notes, Dry Run, Practice, Challenge loop before unlocking the next topic.
+                </p>
+              </div>
+              <div className="shrink-0 grid grid-cols-2 gap-2 text-center">
+                <div className="bg-white/5 border border-white/10 rounded-xl p-3">
+                  <div className="text-[8px] font-black text-zinc-500 uppercase">Strongest</div>
+                  <div className="text-xs font-black text-emerald-300">{dsaAnalysis.strongestTopic}</div>
+                </div>
+                <div className="bg-white/5 border border-white/10 rounded-xl p-3">
+                  <div className="text-[8px] font-black text-zinc-500 uppercase">Weak Topic</div>
+                  <div className="text-xs font-black text-rose-300">{dsaAnalysis.weakTopics[0] || 'Recursion'}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Interactive Language Selector for DSA ROADMAP */}
       {isDSA && (
@@ -195,7 +241,7 @@ const Roadmap = () => {
               {['cpp', 'java', 'python', 'javascript'].map((lang) => (
                 <button
                   key={lang}
-                  onClick={() => setSelectedLang(lang)}
+                  onClick={() => setSelectedLang(normalizeDsaLanguage(lang))}
                   className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase transition-all ${
                     selectedLang === lang 
                       ? 'bg-amber-500 text-white shadow-sm' 
@@ -268,6 +314,11 @@ const Roadmap = () => {
                 >
                   <span className="text-4xl mb-1 filter drop-shadow-sm">{getLevelIcon(index, domain.slug)}</span>
                   <span className="text-[8px] font-black uppercase tracking-widest mt-0.5">LVL {index}</span>
+                  {isDSA && index < dsaAnalysis.startingLevel && (
+                    <div className="absolute -bottom-3 bg-sky-500 text-white text-[7px] px-2 py-0.5 rounded-full font-black shadow-sm">
+                      AI SKIP
+                    </div>
+                  )}
                   
                   {isCurrent && (
                     <div className="absolute -top-3 -right-3 bg-rose-500 text-white text-[8px] px-2 py-0.5 rounded-full font-black animate-bounce shadow-md">
@@ -334,19 +385,30 @@ const Roadmap = () => {
               </p>
             </div>
             
-            {/* Rewards Pill */}
-            <div className="bg-[var(--bg-sub)] border border-[var(--border)] p-5 rounded-2xl shadow-sm shrink-0 w-full md:w-auto">
-              <div className="text-[9px] font-black text-[var(--primary)] uppercase tracking-widest mb-3">Completion Rewards</div>
-              <div className="space-y-2.5">
-                <div className="flex items-center gap-3 text-[var(--text-main)] font-black text-sm">
-                  <div className="w-7 h-7 bg-amber-500/10 text-amber-500 rounded-lg flex items-center justify-center"><FiZap /></div>
-                  +500 XP
-                </div>
-                <div className="flex items-center gap-3 text-[var(--text-main)] font-black text-sm">
-                  <div className="w-7 h-7 bg-indigo-500/10 text-[var(--primary)] rounded-lg flex items-center justify-center"><FiAward /></div>
-                  Master Badge
+            {/* Rewards Pill & Skip Level Actions */}
+            <div className="flex flex-col gap-4 shrink-0 w-full md:w-auto">
+              <div className="bg-[var(--bg-sub)] border border-[var(--border)] p-5 rounded-2xl shadow-sm w-full">
+                <div className="text-[9px] font-black text-[var(--primary)] uppercase tracking-widest mb-3">Completion Rewards</div>
+                <div className="space-y-2.5">
+                  <div className="flex items-center gap-3 text-[var(--text-main)] font-black text-sm">
+                    <div className="w-7 h-7 bg-amber-500/10 text-amber-500 rounded-lg flex items-center justify-center"><FiZap /></div>
+                    +500 XP
+                  </div>
+                  <div className="flex items-center gap-3 text-[var(--text-main)] font-black text-sm">
+                    <div className="w-7 h-7 bg-indigo-500/10 text-[var(--primary)] rounded-lg flex items-center justify-center"><FiAward /></div>
+                    Master Badge
+                  </div>
                 </div>
               </div>
+
+              {activeLevel === (user.currentPhase || 0) && (
+                <button
+                  onClick={handleSkipLevel}
+                  className="flex items-center justify-center gap-2 px-5 py-3 rounded-2xl bg-zinc-800 hover:bg-zinc-700 dark:bg-zinc-900 dark:hover:bg-zinc-800 border border-zinc-700 text-zinc-100 hover:text-white font-black text-xs tracking-wider uppercase transition duration-300 shadow-md w-full"
+                >
+                  ⏭️ Skip Whole Level
+                </button>
+              )}
             </div>
           </div>
 
@@ -413,6 +475,7 @@ const TopicsList = ({ phaseId, isTopicCompleted, activeLevel, isDSA }) => {
                   <span className="flex items-center gap-1"><FiClock /> {topic.estimatedTime}</span>
                   <span className="w-1 h-1 bg-[var(--border)] rounded-full"></span>
                   <span className="text-amber-500 font-black">+50 XP</span>
+                  {isDSA && <span className="text-[var(--primary)] font-black">Watch • Quiz • Code</span>}
                 </div>
               </div>
             </div>

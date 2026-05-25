@@ -7,7 +7,8 @@ const badgeSchema = new mongoose.Schema({
   color: { type: String, default: '#f59e0b' },
   domainId: { type: mongoose.Schema.Types.ObjectId, ref: 'Domain' },
   phaseId: { type: mongoose.Schema.Types.ObjectId, ref: 'Phase' },
-  type: { type: String, enum: ['phase-completion', 'domain-completion', 'streak', 'special', 'assessment'], default: 'phase-completion' },
+  topicId: { type: mongoose.Schema.Types.ObjectId, ref: 'Topic' },
+  type: { type: String, enum: ['phase-completion', 'domain-completion', 'streak', 'special', 'assessment', 'topic-completion'], default: 'phase-completion' },
   unlockCondition: { type: String, default: 'Complete phase' },
   isActive: { type: Boolean, default: true },
   order: { type: Number, default: 0 }

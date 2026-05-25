@@ -1,41 +1,40 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import api from '../api/axios';
 import toast from 'react-hot-toast';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FiSun, FiMoon } from 'react-icons/fi';
+import { FiMessageSquare, FiMoon, FiSun, FiZap } from 'react-icons/fi';
+import { analyzeDsaProfile, normalizeDsaLanguage } from '../utils/dsaPersonalization';
 
 const generalQuestions = [
   {
     id: 'coding_experience',
-    question: "Have you done coding before?",
+    question: 'Have you done coding before?',
     options: [
-      { label: "Never touched coding", value: "none", description: "I'm starting from absolute zero." },
-      { label: "Basic college coding", value: "basic", description: "I know concepts like loops and variables." },
-      { label: "Built small projects", value: "projects", description: "I've made some basic apps or websites." },
-      { label: "Know frontend basics", value: "frontend", description: "I'm comfortable with HTML/CSS/JS." },
-      { label: "Intermediate developer", value: "intermediate", description: "I've worked with frameworks like React." }
+      { label: 'Never', value: 'never', description: 'Start from zero with friendly syntax missions.' },
+      { label: 'Basic college coding', value: 'basic', description: 'I know a little syntax, loops, or lab programs.' },
+      { label: 'Solved some problems', value: 'some_problems', description: 'I have tried basic coding questions before.' },
+      { label: 'Comfortable with coding', value: 'comfortable', description: 'I can write functions and debug simple logic.' }
     ]
   },
   {
     id: 'goal',
-    question: "What is your main goal?",
+    question: 'What is your goal?',
     options: [
-      { label: "Internship", value: "internship" },
-      { label: "Job", value: "job" },
-      { label: "Freelancing", value: "freelancing" },
-      { label: "Startup", value: "startup" },
-      { label: "Exploration", value: "exploration" }
+      { label: 'Placements', value: 'placements' },
+      { label: 'Internship', value: 'internship' },
+      { label: 'Improve problem solving', value: 'problem_solving' },
+      { label: 'Competitive programming', value: 'competitive' }
     ]
   },
   {
     id: 'daily_time',
-    question: "How much time can you give daily?",
+    question: 'How much time can you study daily?',
     options: [
-      { label: "30 mins", value: 30 },
-      { label: "1 hour", value: 60 },
-      { label: "2+ hours", value: 120 }
+      { label: '30 mins', value: 30 },
+      { label: '1 hour', value: 60 },
+      { label: '2+ hours', value: 120 }
     ]
   }
 ];
@@ -43,30 +42,35 @@ const generalQuestions = [
 const dsaQuestions = [
   {
     id: 'dsa_language',
-    question: "Preferred language for DSA?",
+    question: 'Which programming language do you want to learn DSA in?',
     options: [
-      { label: "C++", value: "cpp", description: "Standard for competitive programming." },
-      { label: "Java", value: "java", description: "Great for big-tech interviews." },
-      { label: "Python", value: "python", description: "Fastest to write and learn." },
-      { label: "JavaScript", value: "js", description: "Best if you're targeting web roles." }
+      { label: 'C++', value: 'cpp', description: 'Standard for competitive programming.' },
+      { label: 'Java', value: 'java', description: 'Great for big-tech interviews.' },
+      { label: 'Python', value: 'python', description: 'Fastest to write and learn.' },
+      { label: 'JavaScript', value: 'javascript', description: 'Best if you are targeting web roles.' }
     ]
   },
   {
-    id: 'dsa_complexity',
-    question: "Understanding of Big O Complexity?",
+    id: 'dsa_known_topics',
+    question: 'Which topics do you already know?',
+    multiple: true,
     options: [
-      { label: "Absolute Beginner", value: "none", description: "I don't know what O(n) means." },
-      { label: "Basic", value: "basic", description: "I know O(1), O(n), and O(n²)." },
-      { label: "Comfortable", value: "advanced", description: "I can analyze nested loops and recursion." }
+      { label: 'Variables', value: 'variables' },
+      { label: 'Loops', value: 'loops' },
+      { label: 'Functions', value: 'functions' },
+      { label: 'Arrays', value: 'arrays' },
+      { label: 'Recursion', value: 'recursion' },
+      { label: 'None', value: 'none' }
     ]
   },
   {
-    id: 'dsa_recursion',
-    question: "Comfort with Recursion?",
+    id: 'dsa_problem_experience',
+    question: 'Have you solved coding problems before?',
     options: [
-      { label: "Scared of it", value: "none", description: "What is a base case?" },
-      { label: "Know the basics", value: "basic", description: "I can do factorial and fibonacci." },
-      { label: "Backtracking Ninja", value: "advanced", description: "I can solve N-Queens and Sudoku." }
+      { label: 'Never', value: 'never', description: 'We will begin with low-pressure guided practice.' },
+      { label: 'Beginner', value: 'beginner', description: 'I solved a few class or beginner problems.' },
+      { label: 'Some LeetCode', value: 'some_leetcode', description: 'I know the platform but need structure.' },
+      { label: 'Regular practice', value: 'regular', description: 'I want a faster, interview-focused path.' }
     ]
   }
 ];
@@ -74,26 +78,26 @@ const dsaQuestions = [
 const webQuestions = [
   {
     id: 'technologies',
-    question: "Which technologies do you know?",
+    question: 'Which technologies do you know?',
     multiple: true,
     options: [
-      { label: "HTML", value: "html" },
-      { label: "CSS", value: "css" },
-      { label: "JavaScript", value: "js" },
-      { label: "React", value: "react" },
-      { label: "Node.js", value: "node" },
-      { label: "MongoDB", value: "mongo" },
-      { label: "Git", value: "git" },
-      { label: "None", value: "none" }
+      { label: 'HTML', value: 'html' },
+      { label: 'CSS', value: 'css' },
+      { label: 'JavaScript', value: 'js' },
+      { label: 'React', value: 'react' },
+      { label: 'Node.js', value: 'node' },
+      { label: 'MongoDB', value: 'mongo' },
+      { label: 'Git', value: 'git' },
+      { label: 'None', value: 'none' }
     ]
   },
   {
     id: 'web_page',
-    question: "Can you build a basic responsive webpage?",
+    question: 'Can you build a basic responsive webpage?',
     options: [
-      { label: "No", value: "no" },
-      { label: "Somewhat", value: "somewhat" },
-      { label: "Yes confidently", value: "yes" }
+      { label: 'No', value: 'no' },
+      { label: 'Somewhat', value: 'somewhat' },
+      { label: 'Yes confidently', value: 'yes' }
     ]
   }
 ];
@@ -102,14 +106,20 @@ const Onboarding = () => {
   const navigate = useNavigate();
   const { user, refreshUser } = useAuth();
   const [theme, setTheme] = useState(() => localStorage.getItem('careerforge_theme') || 'light');
+  const [currentStep, setCurrentStep] = useState(0);
+  const [answers, setAnswers] = useState({});
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (theme === 'dark') {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
+    if (theme === 'dark') document.documentElement.classList.add('dark');
+    else document.documentElement.classList.remove('dark');
   }, [theme]);
+
+  const isDsa = (user?.selectedDomain?.slug || '') === 'dsa';
+  const activeQuestions = isDsa ? [...generalQuestions, ...dsaQuestions] : [...generalQuestions, ...webQuestions];
+  const currentQuestion = activeQuestions[currentStep];
+  const progress = ((currentStep + 1) / activeQuestions.length) * 100;
+  const dsaPreview = isDsa ? analyzeDsaProfile(answers) : null;
 
   const toggleTheme = () => {
     const nextTheme = theme === 'dark' ? 'light' : 'dark';
@@ -118,79 +128,77 @@ const Onboarding = () => {
     window.dispatchEvent(new Event('themechange'));
   };
 
-  // Compute activeQuestions based on domain
-  const getQuestions = () => {
-    const domainSlug = user?.selectedDomain?.slug || 'web-development';
-    if (domainSlug === 'dsa') {
-      return [...generalQuestions, ...dsaQuestions];
-    }
-    return [...generalQuestions, ...webQuestions];
-  };
-
-  const activeQuestions = getQuestions();
-  const [currentStep, setCurrentStep] = useState(0);
-  const [answers, setAnswers] = useState({});
-  const [loading, setLoading] = useState(false);
-
   const handleOptionSelect = (value) => {
-    const q = activeQuestions[currentStep];
+    const q = currentQuestion;
     if (q.multiple) {
       const currentAnswers = answers[q.id] || [];
-      const newAnswers = currentAnswers.includes(value)
-        ? currentAnswers.filter(a => a !== value)
-        : [...currentAnswers, value];
-      setAnswers({ ...answers, [q.id]: newAnswers });
-    } else {
-      setAnswers({ ...answers, [q.id]: value });
-      // Auto advance for single choice if not last
-      if (currentStep < activeQuestions.length - 1) {
-        setTimeout(() => setCurrentStep(currentStep + 1), 300);
+      let newAnswers;
+      if (value === 'none') {
+        newAnswers = currentAnswers.includes('none') ? [] : ['none'];
+      } else {
+        const withoutNone = currentAnswers.filter(a => a !== 'none');
+        newAnswers = withoutNone.includes(value)
+          ? withoutNone.filter(a => a !== value)
+          : [...withoutNone, value];
       }
+      setAnswers({ ...answers, [q.id]: newAnswers });
+      return;
+    }
+
+    const normalizedValue = q.id === 'dsa_language' ? normalizeDsaLanguage(value) : value;
+    setAnswers({ ...answers, [q.id]: normalizedValue });
+    if (currentStep < activeQuestions.length - 1) {
+      setTimeout(() => setCurrentStep(currentStep + 1), 300);
     }
   };
 
   const handleNext = async () => {
     if (currentStep < activeQuestions.length - 1) {
       setCurrentStep(currentStep + 1);
-    } else {
-      // Final submit
-      setLoading(true);
-      try {
-        // First save basic profile info
-        const profileData = {
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const analysis = isDsa ? analyzeDsaProfile(answers) : null;
+      const onboardingAnswers = isDsa ? { ...answers, dsa_language: analysis.language, dsaAnalysis: analysis } : answers;
+
+      await api.put('/auth/profile', {
+        profile: {
           currentSkillLevel: answers.coding_experience,
           goal: answers.goal,
           dailyStudyTime: answers.daily_time,
-          knownLanguages: answers.technologies || [],
-          onboardingAnswers: answers
-        };
+          knownLanguages: isDsa ? [analysis.language] : (answers.technologies || []),
+          onboardingAnswers
+        }
+      });
 
-        await api.put('/auth/profile', { profile: profileData });
-        
-        // Then generate the AI roadmap
-        await api.post('/ai/generate-roadmap', { answers });
-        
-        await refreshUser();
-        toast.success("Your AI Roadmap has been generated! 🚀", {
-          duration: 5000,
-          icon: '✨'
-        });
-        navigate('/dashboard');
-      } catch (err) {
-        toast.error("Failed to generate your personalized journey.");
-      } finally {
-        setLoading(false);
+      await api.post('/ai/generate-roadmap', { answers: onboardingAnswers });
+      await refreshUser();
+
+      if (isDsa) {
+        localStorage.setItem('dsa_lang', analysis.language);
+        localStorage.setItem('dsa_analysis', JSON.stringify(analysis));
       }
+
+      toast.success(isDsa ? 'Your adaptive DSA journey is ready!' : 'Your AI roadmap is ready!', {
+        duration: 5000,
+        icon: '✨'
+      });
+      navigate(isDsa ? '/roadmap' : '/dashboard');
+    } catch {
+      toast.error('Failed to generate your personalized journey.');
+    } finally {
+      setLoading(false);
     }
   };
 
-  const progress = ((currentStep + 1) / activeQuestions.length) * 100;
+  const selected = answers[currentQuestion.id];
+  const isNextDisabled = !selected || (currentQuestion.multiple && selected.length === 0);
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-6 bg-[var(--bg-main)] text-[var(--text-main)] transition-colors duration-300 relative select-none">
-      
-      {/* Floating Theme Button */}
-      <button 
+      <button
         onClick={toggleTheme}
         className="absolute top-6 right-6 p-2.5 text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--bg-sub)] rounded-xl border border-[var(--border)] transition-all"
         title="Toggle Theme"
@@ -204,11 +212,7 @@ const Onboarding = () => {
           <span className="text-xs font-black text-[var(--primary)]">{Math.round(progress)}% Complete</span>
         </div>
         <div className="progress-container h-2 shadow-inner">
-          <motion.div 
-            className="progress-bar-fill" 
-            initial={{ width: 0 }}
-            animate={{ width: `${progress}%` }}
-          />
+          <motion.div className="progress-bar-fill" initial={{ width: 0 }} animate={{ width: `${progress}%` }} />
         </div>
       </div>
 
@@ -218,25 +222,27 @@ const Onboarding = () => {
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -15 }}
-          transition={{ duration: 0.3, ease: "easeOut" }}
+          transition={{ duration: 0.3, ease: 'easeOut' }}
           className="onboarding-card max-w-xl w-full p-8 md:p-10"
         >
-          <h2 className="text-2xl md:text-3xl font-black mb-1.5 leading-snug">{activeQuestions[currentStep].question}</h2>
-          <p className="text-xs text-[var(--text-light)] font-bold uppercase tracking-wider mb-8">Tell us a bit about yourself so we can tailor your experience.</p>
+          <h2 className="text-2xl md:text-3xl font-black mb-1.5 leading-snug">{currentQuestion.question}</h2>
+          <p className="text-xs text-[var(--text-light)] font-bold uppercase tracking-wider mb-8 flex items-center gap-2">
+            {isDsa ? <><FiMessageSquare /> AI DSA mentor is calibrating your first mission.</> : 'Tell us a bit about yourself so we can tailor your experience.'}
+          </p>
 
           <div className="space-y-3 max-h-[350px] overflow-y-auto pr-1 no-scrollbar">
-            {activeQuestions[currentStep].options.map((opt) => {
-              const isSelected = activeQuestions[currentStep].multiple 
-                ? (answers[activeQuestions[currentStep].id] || []).includes(opt.value)
-                : answers[activeQuestions[currentStep].id] === opt.value;
+            {currentQuestion.options.map((opt) => {
+              const isSelected = currentQuestion.multiple
+                ? (answers[currentQuestion.id] || []).includes(opt.value)
+                : answers[currentQuestion.id] === opt.value;
 
               return (
                 <button
                   key={opt.value}
                   onClick={() => handleOptionSelect(opt.value)}
                   className={`option-card p-4 transition-all duration-300 flex items-center justify-between border-2 rounded-xl text-left w-full ${
-                    isSelected 
-                      ? 'border-[var(--primary)] bg-[var(--primary-light)] text-[var(--text-main)] shadow-sm' 
+                    isSelected
+                      ? 'border-[var(--primary)] bg-[var(--primary-light)] text-[var(--text-main)] shadow-sm'
                       : 'border-[var(--border)] bg-[var(--bg-card)] text-[var(--text-main)] hover:border-[var(--primary)] hover:bg-[var(--bg-sub)]'
                   }`}
                 >
@@ -245,11 +251,7 @@ const Onboarding = () => {
                     {opt.description && <span className="text-xs text-[var(--text-muted)] font-medium mt-0.5 block">{opt.description}</span>}
                   </div>
                   {isSelected && (
-                    <motion.div 
-                      initial={{ scale: 0 }} 
-                      animate={{ scale: 1 }} 
-                      className="w-6 h-6 rounded-full bg-[var(--primary)] flex items-center justify-center shrink-0"
-                    >
+                    <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className="w-6 h-6 rounded-full bg-[var(--primary)] flex items-center justify-center shrink-0">
                       <svg className="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                       </svg>
@@ -261,23 +263,36 @@ const Onboarding = () => {
           </div>
 
           <div className="mt-8 flex justify-between items-center border-t border-[var(--border)] pt-6">
-            <button 
+            <button
               onClick={() => setCurrentStep(Math.max(0, currentStep - 1))}
               disabled={currentStep === 0}
               className="text-[var(--text-light)] font-black uppercase text-xs hover:text-[var(--text-main)] disabled:opacity-0 transition-all"
             >
               Back
             </button>
-            <button 
-              onClick={handleNext}
-              disabled={!answers[activeQuestions[currentStep].id] || (activeQuestions[currentStep].multiple && answers[activeQuestions[currentStep].id].length === 0)}
-              className="btn-primary py-3 px-6 text-xs uppercase tracking-wider"
-            >
+            <button onClick={handleNext} disabled={isNextDisabled || loading} className="btn-primary py-3 px-6 text-xs uppercase tracking-wider">
               {loading ? 'Generating Journey...' : (currentStep === activeQuestions.length - 1 ? 'Start My Journey' : 'Continue')}
             </button>
           </div>
         </motion.div>
       </AnimatePresence>
+
+      {isDsa && Object.keys(answers).length > 1 && (
+        <div className="mt-6 max-w-xl w-full grid grid-cols-3 gap-3 text-center">
+          {[
+            ['Start', dsaPreview.startLevelName],
+            ['Pace', dsaPreview.recommendedPace],
+            ['Timeline', dsaPreview.estimatedTimeline]
+          ].map(([label, value]) => (
+            <div key={label} className="bg-[var(--bg-card)] border border-[var(--border)] rounded-xl p-3 shadow-sm">
+              <div className="text-[8px] font-black text-[var(--text-light)] uppercase tracking-widest flex justify-center items-center gap-1">
+                {label === 'Pace' && <FiZap />} {label}
+              </div>
+              <div className="text-[10px] font-black text-[var(--text-main)] mt-1 leading-tight">{value}</div>
+            </div>
+          ))}
+        </div>
+      )}
 
       <div className="mt-8 text-center text-[var(--text-light)] text-xs font-semibold uppercase tracking-wider">
         Your data is used solely to personalize your learning path.

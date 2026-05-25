@@ -1,13 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../api/axios';
-import { FiTarget, FiAward, FiClock, FiActivity, FiArrowRight, FiCalendar, FiBook, FiChevronRight, FiZap, FiStar } from 'react-icons/fi';
+import { FiTarget, FiAward, FiClock, FiActivity, FiArrowRight, FiCalendar, FiBook, FiChevronRight, FiZap, FiStar, FiX } from 'react-icons/fi';
 import toast from 'react-hot-toast';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
+import { analyzeDsaProfile, getDsaBadgeForLevel, getStreakRank } from '../utils/dsaPersonalization';
 
 const Dashboard = () => {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [certificates, setCertificates] = useState([]);
+  const [selectedCertificate, setSelectedCertificate] = useState(null);
 
   useEffect(() => {
     fetchDashboard();
@@ -17,6 +20,9 @@ const Dashboard = () => {
     try {
       const res = await api.get('/progress/dashboard');
       setData(res.data.data);
+      
+      const certRes = await api.get('/certificates/my');
+      setCertificates(certRes.data.data);
     } catch (err) {
       toast.error('Failed to load dashboard');
     } finally {
@@ -40,6 +46,10 @@ const Dashboard = () => {
   );
 
   const { user, currentPhaseData, upcomingAssessment, testsPassed, totalBadges, activityLog } = data;
+  const isDsa = user.selectedDomain?.slug === 'dsa';
+  const dsaAnalysis = isDsa ? (user.profile?.onboardingAnswers?.dsaAnalysis || analyzeDsaProfile(user.profile?.onboardingAnswers || {})) : null;
+  const streakRank = getStreakRank(user.dailyStreak || 0);
+  const dsaBadge = getDsaBadgeForLevel(user.currentPhase || 0);
 
   if (!user.selectedDomain) {
     return (
@@ -143,6 +153,36 @@ const Dashboard = () => {
           Enter Arcade <FiArrowRight className="group-hover:translate-x-1 transition-transform" />
         </Link>
       </div>
+
+      {/* Certifications Banner (if earned) */}
+      {certificates.length > 0 && (
+        <div className="mb-10 bg-gradient-to-r from-emerald-950 via-[#101012] to-[#0f1d24] p-8 rounded-3xl border border-emerald-500/20 shadow-xl relative overflow-hidden flex flex-col md:flex-row items-center justify-between gap-8 group">
+          <div className="absolute -top-12 -left-12 w-48 h-48 bg-emerald-600/10 rounded-full blur-3xl"></div>
+          <div className="absolute -bottom-12 -right-12 w-48 h-48 bg-teal-600/10 rounded-full blur-3xl"></div>
+          
+          <div className="flex flex-col md:flex-row items-center gap-5 relative z-10 text-center md:text-left">
+            <div className="w-14 h-14 bg-zinc-900 border border-emerald-500/30 rounded-2xl flex items-center justify-center text-3xl shadow-inner shrink-0">
+              🏆
+            </div>
+            <div>
+              <div className="inline-block px-2.5 py-0.5 bg-emerald-500/20 text-emerald-300 text-[9px] font-black uppercase tracking-wider rounded-lg mb-1.5 border border-emerald-500/30">
+                Official Certification
+              </div>
+              <h2 className="text-xl font-black text-white tracking-tight">Course Certified!</h2>
+              <p className="text-xs text-zinc-400 font-semibold mt-1">
+                You have successfully completed all lectures and requirements for {certificates[0].domainId?.name || 'DSA'}.
+              </p>
+            </div>
+          </div>
+
+          <button 
+            onClick={() => setSelectedCertificate(certificates[0])}
+            className="relative z-10 px-6 py-3.5 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white rounded-xl text-xs font-black uppercase tracking-wider shadow-lg hover:-translate-y-0.5 transition-all flex items-center gap-2 shrink-0 cursor-pointer"
+          >
+            View Certificate <FiAward />
+          </button>
+        </div>
+      )}
 
       <div className="grid lg:grid-cols-3 gap-8 mb-10">
         {/* Active Quest Card */}
@@ -248,8 +288,27 @@ const Dashboard = () => {
                 </div>
                 <div className="p-4 bg-[var(--bg-card)] rounded-xl border border-[var(--border)] shadow-sm group">
                   <div className="text-[9px] text-[var(--text-light)] font-black uppercase tracking-widest mb-1 group-hover:text-amber-500 transition-colors">Next Badge</div>
-                  <div className="text-xs font-black text-amber-500 truncate">{user.currentPhase >= 4 ? 'Graph Hero' : 'Recursion Surivor'}</div>
+                  <div className="text-xs font-black text-amber-500 truncate">{dsaBadge.name}</div>
                   <div className="text-[8px] font-bold text-[var(--text-light)] mt-0.5 uppercase">Lvl {user.currentPhase + 1}</div>
+                </div>
+              </div>
+
+              <div className="grid md:grid-cols-3 gap-3 mb-6">
+                <div className="p-4 bg-zinc-950 text-white rounded-xl border border-indigo-500/20">
+                  <div className="text-[8px] font-black text-indigo-300 uppercase tracking-widest mb-1">AI Recommendation</div>
+                  <div className="text-[11px] font-semibold leading-relaxed text-zinc-300">
+                    Practice {dsaAnalysis?.weakTopics?.[0] || user.dsaStats?.weakestTopic || 'Recursion'} next with one tutorial, one dry run, and one accepted submission.
+                  </div>
+                </div>
+                <div className="p-4 bg-[var(--bg-card)] rounded-xl border border-[var(--border)]">
+                  <div className="text-[8px] font-black text-[var(--text-light)] uppercase tracking-widest mb-1">Streak League</div>
+                  <div className={`text-sm font-black ${streakRank.color}`}>{streakRank.name}</div>
+                  <div className="text-[8px] font-bold text-[var(--text-light)] mt-0.5 uppercase">{streakRank.next}</div>
+                </div>
+                <div className="p-4 bg-[var(--bg-card)] rounded-xl border border-[var(--border)]">
+                  <div className="text-[8px] font-black text-[var(--text-light)] uppercase tracking-widest mb-1">Roadmap Mode</div>
+                  <div className="text-sm font-black text-[var(--text-main)]">{dsaAnalysis?.roadmapType || user.profile?.roadmapType}</div>
+                  <div className="text-[8px] font-bold text-[var(--text-light)] mt-0.5 uppercase">{dsaAnalysis?.estimatedTimeline || user.profile?.estimatedTimeline}</div>
                 </div>
               </div>
 
@@ -425,6 +484,130 @@ const Dashboard = () => {
         </div>
 
       </div>
+
+      {/* Certificate Viewer Modal */}
+      <AnimatePresence>
+        {selectedCertificate && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-[100] flex items-center justify-center p-4 no-print"
+          >
+            <motion.div 
+              initial={{ scale: 0.9, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.9, y: 20 }}
+              transition={{ type: 'spring', damping: 25, stiffness: 180 }}
+              className="bg-[var(--bg-card)] border-2 border-[var(--primary)]/30 rounded-3xl w-full max-w-4xl overflow-hidden shadow-2xl relative p-8 flex flex-col items-center gap-6"
+            >
+              {/* Header actions */}
+              <div className="w-full flex justify-between items-center border-b border-[var(--border)] pb-4">
+                <h3 className="text-lg font-black text-[var(--text-main)] flex items-center gap-2 uppercase tracking-wide">
+                  <FiAward className="text-emerald-500" /> Digital Certificate
+                </h3>
+                <div className="flex items-center gap-3">
+                  <button 
+                    onClick={() => window.print()}
+                    className="px-4 py-2 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white text-[10px] font-black uppercase tracking-wider rounded-xl transition-all shadow-md active:scale-95 cursor-pointer"
+                  >
+                    Print / Download PDF
+                  </button>
+                  <button 
+                    onClick={() => setSelectedCertificate(null)}
+                    className="w-8 h-8 rounded-full bg-[var(--bg-sub)] hover:bg-[var(--border)] text-[var(--text-light)] hover:text-[var(--text-main)] flex items-center justify-center transition-all cursor-pointer"
+                  >
+                    <FiX size={18} />
+                  </button>
+                </div>
+              </div>
+
+              {/* Printable Certificate Frame */}
+              <div 
+                id="printable-certificate"
+                className="w-full aspect-[1.414/1] bg-stone-900 border-[16px] border-double border-[#c5a880] p-10 flex flex-col justify-between items-center text-center text-stone-200 relative overflow-hidden select-text"
+                style={{ fontFamily: 'Georgia, serif' }}
+              >
+                {/* Vintage corner decorations */}
+                <div className="absolute top-4 left-4 w-12 h-12 border-t-4 border-l-4 border-[#c5a880]/40"></div>
+                <div className="absolute top-4 right-4 w-12 h-12 border-t-4 border-r-4 border-[#c5a880]/40"></div>
+                <div className="absolute bottom-4 left-4 w-12 h-12 border-b-4 border-l-4 border-[#c5a880]/40"></div>
+                <div className="absolute bottom-4 right-4 w-12 h-12 border-b-4 border-r-4 border-[#c5a880]/40"></div>
+                
+                {/* Background emblem watermark */}
+                <div className="absolute inset-0 flex items-center justify-center opacity-[0.03] select-none pointer-events-none">
+                  <span className="text-[250px]">🏆</span>
+                </div>
+
+                <div className="space-y-1">
+                  <div className="text-[10px] font-black uppercase tracking-[0.3em] text-[#c5a880]">CareerForge Verification</div>
+                  <h1 className="text-3xl font-bold tracking-wide text-white" style={{ fontFamily: 'Georgia, serif' }}>CERTIFICATE OF COMPLETION</h1>
+                </div>
+
+                <div className="space-y-4">
+                  <p className="text-xs italic text-stone-400">This specialized credential certifies that</p>
+                  <h2 className="text-4xl font-extrabold text-[#c5a880] tracking-wide my-2 uppercase">{user.fullName}</h2>
+                  <p className="text-xs text-stone-300 max-w-lg mx-auto leading-relaxed">
+                    has successfully completed the full, rigorous curriculum of learning, coding challenges, and assessments for the course
+                  </p>
+                  <h3 className="text-xl font-bold text-white tracking-wide uppercase my-1">{selectedCertificate.title || 'Data Structures & Algorithms'}</h3>
+                </div>
+
+                <div className="w-full flex justify-between items-end border-t border-stone-800 pt-6 px-4">
+                  <div className="text-left space-y-1">
+                    <div className="text-[8px] font-bold text-stone-500 uppercase tracking-widest">ISSUED ON</div>
+                    <div className="text-xs font-semibold text-stone-300">{new Date(selectedCertificate.issuedAt).toLocaleDateString()}</div>
+                  </div>
+                  
+                  <div className="flex flex-col items-center">
+                    <div className="w-14 h-14 border border-stone-800 rounded bg-white p-1 flex items-center justify-center opacity-85 select-none pointer-events-none">
+                      <div className="text-[7px] text-stone-900 font-bold leading-none select-none text-center">
+                        CF VERIFY<br />🔒<br />{selectedCertificate.certificateId.substring(selectedCertificate.certificateId.length - 6)}
+                      </div>
+                    </div>
+                    <div className="text-[6px] font-black text-stone-500 uppercase tracking-wider mt-1.5">SCAN TO VERIFY</div>
+                  </div>
+
+                  <div className="text-right space-y-1">
+                    <div className="text-[8px] font-bold text-stone-500 uppercase tracking-widest">CREDENTIAL ID</div>
+                    <div className="text-xs font-semibold text-[#c5a880] tracking-wider select-all">{selectedCertificate.certificateId}</div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Dynamic Print CSS */}
+              <style>{`
+                @media print {
+                  body {
+                    background: white !important;
+                    color: black !important;
+                  }
+                  #root {
+                    display: none !important;
+                  }
+                  body > * {
+                    display: none !important;
+                  }
+                  #printable-certificate {
+                    display: flex !important;
+                    position: fixed !important;
+                    left: 0 !important;
+                    top: 0 !important;
+                    width: 100vw !important;
+                    height: 100vh !important;
+                    z-index: 9999999 !important;
+                    background: #1c1917 !important; /* dark stone background for printing */
+                    color: #e7e5e4 !important;
+                    box-sizing: border-box !important;
+                    margin: 0 !important;
+                    border: 24px double #c5a880 !important;
+                  }
+                }
+              `}</style>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
     </div>
   );

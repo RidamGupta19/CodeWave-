@@ -3,41 +3,43 @@ const { MongoMemoryServer } = require('mongodb-memory-server');
 
 let mongoServer;
 
+const connectWithTimeout = (uri) => mongoose.connect(uri, {
+  serverSelectionTimeoutMS: 5000
+});
+
 const connectDB = async () => {
   try {
     let uri = process.env.MONGODB_URI || 'mongodb://localhost:27017/careerforge';
-    
-    // Check if we should use memory server
+
     if (process.env.USE_MEMORY_DB === 'true' || !process.env.MONGODB_URI) {
-      console.log('🔄 Starting In-Memory MongoDB Server...');
+      console.log('Starting in-memory MongoDB server...');
       mongoServer = await MongoMemoryServer.create();
       uri = mongoServer.getUri();
-      console.log('✅ In-Memory MongoDB Started at', uri);
+      console.log('In-memory MongoDB started at', uri);
     }
 
-    const conn = await mongoose.connect(uri);
-    console.log(`✅ MongoDB Connected: ${conn.connection.host}`);
-    
+    const conn = await connectWithTimeout(uri);
+    console.log(`MongoDB connected: ${conn.connection.host}`);
+
     return { conn, isMemory: !!mongoServer };
   } catch (error) {
-    console.error(`❌ MongoDB Connection Error: ${error.message}`);
-    
-    // Fallback to memory server if local connection fails
+    console.error(`MongoDB connection error: ${error.message}`);
+
     if (!mongoServer) {
-      console.log('⚠️ Local MongoDB connection failed. Falling back to In-Memory DB...');
+      console.log('Local MongoDB connection failed. Falling back to in-memory DB...');
       try {
         mongoServer = await MongoMemoryServer.create();
         const uri = mongoServer.getUri();
-        const conn = await mongoose.connect(uri);
-        console.log(`✅ In-Memory MongoDB Connected at ${uri}`);
+        const conn = await connectWithTimeout(uri);
+        console.log(`In-memory MongoDB connected at ${uri}`);
         return { conn, isMemory: true };
       } catch (memErr) {
-        console.error(`❌ In-Memory DB Error: ${memErr.message}`);
+        console.error(`In-memory DB error: ${memErr.message}`);
         process.exit(1);
       }
-    } else {
-      process.exit(1);
     }
+
+    process.exit(1);
   }
 };
 
