@@ -84,11 +84,81 @@ exports.getAdminStats = async (req, res) => {
     const totalDomains = await Domain.countDocuments();
     const Assessment = require('../models/Assessment');
     const totalAssessments = await Assessment.countDocuments();
+    const Problem = require('../models/Problem');
+    const Submission = require('../models/Submission');
+    const totalProblems = await Problem.countDocuments();
+    const publishedProblems = await Problem.countDocuments({ isPublished: true });
+    const totalSubmissions = await Submission.countDocuments();
 
     res.json({
       success: true,
-      data: { totalUsers, totalStudents, totalMentors, totalDomains, totalAssessments }
+      data: {
+        totalUsers,
+        totalStudents,
+        totalMentors,
+        totalDomains,
+        totalAssessments,
+        totalProblems,
+        publishedProblems,
+        totalSubmissions
+      }
     });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// @desc    Update user progress/XP/profile (admin)
+exports.updateUserProgress = async (req, res) => {
+  try {
+    const { xp, overallProgress, currentPhase, profile } = req.body;
+    const user = await User.findById(req.params.id).populate('activeDomain');
+    if (!user) return res.status(404).json({ success: false, message: 'User not found' });
+
+    if (profile !== undefined) {
+      user.profile = { ...user.profile.toObject(), ...profile };
+    }
+
+    // Safely update domainsProgress for active domain
+    if (user.activeDomain) {
+      const getProgressKey = (slug) => {
+        if (!slug) return 'dsa';
+        const lowercaseSlug = slug.toLowerCase();
+        if (lowercaseSlug === 'web-development' || lowercaseSlug === 'webdev') return 'webdev';
+        if (lowercaseSlug === 'open-source' || lowercaseSlug === 'opensource') return 'opensource';
+        if (lowercaseSlug === 'devops') return 'devops';
+        if (lowercaseSlug === 'dsa') return 'dsa';
+        if (lowercaseSlug.includes('web') || lowercaseSlug.includes('ui-ux')) return 'webdev';
+        if (lowercaseSlug.includes('open') || lowercaseSlug.includes('git')) return 'opensource';
+        if (lowercaseSlug.includes('dsa') || lowercaseSlug.includes('data')) return 'dsa';
+        return 'devops';
+      };
+
+      const key = getProgressKey(user.activeDomain.slug);
+      if (!user.domainsProgress) user.domainsProgress = {};
+      if (!user.domainsProgress[key]) {
+        user.domainsProgress[key] = {
+          xp: 0,
+          currentPhase: 1,
+          overallProgress: 0,
+          completedTopics: [],
+          startedTopics: [],
+          testResults: [],
+          codeSubmissions: []
+        };
+      }
+
+      if (xp !== undefined) user.domainsProgress[key].xp = xp;
+      if (overallProgress !== undefined) user.domainsProgress[key].overallProgress = overallProgress;
+      if (currentPhase !== undefined) user.domainsProgress[key].currentPhase = currentPhase;
+
+      user.markModified(`domainsProgress.${key}`);
+    }
+
+    await user.save();
+    
+    const updatedUser = await User.findById(user._id).select('-password').populate('activeDomain');
+    res.json({ success: true, data: updatedUser });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }

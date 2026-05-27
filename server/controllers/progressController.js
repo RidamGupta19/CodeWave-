@@ -118,6 +118,9 @@ exports.selectDomain = async (req, res) => {
     if (!domain) return res.status(404).json({ success: false, message: 'Domain not found' });
 
     user.activeDomain = domainId;
+    if (user.profile) {
+      user.profile.isProfileComplete = false;
+    }
 
     // Initialize domain-specific phase if not set
     const key = getProgressKey(domain.slug);
@@ -130,6 +133,7 @@ exports.selectDomain = async (req, res) => {
     }
 
     user.markModified(`domainsProgress.${key}`);
+    user.markModified('profile');
     await user.save();
 
     res.json({ success: true, message: 'Domain selected', data: { selectedDomain: domain } });

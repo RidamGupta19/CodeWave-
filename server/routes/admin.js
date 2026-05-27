@@ -6,6 +6,7 @@ const { protect, authorize } = require('../middleware/auth');
 router.get('/stats', protect, authorize('admin'), c.getAdminStats);
 router.get('/users', protect, authorize('admin'), c.getAllUsers);
 router.put('/users/:id/role', protect, authorize('admin'), c.updateUserRole);
+router.put('/users/:id/progress', protect, authorize('admin'), c.updateUserProgress);
 router.delete('/users/:id', protect, authorize('admin'), c.deleteUser);
 
 // Mentor routes

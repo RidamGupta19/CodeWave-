@@ -2469,6 +2469,199 @@ const topicData = {
     { title: 'Tries & Implementation', description: 'Prefix trees, insertion, search, and prefix matching algorithms.', instructor: 'Love Babbar', difficulty: 'intermediate', estimatedTime: '4 hours', order: 3, youtubeLink: 'https://www.youtube.com/watch?v=dBGUmUQhjaM', theoryLink: 'https://www.geeksforgeeks.org/trie-insert-and-search/', practiceLink: 'https://leetcode.com/problems/implement-trie-prefix-tree/' }
   ]
 
+,
+  'devops:1': [
+    {
+        "title": "Linux Basics",
+        "description": "File system, commands, permissions",
+        "difficulty": "beginner",
+        "estimatedTime": "4 hours",
+        "order": 1,
+        "youtubeLink": "https://www.youtube.com/watch?v=ROjZy1WbCIA"
+    },
+    {
+        "title": "User Management",
+        "description": "Users, groups, sudo",
+        "difficulty": "beginner",
+        "estimatedTime": "2 hours",
+        "order": 2,
+        "youtubeLink": "https://www.youtube.com/watch?v=ROjZy1WbCIA"
+    }
+],
+  'devops:2': [
+    {
+        "title": "Networking Fundamentals",
+        "description": "OSI Model, TCP/IP, IP Addressing",
+        "difficulty": "intermediate",
+        "estimatedTime": "5 hours",
+        "order": 1,
+        "youtubeLink": "https://www.youtube.com/watch?v=Wvf0mBNGjXY"
+    },
+    {
+        "title": "DNS & HTTP",
+        "description": "How domain names and web requests work",
+        "difficulty": "beginner",
+        "estimatedTime": "3 hours",
+        "order": 2,
+        "youtubeLink": "https://www.youtube.com/watch?v=Wvf0mBNGjXY"
+    }
+],
+  'devops:3': [
+    {
+        "title": "Git Fundamentals",
+        "description": "Commits, branching, merging",
+        "difficulty": "beginner",
+        "estimatedTime": "3 hours",
+        "order": 1,
+        "youtubeLink": "https://www.youtube.com/watch?v=RGOj5yH7evk"
+    },
+    {
+        "title": "GitHub Workflows",
+        "description": "Pull requests, code reviews, actions basics",
+        "difficulty": "intermediate",
+        "estimatedTime": "3 hours",
+        "order": 2,
+        "youtubeLink": "https://www.youtube.com/watch?v=RGOj5yH7evk"
+    }
+],
+  'devops:4': [
+    {
+        "title": "Bash Scripting Basics",
+        "description": "Variables, loops, conditions",
+        "difficulty": "intermediate",
+        "estimatedTime": "4 hours",
+        "order": 1,
+        "youtubeLink": "https://www.youtube.com/watch?v=v-F3YLd6oMw"
+    },
+    {
+        "title": "Automating Tasks",
+        "description": "Cron jobs, script execution",
+        "difficulty": "intermediate",
+        "estimatedTime": "3 hours",
+        "order": 2,
+        "youtubeLink": "https://www.youtube.com/watch?v=v-F3YLd6oMw"
+    }
+],
+  'devops:5': [
+    {
+        "title": "Docker Containers",
+        "description": "Images, Containers, Dockerfile",
+        "difficulty": "intermediate",
+        "estimatedTime": "5 hours",
+        "order": 1,
+        "youtubeLink": "https://www.youtube.com/watch?v=3c-iBn73dDE"
+    },
+    {
+        "title": "Docker Compose",
+        "description": "Multi-container applications",
+        "difficulty": "intermediate",
+        "estimatedTime": "3 hours",
+        "order": 2,
+        "youtubeLink": "https://www.youtube.com/watch?v=3c-iBn73dDE"
+    }
+],
+  'devops:6': [
+    {
+        "title": "Kubernetes Architecture",
+        "description": "Nodes, Pods, Services, Deployments",
+        "difficulty": "advanced",
+        "estimatedTime": "6 hours",
+        "order": 1,
+        "youtubeLink": "https://www.youtube.com/watch?v=X48VuDVv0do"
+    },
+    {
+        "title": "Managing K8s Clusters",
+        "description": "kubectl, scaling, updates",
+        "difficulty": "advanced",
+        "estimatedTime": "5 hours",
+        "order": 2,
+        "youtubeLink": "https://www.youtube.com/watch?v=X48VuDVv0do"
+    }
+],
+  'devops:7': [
+    {
+        "title": "CI/CD Concepts",
+        "description": "Continuous Integration & Deployment",
+        "difficulty": "intermediate",
+        "estimatedTime": "3 hours",
+        "order": 1,
+        "youtubeLink": "https://www.youtube.com/watch?v=j5Zsa_eOXeY"
+    },
+    {
+        "title": "GitHub Actions",
+        "description": "Automating workflows with GitHub",
+        "difficulty": "intermediate",
+        "estimatedTime": "4 hours",
+        "order": 2,
+        "youtubeLink": "https://www.youtube.com/watch?v=RGOj5yH7evk"
+    }
+],
+  'devops:8': [
+    {
+        "title": "Infrastructure as Code",
+        "description": "Introduction to IaC",
+        "difficulty": "intermediate",
+        "estimatedTime": "2 hours",
+        "order": 1,
+        "youtubeLink": "https://www.youtube.com/watch?v=l5k1aiIGfSc"
+    },
+    {
+        "title": "Terraform Basics",
+        "description": "Providers, resources, state",
+        "difficulty": "advanced",
+        "estimatedTime": "5 hours",
+        "order": 2,
+        "youtubeLink": "https://www.youtube.com/watch?v=l5k1aiIGfSc"
+    }
+],
+  'devops:9': [
+    {
+        "title": "Configuration Management",
+        "description": "Ansible architecture, playbooks",
+        "difficulty": "advanced",
+        "estimatedTime": "5 hours",
+        "order": 1,
+        "youtubeLink": "https://www.youtube.com/watch?v=1id6IGB4nPU"
+    }
+],
+  'devops:10': [
+    {
+        "title": "Monitoring with Prometheus",
+        "description": "Metrics, scraping, alerts",
+        "difficulty": "advanced",
+        "estimatedTime": "4 hours",
+        "order": 1,
+        "youtubeLink": "https://www.youtube.com/watch?v=h4Sl21AKiDg"
+    },
+    {
+        "title": "Visualization with Grafana",
+        "description": "Dashboards, data sources",
+        "difficulty": "advanced",
+        "estimatedTime": "3 hours",
+        "order": 2,
+        "youtubeLink": "https://www.youtube.com/watch?v=h4Sl21AKiDg"
+    }
+],
+  'devops:11': [
+    {
+        "title": "AWS Cloud Basics",
+        "description": "EC2, S3, IAM, VPC",
+        "difficulty": "intermediate",
+        "estimatedTime": "6 hours",
+        "order": 1,
+        "youtubeLink": "https://www.youtube.com/watch?v=k1RI5locZE4"
+    }
+],
+  'devops:12': [
+    {
+        "title": "Full CI/CD Pipeline Project",
+        "description": "Deploy a microservices app using Docker, K8s, and Terraform",
+        "difficulty": "advanced",
+        "estimatedTime": "10 hours",
+        "order": 1,
+        "youtubeLink": "https://www.youtube.com/watch?v=3c-iBn73dDE"
+    }
+]
 };
 
 module.exports = topicData;

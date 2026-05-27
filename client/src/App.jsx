@@ -24,6 +24,12 @@ import ZeroToCoding from './pages/ZeroToCoding';
 
 // Admin Pages
 import AdminDashboard from './pages/admin/AdminDashboard';
+import ManageProblems from './pages/admin/ManageProblems';
+import CreateProblem from './pages/admin/CreateProblem';
+import EditProblem from './pages/admin/EditProblem';
+import ManageSubmissions from './pages/admin/ManageSubmissions';
+import ManageTestCases from './pages/admin/ManageTestCases';
+import ManageTopics from './pages/admin/ManageTopics';
 
 function App() {
   return (
@@ -56,6 +62,13 @@ function App() {
           <Route element={<ProtectedRoute allowedRoles={['admin']} />}>
             <Route element={<Layout isAdmin={true} />}>
               <Route path="/admin" element={<AdminDashboard />} />
+              <Route path="/admin/users" element={<AdminDashboard />} />
+              <Route path="/admin/problems" element={<ManageProblems />} />
+              <Route path="/admin/problems/create" element={<CreateProblem />} />
+              <Route path="/admin/problems/edit/:id" element={<EditProblem />} />
+              <Route path="/admin/problems/test-cases/:id" element={<ManageTestCases />} />
+              <Route path="/admin/submissions" element={<ManageSubmissions />} />
+              <Route path="/admin/topics" element={<ManageTopics />} />
             </Route>
           </Route>
 

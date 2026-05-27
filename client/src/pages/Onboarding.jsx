@@ -40,19 +40,6 @@ const Onboarding = () => {
           ]
         },
         {
-          id: 'dsa_known_topics',
-          question: 'Which topics do you already know?',
-          multiple: true,
-          options: [
-            { label: 'Variables', value: 'variables' },
-            { label: 'Loops', value: 'loops' },
-            { label: 'Functions', value: 'functions' },
-            { label: 'Arrays', value: 'arrays' },
-            { label: 'Recursion', value: 'recursion' },
-            { label: 'None', value: 'none' }
-          ]
-        },
-        {
           id: 'dsa_problem_experience',
           question: 'Have you solved coding problems before?',
           options: [
@@ -79,15 +66,6 @@ const Onboarding = () => {
             { label: 'Git', value: 'git' },
             { label: 'None', value: 'none' }
           ]
-        },
-        {
-          id: 'web_page',
-          question: 'Can you build a basic responsive webpage?',
-          options: [
-            { label: 'No', value: 'no', description: 'We will start with simple HTML structure layouts.' },
-            { label: 'Somewhat', value: 'somewhat', description: 'I know basic flexbox but need responsive grids.' },
-            { label: 'Yes confidently', value: 'yes', description: 'Ready to dive into advanced components.' }
-          ]
         }
       ];
     } else if (activeDomainSlug === 'devops') {
@@ -100,23 +78,10 @@ const Onboarding = () => {
             { label: 'Basic command line', value: 'basic', description: 'I can navigate directories and move files.' },
             { label: 'Comfortable with scripts', value: 'comfortable', description: 'I can write simple scripts and install packages.' }
           ]
-        },
-        {
-          id: 'devops_tools',
-          question: 'Which DevOps tools have you heard of or used?',
-          multiple: true,
-          options: [
-            { label: 'Git & GitHub', value: 'git' },
-            { label: 'Docker Containers', value: 'docker' },
-            { label: 'CI/CD Pipelines', value: 'cicd' },
-            { label: 'Kubernetes', value: 'kubernetes' },
-            { label: 'AWS / GCP / Cloud', value: 'cloud' },
-            { label: 'None', value: 'none' }
-          ]
         }
       ];
     } else {
-      // Open Source
+      // Open Source / Default
       domainSpecificQuestions = [
         {
           id: 'git_experience',

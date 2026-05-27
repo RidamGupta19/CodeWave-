@@ -21,8 +21,13 @@ const ProtectedRoute = ({ allowedRoles }) => {
     return <Navigate to="/dashboard" replace />;
   }
 
+  // If student hasn't selected a domain, redirect to /domains
+  if (user.role === 'student' && !user.activeDomain && window.location.pathname !== '/domains' && window.location.pathname !== '/career-guide') {
+     return <Navigate to="/domains" replace />;
+  }
+
   // Force profile setup for students
-  if (user.role === 'student' && !user.profile?.isProfileComplete && window.location.pathname !== '/setup-profile') {
+  if (user.role === 'student' && user.activeDomain && !user.profile?.isProfileComplete && window.location.pathname !== '/setup-profile') {
      return <Navigate to="/setup-profile" replace />;
   }
 

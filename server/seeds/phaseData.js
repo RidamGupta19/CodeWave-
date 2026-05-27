@@ -32,7 +32,7 @@ const phaseData = {
     { phaseNumber: 9, name: 'Dashboard Project', description: 'Build interactive dashboards', estimatedDuration: '1 week' },
     { phaseNumber: 10, name: 'Final Analytics Case Study', description: 'Real-world business analytics project', estimatedDuration: '2 weeks' }
   ],
-  'devops-engineering': [
+  'devops': [
     { phaseNumber: 1, name: 'Linux Basics', description: 'Commands, file system, permissions', estimatedDuration: '1 week' },
     { phaseNumber: 2, name: 'Networking Basics', description: 'TCP/IP, DNS, HTTP, firewalls', estimatedDuration: '1 week' },
     { phaseNumber: 3, name: 'Git & GitHub', description: 'Version control for DevOps', estimatedDuration: '3 days' },

@@ -54,6 +54,9 @@ app.use('/api/cloud-credits', require('./routes/cloudCredits'));
 app.use('/api/certificates', require('./routes/certificates'));
 app.use('/api/ai', require('./routes/ai'));
 app.use('/api/admin', require('./routes/admin'));
+app.use('/api/problems', require('./routes/problemRoutes'));
+app.use('/api/code', require('./routes/codeRoutes'));
+app.use('/api/submissions', require('./routes/submissionRoutes'));
 
 // Health check
 app.get('/api/health', (req, res) => {

@@ -13,6 +13,9 @@ const Topic = require('../models/Topic');
 const Assessment = require('../models/Assessment');
 const Badge = require('../models/Badge');
 const CloudCredit = require('../models/CloudCredit');
+const Problem = require('../models/Problem');
+const Submission = require('../models/Submission');
+const UserProgress = require('../models/UserProgress');
 
 const domainData = require('./domainData');
 const phaseData = require('./phaseData');
@@ -49,7 +52,10 @@ async function seedDB() {
       Topic.deleteMany({}),
       Assessment.deleteMany({}),
       Badge.deleteMany({}),
-      CloudCredit.deleteMany({})
+      CloudCredit.deleteMany({}),
+      Problem.deleteMany({}),
+      Submission.deleteMany({}),
+      UserProgress.deleteMany({})
     ]);
     console.log('🗑️  Cleared existing data');
 
@@ -158,6 +164,15 @@ async function seedDB() {
       { name: 'Recursion Survivor', description: 'Completed all recursion challenges', icon: '👑', type: 'special', unlockCondition: 'Complete all 22 checkpoints' }
     ];
     await Badge.insertMany(streakBadges);
+
+    // Seed problem bank (Admin problems)
+    try {
+      const seedProblemBank = require('./seedProblems');
+      await seedProblemBank();
+      console.log('📝 Problem bank seeded successfully');
+    } catch (err) {
+      console.error('❌ Failed to seed problem bank:', err.message);
+    }
 
     console.log('\n🎉 Database seeded successfully!');
     console.log(`📧 Admin: ${process.env.ADMIN_EMAIL || 'admin@careerforge.com'}`);
