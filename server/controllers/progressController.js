@@ -5,6 +5,108 @@ const Topic = require('../models/Topic');
 const Badge = require('../models/Badge');
 const Certificate = require('../models/Certificate');
 
+// Helper function to map database slugs to domainsProgress keys
+const getProgressKey = (slug) => {
+  if (!slug) return 'dsa';
+  const lowercaseSlug = slug.toLowerCase();
+  if (lowercaseSlug === 'web-development' || lowercaseSlug === 'webdev') return 'webdev';
+  if (lowercaseSlug === 'open-source' || lowercaseSlug === 'opensource') return 'opensource';
+  if (lowercaseSlug === 'devops') return 'devops';
+  if (lowercaseSlug === 'dsa') return 'dsa';
+  // Fallback mappings for other possible seed domains
+  if (lowercaseSlug.includes('web') || lowercaseSlug.includes('ui-ux')) return 'webdev';
+  if (lowercaseSlug.includes('open') || lowercaseSlug.includes('git')) return 'opensource';
+  if (lowercaseSlug.includes('dsa') || lowercaseSlug.includes('data')) return 'dsa';
+  return 'devops';
+};
+
+// Helper function to safely retrieve and initialize domain progress
+const getSafeDomainProgress = (user, key) => {
+  if (!user.domainsProgress) {
+    user.domainsProgress = {};
+  }
+  if (!user.domainsProgress[key]) {
+    user.domainsProgress[key] = {
+      xp: 0,
+      currentPhase: 1,
+      overallProgress: 0,
+      completedTopics: [],
+      startedTopics: [],
+      testResults: [],
+      codeSubmissions: [],
+      dsaStats: {
+        totalProblemsSolved: 0,
+        currentStreak: 0,
+        bestStreak: 0,
+        strongestTopic: '',
+        weakestTopic: '',
+      }
+    };
+  }
+  if (!user.domainsProgress[key].completedTopics) {
+    user.domainsProgress[key].completedTopics = [];
+  }
+  if (!user.domainsProgress[key].startedTopics) {
+    user.domainsProgress[key].startedTopics = [];
+  }
+  if (!user.domainsProgress[key].testResults) {
+    user.domainsProgress[key].testResults = [];
+  }
+  if (!user.domainsProgress[key].codeSubmissions) {
+    user.domainsProgress[key].codeSubmissions = [];
+  }
+  if (!user.domainsProgress[key].dsaStats) {
+    user.domainsProgress[key].dsaStats = {
+      totalProblemsSolved: 0,
+      currentStreak: 0,
+      bestStreak: 0,
+      strongestTopic: '',
+      weakestTopic: '',
+    };
+  }
+  return user.domainsProgress[key];
+};
+
+// Helper function to update DSA stats (internal)
+const updateDSAStats = (user) => {
+  const dsaProgress = getSafeDomainProgress(user, 'dsa');
+  if (!dsaProgress || !dsaProgress.completedTopics || dsaProgress.completedTopics.length === 0) return;
+  
+  const dsaTopics = dsaProgress.completedTopics.filter(ct => ct.difficultyFeedback);
+  if (dsaTopics.length === 0) return;
+
+  // Track counts for strongest/weakest calculation
+  const performanceMap = {};
+  
+  dsaTopics.forEach(ct => {
+    const category = ct.topicId?.title ? ct.topicId.title.split(' ')[0] : 'General';
+    
+    if (!performanceMap[category]) {
+      performanceMap[category] = { totalConfidence: 0, count: 0, hardCount: 0 };
+    }
+    
+    performanceMap[category].totalConfidence += (ct.confidenceLevel || 3);
+    performanceMap[category].count += 1;
+    if (ct.difficultyFeedback === 'hard') performanceMap[category].hardCount += 1;
+  });
+
+  let strongest = { name: '', score: -1 };
+  let weakest = { name: '', score: 100 };
+
+  Object.keys(performanceMap).forEach(cat => {
+    const avgConfidence = performanceMap[cat].totalConfidence / performanceMap[cat].count;
+    const hardRatio = performanceMap[cat].hardCount / performanceMap[cat].count;
+    const score = avgConfidence - (hardRatio * 2);
+
+    if (score > strongest.score) strongest = { name: cat, score };
+    if (score < weakest.score) weakest = { name: cat, score };
+  });
+
+  dsaProgress.dsaStats.strongestTopic = strongest.name || 'Foundations';
+  dsaProgress.dsaStats.weakestTopic = weakest.name || 'Recursion';
+  dsaProgress.dsaStats.totalProblemsSolved = dsaTopics.length;
+};
+
 // @desc    Select domain for student
 // @route   POST /api/progress/select-domain
 exports.selectDomain = async (req, res) => {
@@ -15,16 +117,19 @@ exports.selectDomain = async (req, res) => {
     const domain = await Domain.findById(domainId);
     if (!domain) return res.status(404).json({ success: false, message: 'Domain not found' });
 
-    user.selectedDomain = domainId;
-    user.currentPhase = 1;
-    user.overallProgress = 0;
-    user.completedTopics = [];
-    user.startedTopics = [];
-    user.testResults = [];
+    user.activeDomain = domainId;
 
-    // Increment enrolled count
-    domain.enrolledCount = (domain.enrolledCount || 0) + 1;
-    await domain.save();
+    // Initialize domain-specific phase if not set
+    const key = getProgressKey(domain.slug);
+    if (user.domainsProgress && user.domainsProgress[key]) {
+      if (!user.domainsProgress[key].currentPhase || user.domainsProgress[key].currentPhase === 0) {
+        user.domainsProgress[key].currentPhase = 1;
+        domain.enrolledCount = (domain.enrolledCount || 0) + 1;
+        await domain.save();
+      }
+    }
+
+    user.markModified(`domainsProgress.${key}`);
     await user.save();
 
     res.json({ success: true, message: 'Domain selected', data: { selectedDomain: domain } });
@@ -38,14 +143,21 @@ exports.selectDomain = async (req, res) => {
 exports.startTopic = async (req, res) => {
   try {
     const { topicId } = req.body;
-    const user = await User.findById(req.user._id);
+    const user = await User.findById(req.user._id).populate('activeDomain');
+    if (!user.activeDomain) {
+      return res.status(400).json({ success: false, message: 'No active domain selected' });
+    }
 
-    const alreadyStarted = user.startedTopics.find(t => t.topicId.toString() === topicId);
+    const key = getProgressKey(user.activeDomain.slug);
+    const domainProgress = user.domainsProgress[key];
+
+    const alreadyStarted = domainProgress.startedTopics.find(t => t.topicId.toString() === topicId);
     if (alreadyStarted) {
       return res.json({ success: true, message: 'Topic already started' });
     }
 
-    user.startedTopics.push({ topicId, startedAt: new Date() });
+    domainProgress.startedTopics.push({ topicId, startedAt: new Date() });
+    user.markModified(`domainsProgress.${key}`);
     await user.save();
 
     res.json({ success: true, message: 'Topic started' });
@@ -59,14 +171,29 @@ exports.startTopic = async (req, res) => {
 exports.completeTopic = async (req, res) => {
   try {
     const { topicId, studyTimeMinutes, notes, difficultyFeedback, confidenceLevel, revisionNeeded } = req.body;
-    const user = await User.findById(req.user._id);
-
-    const alreadyCompleted = user.completedTopics.find(t => t.topicId.toString() === topicId);
-    if (alreadyCompleted) {
-      return res.json({ success: true, message: 'Topic already completed' });
+    const user = await User.findById(req.user._id).populate('activeDomain');
+    if (!user.activeDomain) {
+      return res.status(400).json({ success: false, message: 'No active domain selected' });
     }
 
-    user.completedTopics.push({
+    const key = getProgressKey(user.activeDomain.slug);
+    const domainProgress = user.domainsProgress[key];
+
+    const alreadyCompleted = domainProgress.completedTopics.find(t => t.topicId.toString() === topicId);
+    if (alreadyCompleted) {
+      return res.json({ 
+        success: true, 
+        message: 'Topic already completed',
+        data: {
+          overallProgress: domainProgress.overallProgress,
+          dailyStreak: user.dailyStreak,
+          xp: domainProgress.xp,
+          totalXP: user.totalXP
+        }
+      });
+    }
+
+    domainProgress.completedTopics.push({
       topicId,
       completedAt: new Date(),
       studyTimeMinutes: studyTimeMinutes || 0,
@@ -77,12 +204,12 @@ exports.completeTopic = async (req, res) => {
     });
 
     // Update DSA Stats if applicable
-    if (difficultyFeedback && difficultyFeedback !== 'unsolved') {
-      user.dsaStats.totalProblemsSolved += 1;
-      user.dsaStats.lastSolvedAt = new Date();
+    if (difficultyFeedback && difficultyFeedback !== 'unsolved' && key === 'dsa') {
+      domainProgress.dsaStats.totalProblemsSolved += 1;
+      domainProgress.dsaStats.lastSolvedAt = new Date();
     }
 
-    // Update total study minutes and XP with Streak Multiplier
+    // Update study minutes globally, XP domain-specifically with Streak Multiplier
     let xpGain = 50;
     if (user.dailyStreak >= 30) {
       xpGain = 100; // Master Multiplier
@@ -91,7 +218,7 @@ exports.completeTopic = async (req, res) => {
     }
     
     user.totalStudyMinutes += (studyTimeMinutes || 0);
-    user.xp = (user.xp || 0) + xpGain;
+    domainProgress.xp = (domainProgress.xp || 0) + xpGain;
 
     // Update activity log
     const today = new Date().toISOString().split('T')[0];
@@ -130,110 +257,80 @@ exports.completeTopic = async (req, res) => {
       }
     }
 
-    // 2. First Step badge check
-    if (user.completedTopics.length === 1) {
-      const firstStepBadge = await Badge.findOne({ name: 'First Step' });
-      if (firstStepBadge) {
-        const alreadyEarned = user.earnedBadges.some(b => b.badgeId.toString() === firstStepBadge._id.toString());
-        if (!alreadyEarned) {
-          user.earnedBadges.push({ badgeId: firstStepBadge._id, earnedAt: new Date() });
-          newlyEarnedBadges.push(firstStepBadge);
-        }
-      }
-    }
-
-    // 3. Streak badges check
-    if (user.dailyStreak >= 5) {
-      const bronzeBadge = await Badge.findOne({ name: 'Bronze Badge' });
-      if (bronzeBadge) {
-        const alreadyEarned = user.earnedBadges.some(b => b.badgeId.toString() === bronzeBadge._id.toString());
-        if (!alreadyEarned) {
-          user.earnedBadges.push({ badgeId: bronzeBadge._id, earnedAt: new Date() });
-          newlyEarnedBadges.push(bronzeBadge);
-        }
-      }
-    }
-    if (user.dailyStreak >= 30) {
-      const monthlyBadge = await Badge.findOne({ name: 'Monthly Badge' });
-      if (monthlyBadge) {
-        const alreadyEarned = user.earnedBadges.some(b => b.badgeId.toString() === monthlyBadge._id.toString());
-        if (!alreadyEarned) {
-          user.earnedBadges.push({ badgeId: monthlyBadge._id, earnedAt: new Date() });
-          newlyEarnedBadges.push(monthlyBadge);
-        }
-      }
-    }
-
     // Calculate overall progress and auto-advance phase
-    if (user.selectedDomain) {
-      const totalTopicsInDomain = await Topic.countDocuments({ domainId: user.selectedDomain, isActive: true });
-      user.overallProgress = totalTopicsInDomain > 0 ? Math.round((user.completedTopics.length / totalTopicsInDomain) * 100) : 0;
+    const totalTopicsInDomain = await Topic.countDocuments({ domainId: user.activeDomain._id, isActive: true });
+    const completedTopicsInDomain = await Topic.countDocuments({
+      _id: { $in: domainProgress.completedTopics.map(t => t.topicId) },
+      domainId: user.activeDomain._id,
+      isActive: true
+    });
+    domainProgress.overallProgress = totalTopicsInDomain > 0 ? Math.round((completedTopicsInDomain / totalTopicsInDomain) * 100) : 0;
 
-      // Check if current phase is complete
-      const currentPhase = await Phase.findOne({ domainId: user.selectedDomain, phaseNumber: user.currentPhase });
-      if (currentPhase) {
-        const topicsInPhase = await Topic.find({ phaseId: currentPhase._id, isActive: true });
-        const completedInPhase = user.completedTopics.filter(ct => 
-          topicsInPhase.some(tp => tp._id.toString() === ct.topicId.toString())
-        );
+    // Check if current phase is complete
+    const currentPhase = await Phase.findOne({ domainId: user.activeDomain._id, phaseNumber: domainProgress.currentPhase });
+    if (currentPhase) {
+      const topicsInPhase = await Topic.find({ phaseId: currentPhase._id, isActive: true });
+      const completedInPhase = domainProgress.completedTopics.filter(ct => 
+        topicsInPhase.some(tp => tp._id.toString() === ct.topicId.toString())
+      );
 
-        const averageConfidence = completedInPhase.length > 0 
-          ? completedInPhase.reduce((acc, curr) => acc + (curr.confidenceLevel || 3), 0) / completedInPhase.length 
-          : 0;
+      const averageConfidence = completedInPhase.length > 0 
+        ? completedInPhase.reduce((acc, curr) => acc + (curr.confidenceLevel || 3), 0) / completedInPhase.length 
+        : 0;
 
-        if (completedInPhase.length === topicsInPhase.length && topicsInPhase.length > 0) {
-          // Phase complete! Advance to next phase
-          user.currentPhase += 1;
-          user.xp = (user.xp || 0) + 500; // Bonus XP for phase completion
-          
-          // Award phase badge if exists
-          const badge = await Badge.findOne({ phaseId: currentPhase._id });
-          if (badge) {
-            const alreadyEarned = user.earnedBadges.some(b => b.badgeId.toString() === badge._id.toString());
-            if (!alreadyEarned) {
-              user.earnedBadges.push({ badgeId: badge._id, earnedAt: new Date() });
-              newlyEarnedBadges.push(badge);
-            }
+      if (completedInPhase.length === topicsInPhase.length && topicsInPhase.length > 0) {
+        // Phase complete! Advance to next phase
+        domainProgress.currentPhase += 1;
+        domainProgress.xp = (domainProgress.xp || 0) + 500; // Bonus XP for phase completion
+        
+        // Award phase badge if exists
+        const badge = await Badge.findOne({ phaseId: currentPhase._id });
+        if (badge) {
+          const alreadyEarned = user.earnedBadges.some(b => b.badgeId.toString() === badge._id.toString());
+          if (!alreadyEarned) {
+            user.earnedBadges.push({ badgeId: badge._id, earnedAt: new Date() });
+            newlyEarnedBadges.push(badge);
           }
-        } else if (averageConfidence >= 4.5 && completedInPhase.length >= topicsInPhase.length * 0.7) {
-          user.xp = (user.xp || 0) + 100; // Fast-track bonus
         }
-      }
-
-      // Check if domain is fully completed (overallProgress === 100)
-      if (user.overallProgress >= 100) {
-        const existingCert = await Certificate.findOne({ userId: user._id, domainId: user.selectedDomain });
-        if (!existingCert) {
-          const domainObj = await Domain.findById(user.selectedDomain);
-          const cert = await Certificate.create({
-            userId: user._id,
-            domainId: user.selectedDomain,
-            title: `${domainObj.name} Completion Certificate`,
-            description: `Successfully completed the full course of ${domainObj.name} including all phases, coding exercises, and assessments.`,
-            completionPercentage: 100
-          });
-          newlyEarnedCertificate = cert;
-        }
+      } else if (averageConfidence >= 4.5 && completedInPhase.length >= topicsInPhase.length * 0.7) {
+        domainProgress.xp = (domainProgress.xp || 0) + 100; // Fast-track bonus
       }
     }
 
-    // Domain specific logic
-    const populatedUser = await User.findById(user._id).populate('selectedDomain');
-    if (populatedUser.selectedDomain && populatedUser.selectedDomain.slug === 'dsa') {
+    // Check if domain is fully completed (overallProgress === 100)
+    if (domainProgress.overallProgress >= 100) {
+      const existingCert = await Certificate.findOne({ userId: user._id, domainId: user.activeDomain._id });
+      if (!existingCert) {
+        const domainObj = await Domain.findById(user.activeDomain._id);
+        const cert = await Certificate.create({
+          userId: user._id,
+          domainId: user.activeDomain._id,
+          title: `${domainObj.name} Completion Certificate`,
+          description: `Successfully completed the full course of ${domainObj.name} including all phases, coding exercises, and assessments.`,
+          completionPercentage: 100
+        });
+        newlyEarnedCertificate = cert;
+      }
+    }
+
+    if (key === 'dsa') {
       updateDSAStats(user);
     }
 
+    user.markModified(`domainsProgress.${key}`);
     await user.save();
 
     res.json({ 
       success: true, 
       message: 'Topic completed', 
       data: { 
-        overallProgress: user.overallProgress, 
+        overallProgress: domainProgress.overallProgress, 
         dailyStreak: user.dailyStreak,
-        xp: user.xp,
+        xp: domainProgress.xp,
+        totalXP: user.totalXP,
         newlyEarnedBadges,
-        newlyEarnedCertificate
+        newlyEarnedCertificate,
+        topicBadge
       }
     });
   } catch (error) {
@@ -246,11 +343,17 @@ exports.completeTopic = async (req, res) => {
 exports.submitAssessment = async (req, res) => {
   try {
     const { assessmentId, score, passed } = req.body;
-    const user = await User.findById(req.user._id);
+    const user = await User.findById(req.user._id).populate('activeDomain');
+    if (!user.activeDomain) {
+      return res.status(400).json({ success: false, message: 'No active domain selected' });
+    }
 
-    const existingAttempt = user.testResults.filter(t => t.assessmentId.toString() === assessmentId);
+    const key = getProgressKey(user.activeDomain.slug);
+    const domainProgress = user.domainsProgress[key];
+
+    const existingAttempt = domainProgress.testResults.filter(t => t.assessmentId.toString() === assessmentId);
     
-    user.testResults.push({
+    domainProgress.testResults.push({
       assessmentId,
       score,
       passed,
@@ -267,6 +370,7 @@ exports.submitAssessment = async (req, res) => {
       user.activityLog.push({ date: today, minutes: 0, topicsCompleted: 0, assessmentsPassed: 1 });
     }
 
+    user.markModified(`domainsProgress.${key}`);
     await user.save();
 
     res.json({ success: true, message: passed ? 'Assessment passed!' : 'Keep trying!', data: { passed, score } });
@@ -281,32 +385,52 @@ exports.getDashboard = async (req, res) => {
   try {
     const user = await User.findById(req.user._id)
       .select('-password')
-      .populate('selectedDomain')
-      .populate('earnedBadges.badgeId')
-      .populate('completedTopics.topicId')
-      .populate('startedTopics.topicId');
-    
-    if (user.selectedDomain && user.selectedDomain.slug === 'dsa') {
+      .populate('activeDomain')
+      .populate('earnedBadges.badgeId');
+
+    const activeDomain = user.activeDomain;
+    const key = activeDomain ? getProgressKey(activeDomain.slug) : 'dsa';
+    const domainProgress = user.domainsProgress[key] || {
+      xp: 0,
+      currentPhase: 1,
+      overallProgress: 0,
+      completedTopics: [],
+      startedTopics: [],
+      dsaStats: {}
+    };
+
+    if (activeDomain && activeDomain.slug === 'dsa') {
       updateDSAStats(user);
+      user.markModified('domainsProgress.dsa');
       await user.save();
+    }
+
+    // Populate completed topics title/details for dashboard compatibility
+    const completedWithDetails = [];
+    for (const item of (domainProgress.completedTopics || [])) {
+      const topic = await Topic.findById(item.topicId);
+      completedWithDetails.push({
+        ...item.toObject ? item.toObject() : item,
+        topicId: topic
+      });
     }
 
     let currentPhaseData = null;
     let upcomingAssessment = null;
 
-    if (user.selectedDomain) {
+    if (activeDomain) {
       currentPhaseData = await Phase.findOne({ 
-        domainId: user.selectedDomain._id, 
-        phaseNumber: user.currentPhase 
+        domainId: activeDomain._id, 
+        phaseNumber: domainProgress.currentPhase || 1
       });
 
       upcomingAssessment = await require('../models/Assessment').findOne({
-        domainId: user.selectedDomain._id,
+        domainId: activeDomain._id,
         isActive: true
       }).sort('order');
     }
 
-    const testsPassed = user.testResults.filter(t => t.passed).length;
+    const testsPassed = (domainProgress.testResults || []).filter(t => t.passed).length;
     const totalBadges = user.earnedBadges.length;
 
     res.json({
@@ -316,69 +440,31 @@ exports.getDashboard = async (req, res) => {
           fullName: user.fullName,
           email: user.email,
           profile: user.profile,
-          selectedDomain: user.selectedDomain,
-          currentPhase: user.currentPhase,
-          overallProgress: user.overallProgress,
+          selectedDomain: activeDomain,
+          activeDomain: activeDomain,
+          currentPhase: domainProgress.currentPhase || 1,
+          overallProgress: domainProgress.overallProgress || 0,
           dailyStreak: user.dailyStreak,
           totalStudyMinutes: user.totalStudyMinutes,
-          xp: user.xp || 0,
-          dsaStats: user.dsaStats,
+          xp: domainProgress.xp || 0,
+          totalXP: user.totalXP,
+          dsaStats: domainProgress.dsaStats || {},
           earnedBadges: user.earnedBadges,
-          completedTopics: user.completedTopics
+          completedTopics: completedWithDetails,
+          domainsProgress: user.domainsProgress
         },
         currentPhaseData,
         upcomingAssessment,
         testsPassed,
         totalBadges,
-        completedTopicsCount: user.completedTopics.length,
+        completedTopicsCount: completedWithDetails.length,
         activityLog: user.activityLog.slice(-365),
-        recentActivity: user.completedTopics.slice(-5)
+        recentActivity: completedWithDetails.slice(-5)
       }
     });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
-};
-
-// Helper function to update DSA stats (internal)
-const updateDSAStats = (user) => {
-  if (!user.completedTopics || user.completedTopics.length === 0) return;
-  
-  const dsaTopics = user.completedTopics.filter(ct => ct.difficultyFeedback);
-  if (dsaTopics.length === 0) return;
-
-  // Track counts for strongest/weakest calculation
-  const performanceMap = {};
-  
-  dsaTopics.forEach(ct => {
-    // This assumes topicId is populated or we have a way to get the category
-    // For now, we'll use a placeholder or check if topicId.title exists
-    const category = ct.topicId?.title ? ct.topicId.title.split(' ')[0] : 'General';
-    
-    if (!performanceMap[category]) {
-      performanceMap[category] = { totalConfidence: 0, count: 0, hardCount: 0 };
-    }
-    
-    performanceMap[category].totalConfidence += (ct.confidenceLevel || 3);
-    performanceMap[category].count += 1;
-    if (ct.difficultyFeedback === 'hard') performanceMap[category].hardCount += 1;
-  });
-
-  let strongest = { name: '', score: -1 };
-  let weakest = { name: '', score: 100 };
-
-  Object.keys(performanceMap).forEach(cat => {
-    const avgConfidence = performanceMap[cat].totalConfidence / performanceMap[cat].count;
-    const hardRatio = performanceMap[cat].hardCount / performanceMap[cat].count;
-    const score = avgConfidence - (hardRatio * 2);
-
-    if (score > strongest.score) strongest = { name: cat, score };
-    if (score < weakest.score) weakest = { name: cat, score };
-  });
-
-  user.dsaStats.strongestTopic = strongest.name || 'Foundations';
-  user.dsaStats.weakestTopic = weakest.name || 'Recursion';
-  user.dsaStats.totalProblemsSolved = dsaTopics.length;
 };
 
 // @desc    Get heatmap data
@@ -420,10 +506,16 @@ exports.addStudyTime = async (req, res) => {
 exports.submitCode = async (req, res) => {
   try {
     const { topicId, code, language, status, passedCount, totalCount, runtime } = req.body;
-    const user = await User.findById(req.user._id);
+    const user = await User.findById(req.user._id).populate('activeDomain');
+    if (!user.activeDomain) {
+      return res.status(400).json({ success: false, message: 'No active domain selected' });
+    }
 
-    if (!user.codeSubmissions) {
-      user.codeSubmissions = [];
+    const key = getProgressKey(user.activeDomain.slug);
+    const domainProgress = user.domainsProgress[key];
+
+    if (!domainProgress.codeSubmissions) {
+      domainProgress.codeSubmissions = [];
     }
 
     const newSubmission = {
@@ -437,13 +529,13 @@ exports.submitCode = async (req, res) => {
       submittedAt: new Date()
     };
 
-    user.codeSubmissions.push(newSubmission);
+    domainProgress.codeSubmissions.push(newSubmission);
 
     // If status is 'Accepted', reward 100 XP and mark the topic as completed in database
     if (status === 'Accepted') {
-      const alreadyCompleted = user.completedTopics.find(t => t.topicId.toString() === topicId);
+      const alreadyCompleted = domainProgress.completedTopics.find(t => t.topicId.toString() === topicId);
       if (!alreadyCompleted) {
-        user.completedTopics.push({
+        domainProgress.completedTopics.push({
           topicId,
           completedAt: new Date(),
           studyTimeMinutes: 15,
@@ -454,15 +546,22 @@ exports.submitCode = async (req, res) => {
         });
 
         // Increment DSA Stats
-        user.dsaStats.totalProblemsSolved += 1;
-        user.dsaStats.lastSolvedAt = new Date();
-        user.xp = (user.xp || 0) + 100; // 100 XP coding award!
+        if (key === 'dsa') {
+          domainProgress.dsaStats.totalProblemsSolved += 1;
+          domainProgress.dsaStats.lastSolvedAt = new Date();
+        }
+        domainProgress.xp = (domainProgress.xp || 0) + 100; // 100 XP coding award!
       } else {
         // Just add 10 XP for re-submitting correct solution
-        user.xp = (user.xp || 0) + 10;
+        domainProgress.xp = (domainProgress.xp || 0) + 10;
       }
     }
 
+    if (key === 'dsa') {
+      updateDSAStats(user);
+    }
+
+    user.markModified(`domainsProgress.${key}`);
     await user.save();
     res.json({ success: true, message: status === 'Accepted' ? 'Expedition Mastered!' : 'Keep refining your code!', data: newSubmission });
   } catch (error) {
@@ -474,8 +573,12 @@ exports.submitCode = async (req, res) => {
 // @route   GET /api/progress/submissions/:topicId
 exports.getSubmissions = async (req, res) => {
   try {
-    const user = await User.findById(req.user._id);
-    const submissions = (user.codeSubmissions || []).filter(
+    const user = await User.findById(req.user._id).populate('activeDomain');
+    if (!user.activeDomain) {
+      return res.json({ success: true, data: [] });
+    }
+    const key = getProgressKey(user.activeDomain.slug);
+    const submissions = (user.domainsProgress[key]?.codeSubmissions || []).filter(
       sub => sub.topicId.toString() === req.params.topicId
     );
     res.json({ 
@@ -492,18 +595,24 @@ exports.getSubmissions = async (req, res) => {
 exports.skipPhase = async (req, res) => {
   try {
     const { phaseId } = req.body;
-    const user = await User.findById(req.user._id);
+    const user = await User.findById(req.user._id).populate('activeDomain');
+    if (!user.activeDomain) {
+      return res.status(400).json({ success: false, message: 'No active domain selected' });
+    }
+
+    const key = getProgressKey(user.activeDomain.slug);
+    const domainProgress = user.domainsProgress[key];
 
     const phase = await Phase.findById(phaseId);
     if (!phase) {
       return res.status(404).json({ success: false, message: 'Phase not found' });
     }
 
-    if (phase.domainId.toString() !== user.selectedDomain.toString()) {
+    if (phase.domainId.toString() !== user.activeDomain._id.toString()) {
       return res.status(400).json({ success: false, message: 'Phase does not belong to selected domain' });
     }
 
-    if (phase.phaseNumber !== user.currentPhase) {
+    if (phase.phaseNumber !== domainProgress.currentPhase) {
       return res.status(400).json({ success: false, message: 'You can only skip your current active level' });
     }
 
@@ -512,9 +621,9 @@ exports.skipPhase = async (req, res) => {
     const now = new Date();
     let topicsCompletedCount = 0;
     topicsInPhase.forEach(topic => {
-      const alreadyCompleted = user.completedTopics.find(t => t.topicId.toString() === topic._id.toString());
+      const alreadyCompleted = domainProgress.completedTopics.find(t => t.topicId.toString() === topic._id.toString());
       if (!alreadyCompleted) {
-        user.completedTopics.push({
+        domainProgress.completedTopics.push({
           topicId: topic._id,
           completedAt: now,
           studyTimeMinutes: 0,
@@ -524,18 +633,18 @@ exports.skipPhase = async (req, res) => {
         });
         topicsCompletedCount++;
 
-        if (user.dsaStats) {
-          user.dsaStats.totalProblemsSolved += 1;
+        if (key === 'dsa') {
+          domainProgress.dsaStats.totalProblemsSolved += 1;
         }
       }
     });
 
-    if (user.dsaStats && topicsCompletedCount > 0) {
-      user.dsaStats.lastSolvedAt = now;
+    if (key === 'dsa' && topicsCompletedCount > 0) {
+      domainProgress.dsaStats.lastSolvedAt = now;
     }
 
-    user.currentPhase += 1;
-    user.xp = (user.xp || 0) + 500;
+    domainProgress.currentPhase += 1;
+    domainProgress.xp = (domainProgress.xp || 0) + 500;
 
     const newlyEarnedBadges = [];
     const badge = await Badge.findOne({ phaseId: phase._id });
@@ -547,17 +656,22 @@ exports.skipPhase = async (req, res) => {
       }
     }
 
-    const totalTopicsInDomain = await Topic.countDocuments({ domainId: user.selectedDomain, isActive: true });
-    user.overallProgress = totalTopicsInDomain > 0 ? Math.round((user.completedTopics.length / totalTopicsInDomain) * 100) : 0;
+    const totalTopicsInDomain = await Topic.countDocuments({ domainId: user.activeDomain._id, isActive: true });
+    const completedTopicsInDomain = await Topic.countDocuments({
+      _id: { $in: domainProgress.completedTopics.map(t => t.topicId) },
+      domainId: user.activeDomain._id,
+      isActive: true
+    });
+    domainProgress.overallProgress = totalTopicsInDomain > 0 ? Math.round((completedTopicsInDomain / totalTopicsInDomain) * 100) : 0;
 
     let newlyEarnedCertificate = null;
-    if (user.overallProgress >= 100) {
-      const existingCert = await Certificate.findOne({ userId: user._id, domainId: user.selectedDomain });
+    if (domainProgress.overallProgress >= 100) {
+      const existingCert = await Certificate.findOne({ userId: user._id, domainId: user.activeDomain._id });
       if (!existingCert) {
-        const domainObj = await Domain.findById(user.selectedDomain);
+        const domainObj = await Domain.findById(user.activeDomain._id);
         const cert = await Certificate.create({
           userId: user._id,
-          domainId: user.selectedDomain,
+          domainId: user.activeDomain._id,
           title: `${domainObj.name} Completion Certificate`,
           description: `Successfully completed the full course of ${domainObj.name} including all phases, coding exercises, and assessments.`,
           completionPercentage: 100
@@ -566,24 +680,56 @@ exports.skipPhase = async (req, res) => {
       }
     }
 
-    const populatedUser = await User.findById(user._id).populate('selectedDomain');
-    if (populatedUser.selectedDomain && populatedUser.selectedDomain.slug === 'dsa') {
+    if (key === 'dsa') {
       updateDSAStats(user);
     }
 
+    user.markModified(`domainsProgress.${key}`);
     await user.save();
 
     res.json({
       success: true,
       message: 'Level skipped successfully',
       data: {
-        currentPhase: user.currentPhase,
-        overallProgress: user.overallProgress,
-        xp: user.xp,
+        currentPhase: domainProgress.currentPhase,
+        overallProgress: domainProgress.overallProgress,
+        xp: domainProgress.xp,
         newlyEarnedBadges,
         newlyEarnedCertificate
       }
     });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// @desc    Save active learning state / video progress for a domain
+// @route   POST /api/progress/video-progress
+exports.saveVideoProgress = async (req, res) => {
+  try {
+    const { checkpointId, timestamp, lastOpenedTopic, currentCheckpoint } = req.body;
+    const user = await User.findById(req.user._id).populate('activeDomain');
+    if (!user.activeDomain) {
+      return res.status(400).json({ success: false, message: 'No active domain selected' });
+    }
+
+    const key = getProgressKey(user.activeDomain.slug);
+    const domainProgress = user.domainsProgress[key];
+
+    if (checkpointId !== undefined && timestamp !== undefined) {
+      domainProgress.videoProgress = { checkpointId, timestamp };
+    }
+    if (lastOpenedTopic) {
+      domainProgress.lastOpenedTopic = lastOpenedTopic;
+    }
+    if (currentCheckpoint) {
+      domainProgress.currentCheckpoint = currentCheckpoint;
+    }
+
+    user.markModified(`domainsProgress.${key}`);
+    await user.save();
+
+    res.json({ success: true, message: 'Video and learning state updated', data: domainProgress.videoProgress });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }

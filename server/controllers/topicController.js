@@ -17,7 +17,17 @@ exports.getTopic = async (req, res) => {
   try {
     const topic = await Topic.findById(req.params.id).populate('phaseId').populate('domainId');
     if (!topic) return res.status(404).json({ success: false, message: 'Topic not found' });
-    res.json({ success: true, data: topic });
+    
+    const Badge = require('../models/Badge');
+    const badge = await Badge.findOne({ topicId: topic._id });
+    
+    res.json({ 
+      success: true, 
+      data: {
+        ...topic.toObject(),
+        badge
+      } 
+    });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }

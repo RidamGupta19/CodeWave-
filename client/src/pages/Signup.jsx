@@ -29,7 +29,7 @@ const Signup = () => {
       registerData.email = registerData.email.trim();
       await register(registerData);
       toast.success('Account created successfully!');
-      navigate('/setup-profile');
+      navigate('/domains');
     } catch (error) {
       toast.error(error.response?.data?.message || 'Registration failed');
     } finally {

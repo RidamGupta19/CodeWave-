@@ -38,6 +38,25 @@ const Roadmap = () => {
   const [selectedLang, setSelectedLang] = useState(() => normalizeDsaLanguage(localStorage.getItem('dsa_lang') || 'cpp'));
   const [useStriverAdvanced, setUseStriverAdvanced] = useState(() => localStorage.getItem('striver_advanced') === 'true');
 
+  const getProgressKey = (slug) => {
+    if (!slug) return 'dsa';
+    const lowercaseSlug = slug.toLowerCase();
+    if (lowercaseSlug === 'web-development' || lowercaseSlug === 'webdev') return 'webdev';
+    if (lowercaseSlug === 'open-source' || lowercaseSlug === 'opensource') return 'opensource';
+    if (lowercaseSlug === 'devops') return 'devops';
+    if (lowercaseSlug === 'dsa') return 'dsa';
+    return 'dsa';
+  };
+
+  const activeDomainSlug = user?.activeDomain?.slug || user?.selectedDomain?.slug || 'dsa';
+  const activeDomainKey = getProgressKey(activeDomainSlug);
+  const activeDomainProgress = user?.domainsProgress?.[activeDomainKey] || {
+    xp: 0,
+    currentPhase: 1,
+    overallProgress: 0,
+    completedTopics: []
+  };
+
   const domainId = user?.selectedDomain?._id || user?.selectedDomain;
 
   // Track initial state
@@ -81,7 +100,7 @@ const Roadmap = () => {
       const res = await api.get(`/domains/${id}`);
       setDomainData(res.data.data);
       if (activeLevel === null) {
-        setActiveLevel(user?.currentPhase || 0);
+        setActiveLevel(activeDomainProgress.currentPhase || 1);
       }
     } catch (err) {
       toast.error('Failed to load roadmap');
@@ -91,7 +110,7 @@ const Roadmap = () => {
   };
 
   const isTopicCompleted = (topicId) => {
-    return user?.completedTopics?.some(t => t.topicId === topicId || t.topicId?._id === topicId);
+    return activeDomainProgress.completedTopics?.some(t => t.topicId === topicId || t.topicId?._id === topicId);
   };
 
   if (loading) return (
@@ -103,13 +122,13 @@ const Roadmap = () => {
   if (!domainData) return null;
 
   const { domain, phases } = domainData;
-  const currentXP = user.xp || 0;
+  const currentXP = activeDomainProgress.xp || 0;
   const currentStreak = user.dailyStreak || 0;
   const isDSA = domain.slug === 'dsa';
   const dsaAnswers = user.profile?.onboardingAnswers || {};
   const dsaAnalysis = isDSA ? (dsaAnswers.dsaAnalysis || analyzeDsaProfile(dsaAnswers)) : null;
   const streakRank = getStreakRank(currentStreak);
-  const activeBadge = getDsaBadgeForLevel(user.currentPhase || 0);
+  const activeBadge = getDsaBadgeForLevel(activeDomainProgress.currentPhase || 1);
 
   const langNames = DSA_LANGUAGE_LABELS;
 
@@ -167,7 +186,7 @@ const Roadmap = () => {
           <div>
             <div className="text-[10px] font-black text-[var(--text-light)] uppercase tracking-wider">Current Rank</div>
             <div className="text-2xl font-black text-[var(--text-main)]">
-              {isDSA ? (dsaLevelNames[user.currentPhase] || 'Apprentice') : (phases[user.currentPhase]?.name || 'Apprentice')}
+              {isDSA ? (dsaLevelNames[activeDomainProgress.currentPhase || 1] || 'Apprentice') : (phases[activeDomainProgress.currentPhase || 1]?.name || 'Apprentice')}
             </div>
           </div>
         </div>
@@ -293,9 +312,9 @@ const Roadmap = () => {
         <div className="flex items-start gap-12 min-w-max px-10 pb-10 relative">
           
           {phases.map((phase, index) => {
-            const isUnlocked = index <= (user.currentPhase || 0);
-            const isCompleted = index < (user.currentPhase || 0);
-            const isCurrent = index === (user.currentPhase || 0);
+            const isUnlocked = index <= (activeDomainProgress.currentPhase || 1);
+            const isCompleted = index < (activeDomainProgress.currentPhase || 1);
+            const isCurrent = index === (activeDomainProgress.currentPhase || 1);
             
             // Override title if domain is DSA
             const levelName = isDSA ? (dsaLevelNames[index] || phase.name) : phase.name;
@@ -345,7 +364,7 @@ const Roadmap = () => {
                 {index < phases.length - 1 && (
                   <div 
                     className={`absolute top-[48px] left-[106px] w-[50px] h-1 rounded-full transition-colors duration-1000 ${
-                      isUnlocked && (index + 1 <= user.currentPhase) 
+                      isUnlocked && (index + 1 <= (activeDomainProgress.currentPhase || 1)) 
                         ? 'bg-gradient-to-r from-emerald-500 to-[var(--primary)]' 
                         : 'bg-[var(--border)]'
                     }`}
@@ -401,7 +420,7 @@ const Roadmap = () => {
                 </div>
               </div>
 
-              {activeLevel === (user.currentPhase || 0) && (
+              {activeLevel === (activeDomainProgress.currentPhase || 1) && (
                 <button
                   onClick={handleSkipLevel}
                   className="flex items-center justify-center gap-2 px-5 py-3 rounded-2xl bg-zinc-800 hover:bg-zinc-700 dark:bg-zinc-900 dark:hover:bg-zinc-800 border border-zinc-700 text-zinc-100 hover:text-white font-black text-xs tracking-wider uppercase transition duration-300 shadow-md w-full"

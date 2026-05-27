@@ -18,6 +18,7 @@ const Login = () => {
       const data = await login(email.trim(), password.trim());
       toast.success('Welcome back!');
       if (data.user.role === 'admin') navigate('/admin');
+      else if (!data.user.activeDomain && !data.user.selectedDomain) navigate('/domains');
       else navigate('/dashboard');
     } catch (error) {
       toast.error(error.response?.data?.message || 'Login failed');

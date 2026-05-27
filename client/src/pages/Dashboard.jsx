@@ -110,9 +110,7 @@ const Dashboard = () => {
           <div className="text-center border-r border-[var(--border)] pr-6">
             <div className="text-[9px] text-[var(--text-light)] uppercase font-black tracking-widest mb-1">XP Earned</div>
             <div className="text-2xl font-black text-[var(--text-main)]">
-              {parseInt(localStorage.getItem('dsa_total_xp') || '0', 10) > 0 
-                ? parseInt(localStorage.getItem('dsa_total_xp') || '0', 10) 
-                : (user.xp || 0)}
+              {user.totalXP || user.xp || 0}
             </div>
           </div>
           <div className="text-center">
@@ -183,6 +181,86 @@ const Dashboard = () => {
           </button>
         </div>
       )}
+
+      {/* Continue Learning System */}
+      {(() => {
+        const continueLearningDomains = [];
+        if (user.domainsProgress) {
+          const domainKeys = {
+            dsa: { name: 'Data Structures & Algorithms', slug: 'dsa', icon: '🌳', color: '#6366f1' },
+            webdev: { name: 'Web Development Explorer', slug: 'web-development', icon: '🌐', color: '#4361ee' },
+            devops: { name: 'DevOps Expedition', slug: 'devops', icon: '🐳', color: '#10b981' },
+            opensource: { name: 'Open Source Expedition', slug: 'open-source', icon: '🔓', color: '#f59e0b' }
+          };
+
+          for (const key of Object.keys(domainKeys)) {
+            const prog = user.domainsProgress[key];
+            if (prog && (prog.overallProgress > 0 || prog.xp > 0)) {
+              continueLearningDomains.push({
+                ...domainKeys[key],
+                prog
+              });
+            }
+          }
+        }
+
+        if (continueLearningDomains.length === 0) return null;
+
+        return (
+          <div className="mb-10 card p-8 bg-[var(--bg-card)] border border-[var(--border)] shadow-sm">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-xl font-black text-[var(--text-main)] tracking-tight">Continue Learning</h2>
+              <span className="text-[10px] text-[var(--text-light)] uppercase font-black tracking-widest bg-[var(--bg-sub)] px-3 py-1 rounded-full border border-[var(--border)]">Multi-Domain Ecosystem</span>
+            </div>
+            
+            <div className="grid md:grid-cols-2 gap-6">
+              {continueLearningDomains.map((item) => (
+                <div 
+                  key={item.slug} 
+                  onClick={async () => {
+                    try {
+                      const domainsRes = await api.get('/domains');
+                      const domainObj = domainsRes.data.data.find(d => d.slug.toLowerCase() === item.slug.toLowerCase());
+                      if (domainObj) {
+                        await api.post('/progress/select-domain', { domainId: domainObj._id });
+                        window.location.href = '/roadmap';
+                      }
+                    } catch (e) {
+                      toast.error('Failed to switch domain context');
+                    }
+                  }}
+                  className="p-5 bg-[var(--bg-sub)] hover:bg-[var(--bg-card)] border border-[var(--border)] hover:border-[var(--primary)] rounded-2xl shadow-sm cursor-pointer transition-all duration-300 flex items-center justify-between group"
+                >
+                  <div className="flex items-center gap-4">
+                    <div 
+                      className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl shadow-sm border border-[var(--border)]"
+                      style={{ backgroundColor: `${item.color}15`, color: item.color }}
+                    >
+                      {item.icon}
+                    </div>
+                    <div>
+                      <h4 className="font-extrabold text-[var(--text-main)] text-sm group-hover:text-[var(--primary)] transition-colors">{item.name}</h4>
+                      <p className="text-xs font-semibold text-[var(--text-muted)] mt-0.5">
+                        {item.prog.currentCheckpoint 
+                          ? `📍 Checkpoint: ${item.prog.currentCheckpoint.replace('_', ' ').replace('cp', 'Lecture ').toUpperCase()}`
+                          : 'Started Recently'}
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <div className="text-right flex items-center gap-3">
+                    <div>
+                      <div className="text-xs font-black text-[var(--text-main)]">{item.prog.overallProgress || 0}%</div>
+                      <div className="text-[9px] font-black text-[var(--text-light)] uppercase tracking-wider">{item.prog.xp || 0} XP</div>
+                    </div>
+                    <FiChevronRight className="text-[var(--text-light)] group-hover:translate-x-1 transition-transform" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      })()}
 
       <div className="grid lg:grid-cols-3 gap-8 mb-10">
         {/* Active Quest Card */}
@@ -360,9 +438,7 @@ const Dashboard = () => {
             </div>
             <div>
               <div className="text-2xl font-black text-[var(--text-main)]">
-                {parseInt(localStorage.getItem('dsa_total_xp') || '0', 10) > 0 
-                  ? parseInt(localStorage.getItem('dsa_total_xp') || '0', 10) 
-                  : (user.xp || 0)}
+                {user.totalXP || user.xp || 0}
               </div>
               <div className="text-[9px] text-[var(--text-light)] font-black uppercase tracking-widest">Current XP</div>
             </div>

@@ -1,18 +1,12 @@
 // Phase data keyed by domain slug
 const phaseData = {
   'web-development': [
-    { phaseNumber: 1, name: 'Internet & Web Basics', description: 'How the internet works, HTTP, browsers, DNS', estimatedDuration: '3 days' },
-    { phaseNumber: 2, name: 'HTML', description: 'HTML5 structure, semantic tags, forms', estimatedDuration: '1 week' },
-    { phaseNumber: 3, name: 'CSS', description: 'Styling, Flexbox, Grid, responsive design', estimatedDuration: '2 weeks' },
-    { phaseNumber: 4, name: 'JavaScript', description: 'ES6+, DOM, async/await, fetch API', estimatedDuration: '3 weeks' },
-    { phaseNumber: 5, name: 'Git & GitHub', description: 'Version control, branches, PRs', estimatedDuration: '1 week' },
-    { phaseNumber: 6, name: 'React.js', description: 'Components, hooks, state management', estimatedDuration: '3 weeks' },
-    { phaseNumber: 7, name: 'Backend with Node.js & Express', description: 'REST APIs, routing, middleware', estimatedDuration: '2 weeks' },
-    { phaseNumber: 8, name: 'Database with MongoDB/SQL', description: 'CRUD, schemas, queries', estimatedDuration: '2 weeks' },
-    { phaseNumber: 9, name: 'Authentication & Authorization', description: 'JWT, OAuth, sessions', estimatedDuration: '1 week' },
-    { phaseNumber: 10, name: 'API Integration', description: 'Third-party APIs, webhooks', estimatedDuration: '1 week' },
-    { phaseNumber: 11, name: 'Deployment', description: 'Vercel, Render, CI/CD basics', estimatedDuration: '1 week' },
-    { phaseNumber: 12, name: 'Final Full-Stack Project', description: 'Build a complete MERN application', estimatedDuration: '2 weeks' }
+    { phaseNumber: 0, name: 'HTML', description: 'HTML5 structure, semantic tags, forms', estimatedDuration: '1 week' },
+    { phaseNumber: 1, name: 'CSS', description: 'Styling, Flexbox, Grid, responsive design', estimatedDuration: '2 weeks' },
+    { phaseNumber: 2, name: 'JavaScript', description: 'ES6+, DOM, async/await, fetch API', estimatedDuration: '3 weeks' },
+    { phaseNumber: 3, name: 'Git & GitHub', description: 'Version control, branches, PRs', estimatedDuration: '1 week' },
+    { phaseNumber: 4, name: 'React.js', description: 'Components, hooks, state management', estimatedDuration: '3 weeks' },
+    { phaseNumber: 5, name: 'Backend', description: 'Server-side development with Node.js, Express, databases, and authentication', estimatedDuration: '4 weeks' }
   ],
   'data-science': [
     { phaseNumber: 1, name: 'Python Basics', description: 'Syntax, data types, control flow, functions', estimatedDuration: '2 weeks' },

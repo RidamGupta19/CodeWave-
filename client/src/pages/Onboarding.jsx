@@ -7,101 +7,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { FiMessageSquare, FiMoon, FiSun, FiZap } from 'react-icons/fi';
 import { analyzeDsaProfile, normalizeDsaLanguage } from '../utils/dsaPersonalization';
 
-const generalQuestions = [
-  {
-    id: 'coding_experience',
-    question: 'Have you done coding before?',
-    options: [
-      { label: 'Never', value: 'never', description: 'Start from zero with friendly syntax missions.' },
-      { label: 'Basic college coding', value: 'basic', description: 'I know a little syntax, loops, or lab programs.' },
-      { label: 'Solved some problems', value: 'some_problems', description: 'I have tried basic coding questions before.' },
-      { label: 'Comfortable with coding', value: 'comfortable', description: 'I can write functions and debug simple logic.' }
-    ]
-  },
-  {
-    id: 'goal',
-    question: 'What is your goal?',
-    options: [
-      { label: 'Placements', value: 'placements' },
-      { label: 'Internship', value: 'internship' },
-      { label: 'Improve problem solving', value: 'problem_solving' },
-      { label: 'Competitive programming', value: 'competitive' }
-    ]
-  },
-  {
-    id: 'daily_time',
-    question: 'How much time can you study daily?',
-    options: [
-      { label: '30 mins', value: 30 },
-      { label: '1 hour', value: 60 },
-      { label: '2+ hours', value: 120 }
-    ]
-  }
-];
-
-const dsaQuestions = [
-  {
-    id: 'dsa_language',
-    question: 'Which programming language do you want to learn DSA in?',
-    options: [
-      { label: 'C++', value: 'cpp', description: 'Standard for competitive programming.' },
-      { label: 'Java', value: 'java', description: 'Great for big-tech interviews.' },
-      { label: 'Python', value: 'python', description: 'Fastest to write and learn.' },
-      { label: 'JavaScript', value: 'javascript', description: 'Best if you are targeting web roles.' }
-    ]
-  },
-  {
-    id: 'dsa_known_topics',
-    question: 'Which topics do you already know?',
-    multiple: true,
-    options: [
-      { label: 'Variables', value: 'variables' },
-      { label: 'Loops', value: 'loops' },
-      { label: 'Functions', value: 'functions' },
-      { label: 'Arrays', value: 'arrays' },
-      { label: 'Recursion', value: 'recursion' },
-      { label: 'None', value: 'none' }
-    ]
-  },
-  {
-    id: 'dsa_problem_experience',
-    question: 'Have you solved coding problems before?',
-    options: [
-      { label: 'Never', value: 'never', description: 'We will begin with low-pressure guided practice.' },
-      { label: 'Beginner', value: 'beginner', description: 'I solved a few class or beginner problems.' },
-      { label: 'Some LeetCode', value: 'some_leetcode', description: 'I know the platform but need structure.' },
-      { label: 'Regular practice', value: 'regular', description: 'I want a faster, interview-focused path.' }
-    ]
-  }
-];
-
-const webQuestions = [
-  {
-    id: 'technologies',
-    question: 'Which technologies do you know?',
-    multiple: true,
-    options: [
-      { label: 'HTML', value: 'html' },
-      { label: 'CSS', value: 'css' },
-      { label: 'JavaScript', value: 'js' },
-      { label: 'React', value: 'react' },
-      { label: 'Node.js', value: 'node' },
-      { label: 'MongoDB', value: 'mongo' },
-      { label: 'Git', value: 'git' },
-      { label: 'None', value: 'none' }
-    ]
-  },
-  {
-    id: 'web_page',
-    question: 'Can you build a basic responsive webpage?',
-    options: [
-      { label: 'No', value: 'no' },
-      { label: 'Somewhat', value: 'somewhat' },
-      { label: 'Yes confidently', value: 'yes' }
-    ]
-  }
-];
-
 const Onboarding = () => {
   const navigate = useNavigate();
   const { user, refreshUser } = useAuth();
@@ -115,11 +20,146 @@ const Onboarding = () => {
     else document.documentElement.classList.remove('dark');
   }, [theme]);
 
-  const isDsa = (user?.selectedDomain?.slug || '') === 'dsa';
-  const activeQuestions = isDsa ? [...generalQuestions, ...dsaQuestions] : [...generalQuestions, ...webQuestions];
+  const activeDomainSlug = user?.activeDomain?.slug || user?.selectedDomain?.slug || 'dsa';
+  const isDsa = activeDomainSlug === 'dsa';
+
+  // Construct questions dynamically based on domain selection
+  const buildQuestions = () => {
+    let domainSpecificQuestions = [];
+
+    if (activeDomainSlug === 'dsa') {
+      domainSpecificQuestions = [
+        {
+          id: 'dsa_language',
+          question: 'Which programming language do you want to learn DSA in?',
+          options: [
+            { label: 'C++', value: 'cpp', description: 'Standard for competitive programming.' },
+            { label: 'Java', value: 'java', description: 'Great for big-tech interviews.' },
+            { label: 'Python', value: 'python', description: 'Fastest to write and learn.' },
+            { label: 'JavaScript', value: 'javascript', description: 'Best if you are targeting web roles.' }
+          ]
+        },
+        {
+          id: 'dsa_known_topics',
+          question: 'Which topics do you already know?',
+          multiple: true,
+          options: [
+            { label: 'Variables', value: 'variables' },
+            { label: 'Loops', value: 'loops' },
+            { label: 'Functions', value: 'functions' },
+            { label: 'Arrays', value: 'arrays' },
+            { label: 'Recursion', value: 'recursion' },
+            { label: 'None', value: 'none' }
+          ]
+        },
+        {
+          id: 'dsa_problem_experience',
+          question: 'Have you solved coding problems before?',
+          options: [
+            { label: 'Never', value: 'never', description: 'We will begin with low-pressure guided practice.' },
+            { label: 'Beginner', value: 'beginner', description: 'I solved a few class or beginner problems.' },
+            { label: 'Some LeetCode', value: 'some_leetcode', description: 'I know the platform but need structure.' },
+            { label: 'Regular practice', value: 'regular', description: 'I want a faster, interview-focused path.' }
+          ]
+        }
+      ];
+    } else if (activeDomainSlug === 'web-development') {
+      domainSpecificQuestions = [
+        {
+          id: 'technologies',
+          question: 'Which technologies do you already know?',
+          multiple: true,
+          options: [
+            { label: 'HTML', value: 'html' },
+            { label: 'CSS', value: 'css' },
+            { label: 'JavaScript', value: 'js' },
+            { label: 'React', value: 'react' },
+            { label: 'Node.js', value: 'node' },
+            { label: 'MongoDB', value: 'mongo' },
+            { label: 'Git', value: 'git' },
+            { label: 'None', value: 'none' }
+          ]
+        },
+        {
+          id: 'web_page',
+          question: 'Can you build a basic responsive webpage?',
+          options: [
+            { label: 'No', value: 'no', description: 'We will start with simple HTML structure layouts.' },
+            { label: 'Somewhat', value: 'somewhat', description: 'I know basic flexbox but need responsive grids.' },
+            { label: 'Yes confidently', value: 'yes', description: 'Ready to dive into advanced components.' }
+          ]
+        }
+      ];
+    } else if (activeDomainSlug === 'devops') {
+      domainSpecificQuestions = [
+        {
+          id: 'devops_experience',
+          question: 'Have you used Linux or terminal commands before?',
+          options: [
+            { label: 'Never', value: 'never', description: 'We will start with friendly bash command walkthroughs.' },
+            { label: 'Basic command line', value: 'basic', description: 'I can navigate directories and move files.' },
+            { label: 'Comfortable with scripts', value: 'comfortable', description: 'I can write simple scripts and install packages.' }
+          ]
+        },
+        {
+          id: 'devops_tools',
+          question: 'Which DevOps tools have you heard of or used?',
+          multiple: true,
+          options: [
+            { label: 'Git & GitHub', value: 'git' },
+            { label: 'Docker Containers', value: 'docker' },
+            { label: 'CI/CD Pipelines', value: 'cicd' },
+            { label: 'Kubernetes', value: 'kubernetes' },
+            { label: 'AWS / GCP / Cloud', value: 'cloud' },
+            { label: 'None', value: 'none' }
+          ]
+        }
+      ];
+    } else {
+      // Open Source
+      domainSpecificQuestions = [
+        {
+          id: 'git_experience',
+          question: 'Do you know how to use Git and GitHub?',
+          options: [
+            { label: 'Never', value: 'never', description: 'We will learn git init, clone, and basic commits.' },
+            { label: 'Basic Commits', value: 'basic', description: 'I know how to push and pull from repositories.' },
+            { label: 'Pull Requests & Branches', value: 'advanced', description: 'I know how to fork, branch, and open PRs.' }
+          ]
+        }
+      ];
+    }
+
+    // Common profile indicators for AI roadmap duration & career milestones
+    domainSpecificQuestions.push(
+      {
+        id: 'goal',
+        question: 'What is your career goal?',
+        options: [
+          { label: 'Job Placement', value: 'job' },
+          { label: 'Internship', value: 'internship' },
+          { label: 'Freelancing', value: 'freelancing' },
+          { label: 'Skill Exploration', value: 'exploration' }
+        ]
+      },
+      {
+        id: 'daily_time',
+        question: 'How much time can you study daily?',
+        options: [
+          { label: '30 mins', value: 30 },
+          { label: '1 hour', value: 60 },
+          { label: '2+ hours', value: 120 }
+        ]
+      }
+    );
+
+    return domainSpecificQuestions;
+  };
+
+  const activeQuestions = buildQuestions();
   const currentQuestion = activeQuestions[currentStep];
   const progress = ((currentStep + 1) / activeQuestions.length) * 100;
-  const dsaPreview = isDsa ? analyzeDsaProfile(answers) : null;
+  const dsaPreview = isDsa && answers.dsa_language ? analyzeDsaProfile(answers) : null;
 
   const toggleTheme = () => {
     const nextTheme = theme === 'dark' ? 'light' : 'dark';
@@ -163,9 +203,14 @@ const Onboarding = () => {
       const analysis = isDsa ? analyzeDsaProfile(answers) : null;
       const onboardingAnswers = isDsa ? { ...answers, dsa_language: analysis.language, dsaAnalysis: analysis } : answers;
 
+      // Extract skills mapping or fallback coding experience for onboarding logic
+      const skillLevelMapping = isDsa 
+        ? (answers.dsa_problem_experience === 'regular' ? 'comfortable' : answers.dsa_problem_experience === 'some_leetcode' ? 'some_problems' : 'basic')
+        : (answers.web_page === 'yes' ? 'comfortable' : answers.web_page === 'somewhat' ? 'some_problems' : 'basic');
+
       await api.put('/auth/profile', {
         profile: {
-          currentSkillLevel: answers.coding_experience,
+          currentSkillLevel: skillLevelMapping,
           goal: answers.goal,
           dailyStudyTime: answers.daily_time,
           knownLanguages: isDsa ? [analysis.language] : (answers.technologies || []),
@@ -186,7 +231,7 @@ const Onboarding = () => {
         icon: '✨'
       });
       navigate(isDsa ? '/roadmap' : '/dashboard');
-    } catch {
+    } catch (err) {
       toast.error('Failed to generate your personalized journey.');
     } finally {
       setLoading(false);
@@ -277,7 +322,7 @@ const Onboarding = () => {
         </motion.div>
       </AnimatePresence>
 
-      {isDsa && Object.keys(answers).length > 1 && (
+      {isDsa && dsaPreview && Object.keys(answers).length > 1 && (
         <div className="mt-6 max-w-xl w-full grid grid-cols-3 gap-3 text-center">
           {[
             ['Start', dsaPreview.startLevelName],

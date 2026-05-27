@@ -35,10 +35,6 @@ const Domains = () => {
       return;
     }
 
-    if (user.selectedDomain && !window.confirm('Changing domains will reset your phase progress. Are you sure?')) {
-      return;
-    }
-
     setSelecting(true);
     try {
       await api.post('/progress/select-domain', { domainId });
@@ -82,6 +78,19 @@ const Domains = () => {
         {activeDomains.map((domain) => {
           const isSelected = user?.selectedDomain?._id === domain._id;
           
+          const getProgressKey = (slug) => {
+            if (!slug) return '';
+            const lowercaseSlug = slug.toLowerCase();
+            if (lowercaseSlug === 'web-development' || lowercaseSlug === 'webdev') return 'webdev';
+            if (lowercaseSlug === 'open-source' || lowercaseSlug === 'opensource') return 'opensource';
+            if (lowercaseSlug === 'devops') return 'devops';
+            if (lowercaseSlug === 'dsa') return 'dsa';
+            return '';
+          };
+
+          const key = getProgressKey(domain.slug);
+          const prog = user?.domainsProgress?.[key];
+          
           return (
             <div 
               key={domain._id} 
@@ -95,7 +104,7 @@ const Domains = () => {
                 </div>
               )}
               
-              <div className="flex items-start gap-5 mb-6">
+              <div className="flex items-start gap-5 mb-4">
                 <div 
                   className="w-14 h-14 rounded-2xl flex items-center justify-center text-3xl shadow-sm border border-slate-100 dark:border-slate-800"
                   style={{ backgroundColor: `${domain.color}10`, color: domain.color }}
@@ -119,9 +128,36 @@ const Domains = () => {
                 </div>
               </div>
               
-              <p className="text-[#667085] dark:text-slate-400 text-sm leading-relaxed mb-8 flex-1">
+              <p className="text-[#667085] dark:text-slate-400 text-sm leading-relaxed mb-4 flex-1">
                 {domain.shortDescription}
               </p>
+
+              {prog && (prog.overallProgress > 0 || prog.xp > 0) ? (
+                <div className="mb-6 space-y-2 bg-slate-50 dark:bg-slate-900/60 p-3.5 rounded-xl border border-slate-100 dark:border-slate-800/80">
+                  <div className="flex justify-between text-xs font-bold text-slate-500 dark:text-slate-400">
+                    <span>Level {prog.currentPhase || 1}</span>
+                    <span>{prog.overallProgress || 0}% Complete</span>
+                  </div>
+                  <div className="w-full bg-slate-200 dark:bg-slate-800 h-1.5 rounded-full overflow-hidden">
+                    <div 
+                      className="h-full rounded-full transition-all duration-500" 
+                      style={{ width: `${prog.overallProgress || 0}%`, backgroundColor: domain.color }}
+                    ></div>
+                  </div>
+                  <div className="flex justify-between items-center text-[11px] font-medium text-slate-400 dark:text-slate-500 pt-1">
+                    {prog.currentCheckpoint ? (
+                      <span className="truncate max-w-[150px]">📍 {prog.currentCheckpoint.replace('_', ' ').toUpperCase()}</span>
+                    ) : (
+                      <span>Started Recently</span>
+                    )}
+                    <span className="font-extrabold text-[#4361ee] dark:text-[#818cf8]">{prog.xp || 0} XP</span>
+                  </div>
+                </div>
+              ) : (
+                <div className="mb-6 text-xs font-semibold text-slate-400 dark:text-slate-500 italic p-3 bg-slate-50/50 dark:bg-slate-900/20 rounded-xl border border-dashed border-slate-200 dark:border-slate-800/40 text-center">
+                  Not started yet
+                </div>
+              )}
               
               <div className="mt-auto pt-6 border-t border-slate-100 dark:border-slate-800/80">
                 <button 

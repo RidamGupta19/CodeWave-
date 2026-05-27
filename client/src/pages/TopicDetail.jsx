@@ -12,6 +12,7 @@ import toast from 'react-hot-toast';
 import { motion, AnimatePresence } from 'framer-motion';
 import Editor from '@monaco-editor/react';
 import { getDsaLanguageContent, getCheckpointContent } from '../utils/dsaContent';
+import { getWebDevLanguageContent, getWebDevCheckpointContent } from '../utils/webDevContent';
 import { getLessonAssessment, normalizeDsaLanguage } from '../utils/dsaPersonalization';
 import RecursionVisualizer from '../components/RecursionVisualizer';
 
@@ -70,6 +71,26 @@ const TopicDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { user, refreshUser } = useAuth();
+
+  const getProgressKey = (slug) => {
+    if (!slug) return 'dsa';
+    const lowercaseSlug = slug.toLowerCase();
+    if (lowercaseSlug === 'web-development' || lowercaseSlug === 'webdev') return 'webdev';
+    if (lowercaseSlug === 'open-source' || lowercaseSlug === 'opensource') return 'opensource';
+    if (lowercaseSlug === 'devops') return 'devops';
+    if (lowercaseSlug === 'dsa') return 'dsa';
+    return 'dsa';
+  };
+
+  const activeDomainSlug = user?.activeDomain?.slug || user?.selectedDomain?.slug || 'dsa';
+  const activeDomainKey = getProgressKey(activeDomainSlug);
+  const activeDomainProgress = user?.domainsProgress?.[activeDomainKey] || {
+    xp: 0,
+    currentPhase: 1,
+    overallProgress: 0,
+    completedTopics: [],
+    startedTopics: []
+  };
   
   // Topic state variables
   const [topic, setTopic] = useState(null);
@@ -98,8 +119,8 @@ const TopicDetail = () => {
   const isChallengeUnlocked = true;
 
   const isCompleted = useMemo(() => {
-    return user?.completedTopics?.some(t => t.topicId === id || t.topicId?._id === id);
-  }, [user, id]);
+    return activeDomainProgress.completedTopics?.some(t => t.topicId === id || t.topicId?._id === id);
+  }, [activeDomainProgress.completedTopics, id]);
 
   const nextTopic = useMemo(() => {
     if (!topic || allTopics.length === 0) return null;
@@ -367,7 +388,21 @@ const TopicDetail = () => {
     try {
       setLoading(true);
       const res = await api.get(`/topics/${id}`);
-      setTopic(res.data.data);
+      const fetchedTopic = res.data.data;
+      setTopic(fetchedTopic);
+      
+      const isWebDev = fetchedTopic?.domainId?.slug === 'web-development' || fetchedTopic?.domainId === 'web-development' ||
+                        (typeof fetchedTopic?.domainId === 'object' && fetchedTopic?.domainId?.slug === 'web-development');
+      if (isWebDev) {
+        const titleLower = (fetchedTopic?.title || '').toLowerCase();
+        if (titleLower.includes('html')) {
+          setSelectedLang('html');
+        } else if (titleLower.includes('css')) {
+          setSelectedLang('css');
+        } else {
+          setSelectedLang('javascript');
+        }
+      }
       
       // Reset ALL interactive playground variables on topic navigation
       setChallengePassed(false);
@@ -384,10 +419,10 @@ const TopicDetail = () => {
       }
 
       // Automatically register starting topic in backend if not already logged
-      const isStarted = user?.startedTopics?.some(t => t.topicId === id || t.topicId?._id === id);
-      const isCompleted = user?.completedTopics?.some(t => t.topicId === id || t.topicId?._id === id);
+      const isStarted = activeDomainProgress.startedTopics?.some(t => t.topicId === id || t.topicId?._id === id);
+      const isCompletedTopic = activeDomainProgress.completedTopics?.some(t => t.topicId === id || t.topicId?._id === id);
       
-      if (user && !isStarted && !isCompleted) {
+      if (user && !isStarted && !isCompletedTopic) {
         await api.post('/progress/start-topic', { topicId: id });
       }
       
@@ -397,8 +432,8 @@ const TopicDetail = () => {
         refreshUser();
       }
 
-      if (isCompleted) {
-        const completedData = user?.completedTopics?.find(t => t.topicId === id || t.topicId?._id === id);
+      if (isCompletedTopic) {
+        const completedData = activeDomainProgress.completedTopics?.find(t => t.topicId === id || t.topicId?._id === id);
         if (completedData) {
           setNotes(completedData.notes || '');
           setConfidenceLevel(completedData.confidenceLevel || 3);
@@ -418,16 +453,46 @@ const TopicDetail = () => {
   // Dynamic boilerplate loaders
   const isDsaDomain = topic?.domainId?.slug === 'dsa' || topic?.domainId === 'dsa' || 
                       (typeof topic?.domainId === 'object' && topic?.domainId?.slug === 'dsa');
-  const isCheckpointModule = isDsaDomain && (topic?.isCheckpointModule === true || (topic?.title || '').toLowerCase() === 'start coding');
-  const langContent = isDsaDomain ? getDsaLanguageContent(topic?.title, selectedLang, activeDifficulty, useStriverAdvanced, topic?.youtubeLink) : null;
-  const lessonAssessment = isDsaDomain ? getLessonAssessment(topic?.title, selectedLang) : [];
-  const lessonAssessmentComplete = !isDsaDomain || lessonAssessment.every((_, index) => (lessonAnswers[index] || '').trim().length > 0);
+  const isWebDevDomain = topic?.domainId?.slug === 'web-development' || topic?.domainId === 'web-development' || 
+                        (typeof topic?.domainId === 'object' && topic?.domainId?.slug === 'web-development');
+  const shouldSplitWorkspace = isDsaDomain || isWebDevDomain;
+
+  const availableLanguages = useMemo(() => {
+    if (isWebDevDomain) {
+      const titleLower = (topic?.title || '').toLowerCase();
+      if (titleLower.includes('html')) return ['html'];
+      if (titleLower.includes('css')) return ['css'];
+      return ['html', 'css', 'javascript'];
+    }
+    return ['cpp', 'java', 'python', 'javascript'];
+  }, [isWebDevDomain, topic]);
+
+  const isCheckpointModule = shouldSplitWorkspace && (topic?.isCheckpointModule === true || (topic?.title || '').toLowerCase() === 'start coding');
+
+  const langContent = useMemo(() => {
+    if (isDsaDomain) {
+      return getDsaLanguageContent(topic?.title, selectedLang, activeDifficulty, useStriverAdvanced, topic?.youtubeLink);
+    }
+    if (isWebDevDomain) {
+      return getWebDevLanguageContent(topic?.title, selectedLang, activeDifficulty, topic?.youtubeLink);
+    }
+    return null;
+  }, [isDsaDomain, isWebDevDomain, topic, selectedLang, activeDifficulty, useStriverAdvanced]);
+
+  const lessonAssessment = shouldSplitWorkspace ? getLessonAssessment(topic?.title, selectedLang) : [];
+  const lessonAssessmentComplete = !shouldSplitWorkspace || lessonAssessment.every((_, index) => (lessonAnswers[index] || '').trim().length > 0);
 
   // Active checkpoint content (only relevant when isCheckpointModule)
   const activeCheckpointContent = useMemo(() => {
     if (!isCheckpointModule) return null;
-    return getCheckpointContent(activeCheckpoint, selectedLang);
-  }, [isCheckpointModule, activeCheckpoint, selectedLang]);
+    if (isDsaDomain) {
+      return getCheckpointContent(activeCheckpoint, selectedLang);
+    }
+    if (isWebDevDomain) {
+      return getWebDevCheckpointContent(activeCheckpoint, selectedLang);
+    }
+    return null;
+  }, [isCheckpointModule, isDsaDomain, isWebDevDomain, activeCheckpoint, selectedLang]);
 
   // For checkpoint module: use the unique embed URL baked into each checkpoint
   // Each checkpoint has its own pre-built videoEmbedUrl — NEVER the same video twice
@@ -478,6 +543,25 @@ const TopicDetail = () => {
                   setIsVideoFinished(true);
                   toast.success("Tutorial video completed! Assessment is now unlocked! 🔓");
                 }
+                
+                // Periodically save video progress
+                if (event.data === 1 || event.data === 2) {
+                  const currentTime = Math.round(event.target.getCurrentTime());
+                  api.post('/progress/video-progress', {
+                    checkpointId: `tutorial_${id}`,
+                    timestamp: currentTime,
+                    currentCheckpoint: `tutorial_${id}`,
+                    lastOpenedTopic: id
+                  }).catch(e => console.warn("Failed to persist video progress", e));
+                }
+              },
+              onReady: (event) => {
+                const activeDomainKey = user?.activeDomain?.slug ? getProgressKey(user.activeDomain.slug) : 'dsa';
+                const savedProgress = user?.domainsProgress?.[activeDomainKey]?.videoProgress;
+                if (savedProgress && savedProgress.checkpointId === `tutorial_${id}` && savedProgress.timestamp > 0) {
+                  event.target.seekTo(savedProgress.timestamp, true);
+                  toast.success(`Resuming tutorial video from ${Math.floor(savedProgress.timestamp / 60)}m ${savedProgress.timestamp % 60}s ⚡`);
+                }
               }
             }
           });
@@ -496,7 +580,75 @@ const TopicDetail = () => {
         } catch (e) {}
       }
     };
-  }, [activeVideoEmbedUrl, learningStep]);
+  }, [activeVideoEmbedUrl, learningStep, user, id]);
+
+  // Hook up YouTube Player state listener for checkpoint videos
+  useEffect(() => {
+    if (!checkpointVideoEmbedUrl || !activeCheckpoint) return;
+
+    let checkYTInterval = setInterval(() => {
+      if (window.YT && window.YT.Player) {
+        clearInterval(checkYTInterval);
+        
+        try {
+          if (checkpointPlayerRef.current) {
+            checkpointPlayerRef.current.destroy();
+            checkpointPlayerRef.current = null;
+          }
+        } catch (e) {
+          console.warn("Error destroying previous checkpoint player", e);
+        }
+
+        try {
+          const domId = `checkpoint-video-${activeCheckpoint}`;
+          const iframeEl = document.getElementById(domId);
+          if (!iframeEl) return;
+
+          checkpointPlayerRef.current = new window.YT.Player(domId, {
+            events: {
+              onStateChange: (event) => {
+                if (event.data === 0) {
+                  setCheckpointVideoFinished(true);
+                  toast.success("Checkpoint tutorial video completed! challenge unlocked! 🔓");
+                }
+                
+                // Periodically save video progress
+                if (event.data === 1 || event.data === 2) {
+                  const currentTime = Math.round(event.target.getCurrentTime());
+                  api.post('/progress/video-progress', {
+                    checkpointId: activeCheckpoint,
+                    timestamp: currentTime,
+                    currentCheckpoint: activeCheckpoint,
+                    lastOpenedTopic: id
+                  }).catch(e => console.warn("Failed to persist video progress", e));
+                }
+              },
+              onReady: (event) => {
+                const activeDomainKey = user?.activeDomain?.slug ? getProgressKey(user.activeDomain.slug) : 'dsa';
+                const savedProgress = user?.domainsProgress?.[activeDomainKey]?.videoProgress;
+                if (savedProgress && savedProgress.checkpointId === activeCheckpoint && savedProgress.timestamp > 0) {
+                  event.target.seekTo(savedProgress.timestamp, true);
+                  toast.success(`Resuming tutorial video from ${Math.floor(savedProgress.timestamp / 60)}m ${savedProgress.timestamp % 60}s ⚡`);
+                }
+              }
+            }
+          });
+        } catch (err) {
+          console.warn("Failed to instantiate checkpoint YT.Player:", err);
+        }
+      }
+    }, 1000);
+
+    return () => {
+      clearInterval(checkYTInterval);
+      if (checkpointPlayerRef.current) {
+        try {
+          checkpointPlayerRef.current.destroy();
+          checkpointPlayerRef.current = null;
+        } catch (e) {}
+      }
+    };
+  }, [checkpointVideoEmbedUrl, activeCheckpoint, user, id]);
 
   // Reset boilerplate when topic, language, or difficulty changes
   useEffect(() => {
@@ -780,8 +932,90 @@ const TopicDetail = () => {
     }
   };
 
-  // Genuine Sandboxed Code Execution Engine
   const executeSandbox = (userCode, lang, testCases, fnNameOverride = null) => {
+    if (lang === 'html' || lang === 'css') {
+      const logs = [];
+      const results = [];
+      logs.push(`⚡ Initializing browser ${lang.toUpperCase()} parser sandbox...`);
+      logs.push(`✨ ${lang.toUpperCase()} code parsed successfully.`);
+      
+      try {
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(lang === 'html' ? (userCode || '') : '', 'text/html');
+        
+        logs.push(`⚙️ Evaluating structural assertions...`);
+        
+        const cases = testCases || [];
+        cases.forEach((tc, idx) => {
+          const isHidden = idx >= 3;
+          let actualOutput = 'Not found';
+          let isMatch = false;
+          let element = null;
+          
+          try {
+            if (tc.selector) {
+              element = doc.querySelector(tc.selector);
+              if (element) {
+                if (tc.attribute) {
+                  const attrVal = element.getAttribute(tc.attribute);
+                  actualOutput = attrVal ? attrVal.trim() : 'attribute not found';
+                } else if (tc.expectedText) {
+                  actualOutput = element.textContent.trim();
+                } else {
+                  actualOutput = 'exists';
+                }
+              } else {
+                actualOutput = 'element not found';
+              }
+            } else if (tc.regex) {
+              const reg = new RegExp(tc.regex, 'i');
+              const matches = reg.test(userCode);
+              actualOutput = matches ? 'matches pattern' : 'no match';
+            } else {
+              actualOutput = 'no validator configured';
+            }
+            
+            const cleanActual = String(actualOutput).trim().toLowerCase();
+            const cleanExpected = String(tc.expected).trim().toLowerCase();
+            
+            if (cleanExpected === 'exists') {
+              isMatch = !!element;
+            } else if (cleanExpected === 'matches pattern') {
+              isMatch = actualOutput === 'matches pattern';
+            } else {
+              isMatch = cleanActual.includes(cleanExpected) || cleanExpected.includes(cleanActual);
+            }
+            
+            results.push({
+              ...tc,
+              actual: actualOutput,
+              status: isMatch ? 'passed' : 'failed',
+              isHidden
+            });
+            
+            if (isMatch) {
+              logs.push(`🟢 Test Case ${idx + 1}: Passed! - ${tc.input}`);
+            } else {
+              logs.push(`❌ Test Case ${idx + 1}: Failed! Expected: ${tc.expected}, Got: ${actualOutput}`);
+            }
+          } catch (err) {
+            results.push({
+              ...tc,
+              actual: `Error: ${err.message}`,
+              status: 'failed',
+              isHidden
+            });
+            logs.push(`❌ Test Case ${idx + 1}: Error - ${err.message}`);
+          }
+        });
+      } catch (err) {
+        logs.push(`💥 Parsing Error: ${err.message}`);
+        throw new Error(`Parsing Error: ${err.message}`);
+      }
+      
+      return { results, logs };
+    }
+
     // Standard DS structures and vector prototypes injected in dynamic runner
     const polyfills = `
       class TreeNode {
@@ -1049,7 +1283,8 @@ const TopicDetail = () => {
       streak,
       quote,
       rank: newRank,
-      leveledUp
+      leveledUp,
+      newlyEarnedBadges: topic?.badge ? [topic.badge] : []
     });
   };
 
@@ -1100,7 +1335,7 @@ const TopicDetail = () => {
           handleGamificationUpdate();
           
           // Automatically complete the topic in the background if not already completed!
-          const isAlreadyCompleted = user?.completedTopics?.some(t => t.topicId === id || t.topicId?._id === id);
+          const isAlreadyCompleted = activeDomainProgress.completedTopics?.some(t => t.topicId === id || t.topicId?._id === id);
           if (!isAlreadyCompleted) {
             try {
               const res = await api.post('/progress/complete-topic', { 
@@ -1112,14 +1347,23 @@ const TopicDetail = () => {
                 revisionNeeded: false
               });
               if (res.data.success) {
-                const { newlyEarnedBadges, newlyEarnedCertificate } = res.data.data;
-                if ((newlyEarnedBadges && newlyEarnedBadges.length > 0) || newlyEarnedCertificate) {
-                  setCelebrationData(prev => prev ? {
+                const { newlyEarnedBadges, newlyEarnedCertificate, topicBadge } = res.data.data;
+                setCelebrationData(prev => {
+                  if (!prev) return null;
+                  const finalBadges = newlyEarnedBadges && newlyEarnedBadges.length > 0
+                    ? [...newlyEarnedBadges, ...(topicBadge ? [topicBadge] : [])]
+                    : (topicBadge ? [topicBadge] : (topic?.badge ? [topic.badge] : []));
+                  
+                  const uniqueBadges = finalBadges.filter((b, idx, self) => 
+                    self.findIndex(x => x.name === b.name || x._id === b._id) === idx
+                  );
+
+                  return {
                     ...prev,
-                    newlyEarnedBadges,
+                    newlyEarnedBadges: uniqueBadges,
                     newlyEarnedCertificate
-                  } : null);
-                }
+                  };
+                });
               }
             } catch (autoErr) {
               console.error('Failed to auto-complete topic:', autoErr);
@@ -1176,22 +1420,23 @@ const TopicDetail = () => {
       });
       await refreshUser();
       toast.success('Expedition Completed successfully! +50 XP 🚀');
+      triggerConfettiExplosion();
       
-      const { newlyEarnedBadges, newlyEarnedCertificate } = res.data.data;
-      if ((newlyEarnedBadges && newlyEarnedBadges.length > 0) || newlyEarnedCertificate) {
-        setCelebrationData({
-          xpEarned: 50,
-          streak: res.data.data.dailyStreak || 1,
-          quote: "Fantastic work! You have unlocked new badges or certificates.",
-          rank: { badge: "Mastered", title: "Topic Complete", style: "text-emerald-500" },
-          leveledUp: false,
-          newlyEarnedBadges,
-          newlyEarnedCertificate,
-          navigateOnClose: '/roadmap'
-        });
-      } else {
-        navigate('/roadmap');
-      }
+      const { newlyEarnedBadges, newlyEarnedCertificate, topicBadge } = res.data.data;
+      const finalBadges = newlyEarnedBadges && newlyEarnedBadges.length > 0
+        ? newlyEarnedBadges
+        : (topicBadge ? [topicBadge] : (topic?.badge ? [topic.badge] : []));
+
+      setCelebrationData({
+        xpEarned: 50,
+        streak: res.data.data.dailyStreak || 1,
+        quote: "Fantastic work! You have completed the topic and claimed its completion badge.",
+        rank: { badge: "Mastered", title: "Topic Complete", style: "text-emerald-500" },
+        leveledUp: false,
+        newlyEarnedBadges: finalBadges,
+        newlyEarnedCertificate,
+        navigateOnClose: '/roadmap'
+      });
     } catch (err) {
       toast.error('Failed to log quest completion progress');
     } finally {
@@ -1313,15 +1558,18 @@ const TopicDetail = () => {
           <div className="px-4 pt-3 pb-3 border-b border-[var(--border)] shrink-0">
             <div className="text-[8px] font-black text-[var(--text-light)] uppercase tracking-wider mb-2">Coding Language</div>
             <div className="flex gap-1">
-              {[{ key: 'cpp', label: 'C++' }, { key: 'java', label: 'Java' }, { key: 'python', label: 'Python' }, { key: 'javascript', label: 'JS' }].map(l => (
-                <button
-                  key={l.key}
-                  onClick={() => { setSelectedLang(l.key); setEditorCode(''); }}
-                  className={`flex-1 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-wider transition-all ${selectedLang === l.key ? 'bg-[var(--primary)] text-white shadow-sm' : 'bg-[var(--bg-sub)] text-[var(--text-muted)] hover:text-[var(--text-main)]'}`}
-                >
-                  {l.label}
-                </button>
-              ))}
+              {availableLanguages.map(lang => {
+                const label = lang === 'cpp' ? 'C++' : lang === 'javascript' ? 'JS' : lang.toUpperCase();
+                return (
+                  <button
+                    key={lang}
+                    onClick={() => { setSelectedLang(lang); setEditorCode(''); }}
+                    className={`flex-1 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-wider transition-all ${selectedLang === lang ? 'bg-[var(--primary)] text-white shadow-sm' : 'bg-[var(--bg-sub)] text-[var(--text-muted)] hover:text-[var(--text-main)]'}`}
+                  >
+                    {label}
+                  </button>
+                );
+              })}
             </div>
           </div>
 
@@ -1767,7 +2015,7 @@ const TopicDetail = () => {
             <div className="flex-1 overflow-hidden" style={{ minHeight: 0 }}>
               <Editor
                 height="100%"
-                language={selectedLang === 'cpp' ? 'cpp' : selectedLang === 'java' ? 'java' : selectedLang === 'python' ? 'python' : 'javascript'}
+                language={selectedLang === 'js' ? 'javascript' : selectedLang}
                 value={editorCode || (cpContent?.editorBoilerplate || '')}
                 theme={editorTheme}
                 onChange={(val) => setEditorCode(val || '')}
@@ -1832,6 +2080,14 @@ const TopicDetail = () => {
                 >
                   Output Log
                 </button>
+                {selectedLang === 'html' && (
+                  <button
+                    onClick={() => setActiveConsoleTab('preview')}
+                    className={`text-[10px] font-black uppercase tracking-wider pb-0.5 transition-colors ${activeConsoleTab === 'preview' ? 'text-white border-b-2 border-[var(--primary)]' : 'text-zinc-500 hover:text-zinc-300'}`}
+                  >
+                    Live Preview 👁️
+                  </button>
+                )}
               </div>
               <div className="flex-1 overflow-y-auto p-3 custom-scrollbar">
                 {activeConsoleTab === 'testcase' ? (
@@ -1853,13 +2109,22 @@ const TopicDetail = () => {
                       </div>
                     ))}
                   </div>
-                ) : (
+                ) : activeConsoleTab === 'result' ? (
                   <div className="space-y-1">
                     {consoleLogs.length === 0 ? (
                       <p className="text-zinc-600 text-[10px] font-mono italic">No output yet...</p>
                     ) : consoleLogs.map((log, i) => (
                       <div key={i} className="text-[10px] font-mono text-zinc-400 leading-relaxed">{log}</div>
                     ))}
+                  </div>
+                ) : (
+                  <div className="w-full h-full min-h-[120px] bg-white rounded-lg overflow-hidden border border-zinc-800">
+                    <iframe
+                      title="checkpoint-live-preview"
+                      srcDoc={editorCode}
+                      sandbox="allow-scripts"
+                      className="w-full h-full bg-white border-none min-h-[120px]"
+                    />
                   </div>
                 )}
               </div>
@@ -1920,7 +2185,7 @@ const TopicDetail = () => {
               <FiZap />
             </div>
             <div>
-              <div className="text-[9px] font-black text-[var(--text-light)] uppercase tracking-widest leading-none mb-0.5">DSA Expedition</div>
+              <div className="text-[9px] font-black text-[var(--text-light)] uppercase tracking-widest leading-none mb-0.5">{isWebDevDomain ? 'Web Dev Expedition' : 'DSA Expedition'}</div>
               <div className="font-black text-[var(--text-main)] text-xs leading-tight">Level {topic.phaseId?.phaseNumber || 0}</div>
             </div>
           </div>
@@ -1928,7 +2193,7 @@ const TopicDetail = () => {
           <div className="space-y-1.5">
             {allTopics.map((t, index) => {
               const active = t._id === id;
-              const done = user?.completedTopics?.some(ct => ct.topicId === t._id || ct.topicId?._id === t._id);
+              const done = activeDomainProgress.completedTopics?.some(ct => ct.topicId === t._id || ct.topicId?._id === t._id);
               return (
                 <Link 
                   key={t._id} 
@@ -1970,7 +2235,7 @@ const TopicDetail = () => {
         
         {/* LEFT PANE: Details, Approach, and Submissions */}
         <div 
-          style={{ width: isDsaDomain ? `${leftWidth}%` : '100%' }} 
+          style={{ width: shouldSplitWorkspace ? `${leftWidth}%` : '100%' }} 
           className="w-full lg:w-auto h-full flex flex-col border-r border-[var(--border)] bg-[var(--bg-card)] overflow-hidden shrink-0"
         >
           
@@ -2133,22 +2398,23 @@ const TopicDetail = () => {
                         });
                         await refreshUser();
                         toast.success('Topic Completed successfully! +50 XP 🚀');
+                        triggerConfettiExplosion();
                         
-                        const { newlyEarnedBadges, newlyEarnedCertificate } = res.data.data;
-                        if ((newlyEarnedBadges && newlyEarnedBadges.length > 0) || newlyEarnedCertificate) {
-                          setCelebrationData({
-                            xpEarned: 50,
-                            streak: res.data.data.dailyStreak || 1,
-                            quote: "Congratulations on completing this lesson!",
-                            rank: { badge: "Mastered", title: "Topic Complete", style: "text-emerald-500" },
-                            leveledUp: false,
-                            newlyEarnedBadges,
-                            newlyEarnedCertificate,
-                            navigateOnClose: '/roadmap'
-                          });
-                        } else {
-                          navigate('/roadmap');
-                        }
+                        const { newlyEarnedBadges, newlyEarnedCertificate, topicBadge } = res.data.data;
+                        const finalBadges = newlyEarnedBadges && newlyEarnedBadges.length > 0
+                          ? newlyEarnedBadges
+                          : (topicBadge ? [topicBadge] : (topic?.badge ? [topic.badge] : []));
+
+                        setCelebrationData({
+                          xpEarned: 50,
+                          streak: res.data.data.dailyStreak || 1,
+                          quote: "Congratulations on completing this lesson!",
+                          rank: { badge: "Mastered", title: "Topic Complete", style: "text-emerald-500" },
+                          leveledUp: false,
+                          newlyEarnedBadges: finalBadges,
+                          newlyEarnedCertificate,
+                          navigateOnClose: '/roadmap'
+                        });
                       } catch (err) {
                         toast.error('Failed to log quest completion progress');
                       } finally {
@@ -2190,21 +2456,22 @@ const TopicDetail = () => {
                           });
                           await refreshUser();
                           toast.success('Topic completed (assessment skipped)! 🚀');
-                          const { newlyEarnedBadges, newlyEarnedCertificate } = res.data.data || {};
-                          if ((newlyEarnedBadges && newlyEarnedBadges.length > 0) || newlyEarnedCertificate) {
-                            setCelebrationData({
-                              xpEarned: 50,
-                              streak: res.data.data.dailyStreak || 1,
-                              quote: "Congratulations on completing this lesson!",
-                              rank: { badge: "Mastered", title: "Topic Complete", style: "text-emerald-500" },
-                              leveledUp: false,
-                              newlyEarnedBadges,
-                              newlyEarnedCertificate,
-                              navigateOnClose: '/roadmap'
-                            });
-                          } else {
-                            navigate('/roadmap');
-                          }
+                          triggerConfettiExplosion();
+                          const { newlyEarnedBadges, newlyEarnedCertificate, topicBadge } = res.data.data || {};
+                          const finalBadges = newlyEarnedBadges && newlyEarnedBadges.length > 0
+                            ? newlyEarnedBadges
+                            : (topicBadge ? [topicBadge] : (topic?.badge ? [topic.badge] : []));
+
+                          setCelebrationData({
+                            xpEarned: 50,
+                            streak: res.data.data?.dailyStreak || 1,
+                            quote: "Congratulations on completing this lesson!",
+                            rank: { badge: "Mastered", title: "Topic Complete", style: "text-emerald-500" },
+                            leveledUp: false,
+                            newlyEarnedBadges: finalBadges,
+                            newlyEarnedCertificate,
+                            navigateOnClose: '/roadmap'
+                          });
                         } catch (err) {
                           toast.error('Failed to skip and complete topic');
                         } finally {
@@ -2574,7 +2841,7 @@ const TopicDetail = () => {
         </div>
 
         {/* Resizable Divider Bar */}
-        {isDsaDomain && (
+        {shouldSplitWorkspace && (
           <div 
             onMouseDown={startResize}
             className={`hidden lg:flex w-1 hover:w-1.5 bg-zinc-800 hover:bg-[#6366f1] cursor-col-resize transition-all shrink-0 items-center justify-center relative group ${isDragging ? 'bg-[#6366f1] w-1.5' : ''}`}
@@ -2584,7 +2851,7 @@ const TopicDetail = () => {
         )}
 
         {/* RIGHT PANE: Code Monaco Editor & Console Terminal */}
-        {isDsaDomain && (
+        {shouldSplitWorkspace && (
         <div 
           style={{ width: isFullscreen ? '100%' : `${100 - leftWidth}%` }} 
           className={`flex-1 h-full flex flex-col overflow-hidden bg-[#09090b] transition-all duration-150 shrink-0 ${
@@ -2597,7 +2864,7 @@ const TopicDetail = () => {
             <div className="flex items-center gap-3">
               {/* Language selection selector */}
               <div className="flex items-center gap-1 bg-zinc-900 p-0.5 rounded-lg border border-zinc-800">
-                {['cpp', 'java', 'python', 'javascript'].map((lang) => (
+                {availableLanguages.map((lang) => (
                   <button
                     key={lang}
                     onClick={() => setSelectedLang(lang)}
@@ -2607,7 +2874,7 @@ const TopicDetail = () => {
                         : 'text-zinc-500 hover:text-zinc-300'
                     }`}
                   >
-                    {lang === 'cpp' ? 'C++' : lang === 'javascript' ? 'JS' : lang}
+                    {lang === 'cpp' ? 'C++' : lang === 'javascript' ? 'JS' : lang.toUpperCase()}
                   </button>
                 ))}
               </div>
@@ -2648,7 +2915,7 @@ const TopicDetail = () => {
           <div className="flex-1 min-h-[250px] relative overflow-hidden bg-[#1e1e1e]">
             <Editor
               height="100%"
-              language={selectedLang === 'cpp' ? 'cpp' : selectedLang === 'javascript' ? 'javascript' : selectedLang === 'python' ? 'python' : 'java'}
+              language={selectedLang === 'js' ? 'javascript' : selectedLang}
               value={editorCode}
               onChange={(val) => setEditorCode(val || '')}
               theme={editorTheme}
@@ -2695,6 +2962,18 @@ const TopicDetail = () => {
                     }`} />
                   )}
                 </button>
+                {selectedLang === 'html' && (
+                  <button
+                    onClick={() => setActiveConsoleTab('preview')}
+                    className={`flex items-center gap-1 px-3 py-1 rounded text-[9px] font-black uppercase transition-all ${
+                      activeConsoleTab === 'preview'
+                        ? 'bg-zinc-900 border border-zinc-800 text-white shadow-sm'
+                        : 'text-zinc-500 hover:text-zinc-300'
+                    }`}
+                  >
+                    Live Preview 👁️
+                  </button>
+                )}
               </div>
               
               <div className="text-[8px] font-mono text-zinc-600 uppercase">
@@ -2838,6 +3117,16 @@ const TopicDetail = () => {
                   )}
                 </div>
               )}
+              {activeConsoleTab === 'preview' && selectedLang === 'html' && (
+                <div className="w-full h-full min-h-[160px] bg-white rounded-lg overflow-hidden border border-zinc-800">
+                  <iframe
+                    title="live-preview"
+                    srcDoc={editorCode}
+                    sandbox="allow-scripts"
+                    className="w-full h-full bg-white border-none min-h-[160px]"
+                  />
+                </div>
+              )}
             </div>
 
             {/* Terminal Actions Bottom sticky bar */}
@@ -2854,7 +3143,7 @@ const TopicDetail = () => {
                       setCompilerStatus('passed');
                       setChallengePassed(true);
                       handleGamificationUpdate();
-                      const isAlreadyCompleted = user?.completedTopics?.some(t => t.topicId === id || t.topicId?._id === id);
+                      const isAlreadyCompleted = activeDomainProgress.completedTopics?.some(t => t.topicId === id || t.topicId?._id === id);
                       if (!isAlreadyCompleted) {
                         try {
                           const res = await api.post('/progress/complete-topic', { 

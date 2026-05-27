@@ -4,21 +4,44 @@ const Domain = require('../models/Domain');
 const Phase = require('../models/Phase');
 const Topic = require('../models/Topic');
 
+// Helper function to map database slugs to domainsProgress keys
+const getProgressKey = (slug) => {
+  if (!slug) return 'dsa';
+  const lowercaseSlug = slug.toLowerCase();
+  if (lowercaseSlug === 'web-development' || lowercaseSlug === 'webdev') return 'webdev';
+  if (lowercaseSlug === 'open-source' || lowercaseSlug === 'opensource') return 'opensource';
+  if (lowercaseSlug === 'devops') return 'devops';
+  if (lowercaseSlug === 'dsa') return 'dsa';
+  if (lowercaseSlug.includes('web') || lowercaseSlug.includes('ui-ux')) return 'webdev';
+  if (lowercaseSlug.includes('open') || lowercaseSlug.includes('git')) return 'opensource';
+  if (lowercaseSlug.includes('dsa') || lowercaseSlug.includes('data')) return 'dsa';
+  return 'devops';
+};
+
 // @desc    Calculate performance insights dynamically for a user
 const calculatePerformanceInsights = async (userId) => {
   const user = await User.findById(userId)
-    .populate('selectedDomain')
-    .populate('completedTopics.topicId');
+    .populate('activeDomain');
 
   if (!user) return null;
 
-  const domain = user.selectedDomain?.name || 'No domain selected';
-  const domainSlug = user.selectedDomain?.slug || 'web-development';
-  const xp = user.xp || 0;
+  const domain = user.activeDomain?.name || 'No domain selected';
+  const domainSlug = user.activeDomain?.slug || 'web-development';
+  const key = getProgressKey(domainSlug);
+  const domainProgress = user.domainsProgress[key] || {
+    xp: 0,
+    currentPhase: 1,
+    overallProgress: 0,
+    completedTopics: [],
+    weakConcepts: [],
+    dsaStats: {}
+  };
+
+  const xp = domainProgress.xp || 0;
   const streak = user.dailyStreak || 0;
-  const progress = user.overallProgress || 0;
-  const phase = user.currentPhase || 0;
-  const completedCount = user.completedTopics?.length || 0;
+  const progress = domainProgress.overallProgress || 0;
+  const phase = domainProgress.currentPhase || 0;
+  const completedCount = domainProgress.completedTopics?.length || 0;
   
   // Programming Language preference
   const preferredLang = user.profile?.onboardingAnswers?.dsa_language || 
@@ -26,17 +49,26 @@ const calculatePerformanceInsights = async (userId) => {
 
   // 1. Weak Topics Identification
   let weakTopics = [];
-  if (user.dsaStats?.weakestTopic) {
-    weakTopics.push(user.dsaStats.weakestTopic);
+  if (domainProgress.dsaStats?.weakestTopic) {
+    weakTopics.push(domainProgress.dsaStats.weakestTopic);
   }
   
-  user.completedTopics.forEach(t => {
-    if ((t.confidenceLevel <= 2 || t.difficultyFeedback === 'hard' || t.revisionNeeded) && t.topicId?.title) {
-      if (!weakTopics.includes(t.topicId.title)) {
-        weakTopics.push(t.topicId.title);
+  // Add weak concepts
+  if (domainProgress.weakConcepts && domainProgress.weakConcepts.length > 0) {
+    domainProgress.weakConcepts.forEach(c => {
+      if (!weakTopics.includes(c)) weakTopics.push(c);
+    });
+  }
+
+  // Populate completed topics title/details for checking confidence
+  for (const t of (domainProgress.completedTopics || [])) {
+    if (t.confidenceLevel <= 2 || t.difficultyFeedback === 'hard' || t.revisionNeeded) {
+      const topicObj = await Topic.findById(t.topicId);
+      if (topicObj && topicObj.title && !weakTopics.includes(topicObj.title)) {
+        weakTopics.push(topicObj.title);
       }
     }
-  });
+  }
 
   if (weakTopics.length === 0) {
     if (domainSlug === 'dsa') {
@@ -48,17 +80,18 @@ const calculatePerformanceInsights = async (userId) => {
 
   // 2. Strong Topics Identification
   let strongTopics = [];
-  if (user.dsaStats?.strongestTopic) {
-    strongTopics.push(user.dsaStats.strongestTopic);
+  if (domainProgress.dsaStats?.strongestTopic) {
+    strongTopics.push(domainProgress.dsaStats.strongestTopic);
   }
   
-  user.completedTopics.forEach(t => {
-    if ((t.confidenceLevel >= 4 || t.difficultyFeedback === 'easy') && t.topicId?.title) {
-      if (!strongTopics.includes(t.topicId.title)) {
-        strongTopics.push(t.topicId.title);
+  for (const t of (domainProgress.completedTopics || [])) {
+    if (t.confidenceLevel >= 4 || t.difficultyFeedback === 'easy') {
+      const topicObj = await Topic.findById(t.topicId);
+      if (topicObj && topicObj.title && !strongTopics.includes(topicObj.title)) {
+        strongTopics.push(topicObj.title);
       }
     }
-  });
+  }
 
   if (strongTopics.length === 0) {
     if (domainSlug === 'dsa') {
@@ -82,7 +115,7 @@ const calculatePerformanceInsights = async (userId) => {
   else if (activeDaysLast14 >= 3) consistency = 'Moderate';
 
   // 4. Assessment Standing
-  const tests = user.testResults || [];
+  const tests = domainProgress.testResults || [];
   const passedTests = tests.filter(t => t.passed).length;
   const totalTestsAttempted = tests.length;
   const avgScore = totalTestsAttempted > 0 
@@ -92,7 +125,7 @@ const calculatePerformanceInsights = async (userId) => {
   // 5. Internship / Job Readiness %
   let readinessPercent = Math.round((progress * 0.5) + (passedTests * 12) + (streak * 2));
   if (domainSlug === 'dsa') {
-    const solved = user.dsaStats?.totalProblemsSolved || 0;
+    const solved = domainProgress.dsaStats?.totalProblemsSolved || 0;
     readinessPercent = Math.round((progress * 0.4) + (Math.min(solved, 100) / 100 * 30) + (passedTests * 10) + (streak * 2));
   }
   readinessPercent = Math.min(Math.max(readinessPercent, 15), 98); // bounds 15% to 98%
@@ -102,7 +135,7 @@ const calculatePerformanceInsights = async (userId) => {
   const insights = [];
 
   if (domainSlug === 'dsa') {
-    const solved = user.dsaStats?.totalProblemsSolved || 0;
+    const solved = domainProgress.dsaStats?.totalProblemsSolved || 0;
     if (solved < 15) {
       recommendations.push("Solve at least 2 basic Array/String problems daily to build basic pattern memory.");
       insights.push("You're strongest in Arrays");
@@ -390,12 +423,19 @@ exports.generateRoadmap = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Onboarding answers are required' });
     }
 
-    // Determine Starting Level (Rule-Based)
-    const user = await User.findById(userId).populate('selectedDomain');
-    const domainSlug = user.selectedDomain?.slug || 'web-development';
+    const user = await User.findById(userId).populate('activeDomain');
+    const domainSlug = user.activeDomain?.slug || 'web-development';
+    const key = getProgressKey(domainSlug);
 
-    const experience = answers.coding_experience;
-    const goal = answers.goal;
+    const experience = (domainSlug === 'dsa')
+      ? (answers.dsa_problem_experience || 'beginner')
+      : (domainSlug === 'web-development' || domainSlug === 'webdev')
+        ? (answers.web_page === 'yes' ? 'comfortable' : answers.web_page === 'somewhat' ? 'some_problems' : 'beginner')
+        : (domainSlug === 'devops')
+          ? (answers.devops_experience || 'beginner')
+          : (answers.git_experience || 'beginner');
+
+    const goal = answers.goal || 'job';
     const dailyTime = parseInt(answers.daily_time) || 60;
 
     // Starting Level Logic
@@ -421,7 +461,7 @@ exports.generateRoadmap = async (req, res) => {
         }
         unlockedLevels = Array.from({ length: startingLevel + 1 }, (_, index) => index);
       }
-    } else {
+    } else if (domainSlug === 'web-development') {
       // Web Dev Logic
       const techs = answers.technologies || [];
       const knowsHTML = techs.includes('html');
@@ -437,13 +477,30 @@ exports.generateRoadmap = async (req, res) => {
       } else if (knowsHTML) {
         startingLevel = 1;
         unlockedLevels = [0, 1];
-      } else if (experience === 'basic' || experience === 'projects') {
-        startingLevel = 1;
-        unlockedLevels = [0, 1];
       } else {
         startingLevel = 0;
         unlockedLevels = [0];
       }
+    } else if (domainSlug === 'devops') {
+      const exp = answers.devops_experience || 'never';
+      if (exp === 'comfortable') {
+        startingLevel = 2;
+      } else if (exp === 'basic') {
+        startingLevel = 1;
+      } else {
+        startingLevel = 0;
+      }
+      unlockedLevels = Array.from({ length: startingLevel + 1 }, (_, index) => index);
+    } else { // open-source
+      const exp = answers.git_experience || 'never';
+      if (exp === 'advanced') {
+        startingLevel = 2;
+      } else if (exp === 'basic') {
+        startingLevel = 1;
+      } else {
+        startingLevel = 0;
+      }
+      unlockedLevels = Array.from({ length: startingLevel + 1 }, (_, index) => index);
     }
 
     // Goal-Based Customization
@@ -505,20 +562,22 @@ exports.generateRoadmap = async (req, res) => {
     }
 
     // Update User Profile
+    const updateObj = {
+      'profile.onboardingAnswers': answers,
+      'profile.currentSkillLevel': experience,
+      'profile.goal': goal,
+      'profile.dailyStudyTime': dailyTime,
+      'profile.roadmapType': roadmapType,
+      'profile.estimatedTimeline': estimatedTimeline,
+      'profile.aiSummary': aiSummary,
+      'profile.recommendedProjects': recommendedProjects,
+      'profile.xpMultiplier': xpMultiplier,
+      'profile.isProfileComplete': true
+    };
+    updateObj[`domainsProgress.${key}.currentPhase`] = startingLevel;
+
     const updatedUser = await User.findByIdAndUpdate(userId, {
-      $set: {
-        'profile.onboardingAnswers': answers,
-        'profile.currentSkillLevel': experience,
-        'profile.goal': goal,
-        'profile.dailyStudyTime': dailyTime,
-        'profile.roadmapType': roadmapType,
-        'profile.estimatedTimeline': estimatedTimeline,
-        'profile.aiSummary': aiSummary,
-        'profile.recommendedProjects': recommendedProjects,
-        'profile.xpMultiplier': xpMultiplier,
-        'profile.isProfileComplete': true,
-        'currentPhase': startingLevel
-      }
+      $set: updateObj
     }, { new: true });
 
     res.json({

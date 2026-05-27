@@ -67,8 +67,9 @@ exports.login = async (req, res) => {
         email: user.email,
         role: user.role,
         profile: user.profile,
-        selectedDomain: user.selectedDomain,
-        overallProgress: user.overallProgress,
+        activeDomain: user.activeDomain,
+        selectedDomain: user.activeDomain,
+        domainsProgress: user.domainsProgress,
         dailyStreak: user.dailyStreak
       }
     });
@@ -83,7 +84,7 @@ exports.getMe = async (req, res) => {
   try {
     const user = await User.findById(req.user._id)
       .select('-password')
-      .populate('selectedDomain')
+      .populate('activeDomain')
       .populate('earnedBadges.badgeId')
       .populate('assignedMentor', 'fullName email');
 

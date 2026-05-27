@@ -4,7 +4,7 @@ const Feedback = require('../models/Feedback');
 // @desc    Get all users (admin)
 exports.getAllUsers = async (req, res) => {
   try {
-    const users = await User.find().select('-password').populate('selectedDomain');
+    const users = await User.find().select('-password').populate('activeDomain');
     res.json({ success: true, data: users });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
@@ -39,7 +39,7 @@ exports.getAssignedStudents = async (req, res) => {
     const mentor = await User.findById(req.user._id);
     const students = await User.find({ assignedMentor: req.user._id })
       .select('-password')
-      .populate('selectedDomain');
+      .populate('activeDomain');
     res.json({ success: true, data: students });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });

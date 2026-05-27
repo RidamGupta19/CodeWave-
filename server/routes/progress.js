@@ -13,5 +13,6 @@ router.get('/submissions/:topicId', protect, c.getSubmissions);
 router.get('/dashboard', protect, c.getDashboard);
 router.get('/heatmap', protect, c.getHeatmap);
 router.post('/skip-phase', protect, c.skipPhase);
+router.post('/video-progress', protect, c.saveVideoProgress);
 
 module.exports = router;
