@@ -1,12 +1,62 @@
 const Assessment = require('../models/Assessment');
+const User = require('../models/User');
+const Topic = require('../models/Topic');
+const Domain = require('../models/Domain');
+
+const getProgressKey = (slug) => {
+  if (!slug) return 'dsa';
+  const lowercaseSlug = slug.toLowerCase();
+  if (lowercaseSlug === 'web-development' || lowercaseSlug === 'webdev') return 'webdev';
+  if (lowercaseSlug === 'open-source' || lowercaseSlug === 'opensource') return 'opensource';
+  if (lowercaseSlug === 'devops') return 'devops';
+  if (lowercaseSlug === 'dsa') return 'dsa';
+  return 'dsa';
+};
 
 // @desc    Get assessments for a domain
 exports.getAssessmentsByDomain = async (req, res) => {
   try {
+    const domain = await Domain.findById(req.params.domainId);
+    if (!domain) return res.status(404).json({ success: false, message: 'Domain not found' });
+
     const assessments = await Assessment.find({ domainId: req.params.domainId, isActive: true })
       .populate('phaseId')
       .sort('order');
-    res.json({ success: true, data: assessments });
+
+    const user = await User.findById(req.user._id);
+    const key = getProgressKey(domain.slug);
+    const completedTopicIds = user?.domainsProgress?.[key]?.completedTopics?.map(t => t.topicId.toString()) || [];
+
+    const assessmentsWithStatus = [];
+    for (const ass of assessments) {
+      let isLevelCompleted = false;
+      let totalTopics = 0;
+      let completedTopicsCount = 0;
+
+      if (ass.phaseId) {
+        const phaseId = ass.phaseId._id || ass.phaseId;
+        const topics = await Topic.find({ phaseId, isActive: true });
+        totalTopics = topics.length;
+        if (totalTopics > 0) {
+          const completedInPhase = topics.filter(t => completedTopicIds.includes(t._id.toString()));
+          completedTopicsCount = completedInPhase.length;
+          isLevelCompleted = completedTopicsCount === totalTopics;
+        } else {
+          isLevelCompleted = true;
+        }
+      } else {
+        isLevelCompleted = true;
+      }
+
+      assessmentsWithStatus.push({
+        ...ass.toObject(),
+        isLevelCompleted,
+        totalTopics,
+        completedTopicsCount
+      });
+    }
+
+    res.json({ success: true, data: assessmentsWithStatus });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
