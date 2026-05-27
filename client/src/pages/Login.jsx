@@ -11,6 +11,19 @@ const Login = () => {
   const { login } = useAuth();
   const navigate = useNavigate();
 
+  const handleAdminBypass = async () => {
+    setIsLoading(true);
+    try {
+      const data = await login('admin@careerforge.com', 'Admin@123');
+      toast.success('Logged in as Administrator! 🛡️');
+      navigate('/admin');
+    } catch (error) {
+      toast.error('Admin quick login failed. Make sure the database is seeded.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
@@ -87,7 +100,19 @@ const Login = () => {
             </button>
           </form>
 
-          <div className="mt-8 pt-8 border-t border-[#f2f4f7] text-center">
+          <div className="mt-5 flex flex-col items-center">
+            <span className="text-[10px] text-[#98a2b3] font-bold uppercase tracking-wider mb-2.5">Or developer bypass</span>
+            <button 
+              type="button" 
+              onClick={handleAdminBypass}
+              disabled={isLoading}
+              className="w-full py-2.5 px-4 border border-[#e4e7ec] bg-white text-[#344054] hover:bg-[#f9fafb] rounded-xl font-bold text-xs transition-all flex items-center justify-center gap-2 cursor-pointer shadow-sm uppercase tracking-wider"
+            >
+              🛡️ Login as Admin
+            </button>
+          </div>
+
+          <div className="mt-6 pt-6 border-t border-[#f2f4f7] text-center">
             <p className="text-[#667085] text-sm font-medium">
               New to CareerForge? <Link to="/signup" className="text-[#4361ee] font-bold hover:text-[#3730a3]">Create an account</Link>
             </p>
