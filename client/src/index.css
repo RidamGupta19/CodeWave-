@@ -1,27 +1,27 @@
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Inter:wght@400;500;600;700;800&family=Nunito:wght@400;600;700;800;900&display=swap');
 @import "tailwindcss";
 
 :root {
-  /* Color Palette - Premium Light Mode (Default) */
-  --bg-main: #F8FAFC;
+  /* Color Palette - GFG Summer Skill Up Theme (Default) */
+  --bg-main: #F3F4F6; /* Gray 100 for better contrast */
   --bg-card: #FFFFFF;
-  --bg-sub: #EEF2FF;
+  --bg-sub: #EAF4EC;
   
-  --primary: #1E40AF; /* Deep Cobalt */
-  --secondary: #0D9488; /* Teal */
-  --accent: #4F46E5; /* Indigo */
-  --success: #059669; /* Emerald */
-  --warning: #F59E0B; /* Amber */
-  --error: #DC2626; /* Crimson Error */
+  --primary: #308D46; /* GFG Green */
+  --secondary: #F48225; /* GFG Orange */
+  --accent: #2F80ED; /* Bright Blue */
+  --success: #308D46; /* Emerald */
+  --warning: #F5A623; /* Amber */
+  --error: #E53E3E; /* Red */
   
-  --primary-light: #EFF6FF;
-  --primary-hover: #1D4ED8;
+  --primary-light: #EAF4EC;
+  --primary-hover: #267A3B;
   
   --border: #E2E8F0;
   --border-light: #F1F5F9;
   
-  --text-main: #0F172A;
-  --text-muted: #475569;
+  --text-main: #1E293B;
+  --text-muted: #64748B;
   --text-light: #94A3B8;
   
   --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.04);
@@ -30,37 +30,77 @@
   
   --glass-bg: rgba(255, 255, 255, 0.7);
   --glass-border: rgba(226, 232, 240, 0.8);
+
+  /* Landing Page Template Custom Colors (GFG Summer Skill Up Theme) */
+  --land-bg: #FFFFFF;
+  --land-bg-alt: #F8FAFC;
+  --land-text: #1E293B;
+  --land-text-muted: #64748B;
+  --land-nav: #475569;
+  
+  --brand-green: #308D46;
+  --brand-green-hover: #267A3B;
+  --brand-green-light: #EAF4EC;
+  
+  --brand-yellow: #F5A623;
+  --brand-orange: #F48225;
+  --brand-orange-hover: #D7701C;
+  --brand-blue: #2F80ED;
+  --brand-purple: #9B51E0;
+  
+  --shadow-soft: 0 10px 25px rgba(0, 0, 0, 0.05);
+  --shadow-bubbly: 0 8px 30px rgba(48, 141, 70, 0.15);
 }
 
 .dark {
-  /* Color Palette - Premium Dark Mode (Optional) */
-  --bg-main: #0B0F19;
-  --bg-card: #161B26;
-  --bg-sub: #1E293B;
+  /* Color Palette - Premium Sleek Dark Mode (Neutral Black) */
+  --bg-main: #09090B; /* Zinc 950 - Pure Black/Gray */
+  --bg-card: #18181B; /* Zinc 900 - Dark Gray Card */
+  --bg-sub: #27272A; /* Zinc 800 */
   
-  --primary: #60A5FA; /* Sky Blue */
-  --secondary: #2DD4BF; /* Bright Teal */
-  --accent: #818CF8; /* Accent Indigo */
-  --success: #34D399; /* Success Green */
-  --warning: #FBBF24; /* Amber Warning */
-  --error: #F87171; /* Coral Red Error */
+  --primary: #308D46; /* Keep Brand Green */
+  --secondary: #F5A623; /* Brand Orange */
+  --accent: #6366F1; /* Indigo */
+  --success: #10B981; /* Emerald */
+  --warning: #F59E0B; /* Amber */
+  --error: #EF4444; /* Red */
   
-  --primary-light: #1E293B;
-  --primary-hover: #3B82F6;
+  --primary-light: #27272A; /* Zinc 800 */
+  --primary-hover: #267A3B;
   
-  --border: #334155;
-  --border-light: #1E293B;
+  --border: #27272A; /* Zinc 800 */
+  --border-light: #3F3F46; /* Zinc 700 */
   
-  --text-main: #F8FAFC;
-  --text-muted: #94A3B8;
-  --text-light: #64748B;
+  --text-main: #F4F4F5; /* Zinc 100 */
+  --text-muted: #A1A1AA; /* Zinc 400 */
+  --text-light: #71717A; /* Zinc 500 */
   
-  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.2);
-  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.3);
-  --shadow-lg: 0 12px 30px rgba(0, 0, 0, 0.4);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.5);
+  --shadow-lg: 0 12px 30px rgba(0, 0, 0, 0.6);
   
-  --glass-bg: rgba(22, 27, 38, 0.7);
-  --glass-border: rgba(51, 65, 85, 0.8);
+  --glass-bg: rgba(24, 24, 27, 0.7); /* Zinc 900 */
+  --glass-border: rgba(39, 39, 42, 0.8); /* Zinc 800 */
+
+  /* Landing Page Template Custom Colors (Dark Mode) */
+  --land-bg: #09090B;
+  --land-bg-alt: #18181B;
+  --land-text: #F4F4F5;
+  --land-text-muted: #A1A1AA;
+  --land-nav: #D4D4D8;
+  
+  --brand-green: #34D399;
+  --brand-green-hover: #10B981;
+  --brand-green-light: rgba(52, 211, 153, 0.1);
+  
+  --brand-yellow: #FBBF24;
+  --brand-orange: #F97316;
+  --brand-orange-hover: #EA580C;
+  --brand-blue: #60A5FA;
+  --brand-purple: #A78BFA;
+  
+  --shadow-soft: 0 10px 25px rgba(0, 0, 0, 0.3);
+  --shadow-bubbly: 0 8px 30px rgba(52, 211, 153, 0.15);
 }
 
 html, body, #root {
@@ -75,14 +115,14 @@ html, body, #root {
 }
 
 body {
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  font-family: 'Nunito', system-ui, -apple-system, sans-serif;
   -webkit-font-smoothing: antialiased;
   line-height: 1.6;
 }
 
 h1, h2, h3, h4, h5, h6 {
-  font-family: 'Plus Jakarta Sans', sans-serif;
-  font-weight: 700;
+  font-family: 'Nunito', sans-serif;
+  font-weight: 800;
   letter-spacing: -0.02em;
   color: var(--text-main);
 }
@@ -95,30 +135,33 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Components */
 
-/* Premium Card - Soft & Rounded */
+/* Bubbly Card - GFG Theme */
 .card {
   background: var(--bg-card);
   border: 1px solid var(--border);
-  border-radius: 16px; /* rounded-2xl */
-  box-shadow: var(--shadow-sm);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border-radius: 20px; /* bubbly */
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  transform-style: preserve-3d;
+  will-change: transform, box-shadow;
 }
-.card-hover:hover {
-  transform: translateY(-4px);
-  box-shadow: var(--shadow-lg);
-  border-color: var(--primary);
+.card:hover, .card-hover:hover {
+  transform: translateY(-8px) scale(1.02) perspective(1000px) rotateX(2deg);
+  box-shadow: 0 25px 50px rgba(48, 141, 70, 0.15), 0 10px 15px rgba(0, 0, 0, 0.05);
+  border-color: var(--primary-light);
+  z-index: 10;
 }
 
-/* Buttons - Premium Gradient & Glass Tint */
+/* Buttons - Vibrant & Bubbly */
 .btn-primary {
-  background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+  background: var(--primary);
   color: white !important;
   padding: 0.75rem 1.5rem;
   border-radius: 12px;
-  font-weight: 600;
+  font-weight: 800;
   font-size: 0.95rem;
   border: none;
-  box-shadow: 0 4px 14px rgba(99, 102, 241, 0.3);
+  box-shadow: 0 6px 15px rgba(48, 141, 70, 0.2);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   cursor: pointer;
   display: inline-flex;
@@ -188,7 +231,6 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Sidebar & Layout */
 .sidebar {
-  width: 280px;
   background: var(--bg-card);
   border-right: 1px solid var(--border);
   height: 100vh;
@@ -219,9 +261,9 @@ h1, h2, h3, h4, h5, h6 {
   color: var(--text-main);
 }
 .sidebar-link.active {
-  background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+  background: var(--primary);
   color: white;
-  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.25);
+  box-shadow: 0 6px 15px rgba(48, 141, 70, 0.2);
 }
 
 /* Roadmap Gamification UI */

@@ -4,6 +4,8 @@
 export const zeroToCodingMonacoLevels = [
   {
     id: 1,
+    youtubeUrl: 'https://www.youtube.com/embed/EAR7De6Goz4',
+    tutorialTitle: 'C++ Foundations',
     title: "Print Hello World",
     difficulty: "Rookie",
     xpReward: 10,
@@ -43,7 +45,9 @@ int main() {
 `
     },
     testCases: [
-      { id: 1, input: "", expected: "Hello World!" }
+      { id: 1,
+    youtubeUrl: 'https://www.youtube.com/embed/FPu9Uld7W-E',
+    tutorialTitle: 'Striver Foundations', input: "", expected: "Hello World!" }
     ],
     validationFn: (code, lang) => {
       const codeWithoutComments = code.replace(/\/\/.*$/gm, '').replace(/\/\*[\s\S]*?\*\//g, '').replace(/#.*$/gm, '');
@@ -74,6 +78,8 @@ int main() {
   },
   {
     id: 2,
+    youtubeUrl: 'https://www.youtube.com/embed/tNm_NNSB3_w',
+    tutorialTitle: 'Variables Deep Dive',
     title: "Print Multiple Lines",
     difficulty: "Rookie",
     xpReward: 15,
@@ -113,7 +119,9 @@ int main() {
 `
     },
     testCases: [
-      { id: 1, input: "", expected: "Hello\nWorld" }
+      { id: 1,
+    youtubeUrl: 'https://www.youtube.com/embed/EAR7De6Goz4',
+    tutorialTitle: 'Input Output Expedition', input: "", expected: "Hello\nWorld" }
     ],
     validationFn: (code, lang) => {
       const codeWithoutComments = code.replace(/\/\/.*$/gm, '').replace(/\/\*[\s\S]*?\*\//g, '').replace(/#.*$/gm, '');
@@ -140,6 +148,8 @@ int main() {
   },
   {
     id: 3,
+    youtubeUrl: 'https://www.youtube.com/embed/FPu9Uld7W-E',
+    tutorialTitle: 'Making Choices',
     title: "Understanding Variables",
     difficulty: "Explorer",
     xpReward: 20,
@@ -180,7 +190,9 @@ int main() {
 `
     },
     testCases: [
-      { id: 1, input: "", expected: "20" }
+      { id: 1,
+    youtubeUrl: 'https://www.youtube.com/embed/tNm_NNSB3_w',
+    tutorialTitle: 'Repeating Work', input: "", expected: "20" }
     ],
     validationFn: (code, lang) => {
       const codeWithoutComments = code.replace(/\/\/.*$/gm, '').replace(/\/\*[\s\S]*?\*\//g, '').replace(/#.*$/gm, '');
@@ -206,6 +218,8 @@ int main() {
   },
   {
     id: 4,
+    youtubeUrl: 'https://www.youtube.com/embed/EAR7De6Goz4',
+    tutorialTitle: 'Mastering Patterns',
     title: "Input/Output Expedition",
     difficulty: "Explorer",
     xpReward: 25,

@@ -11,6 +11,16 @@
   </head>
   <body>
     <div id="root"></div>
+    <script>
+      window.addEventListener('error', function(e) {
+        document.body.innerHTML += '<div style="position:fixed;top:0;left:0;z-index:9999;background:red;color:white;padding:20px;font-family:monospace;width:100%;">' + 
+          '<h3>React Error:</h3><p>' + e.message + '</p><p>' + e.filename + ':' + e.lineno + '</p></div>';
+      });
+      window.addEventListener('unhandledrejection', function(e) {
+        document.body.innerHTML += '<div style="position:fixed;bottom:0;left:0;z-index:9999;background:darkred;color:white;padding:20px;font-family:monospace;width:100%;">' + 
+          '<h3>Promise Error:</h3><p>' + (e.reason ? (e.reason.message || e.reason) : 'Unknown') + '</p></div>';
+      });
+    </script>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>

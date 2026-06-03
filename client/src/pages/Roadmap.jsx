@@ -220,22 +220,22 @@ const Roadmap = () => {
               <div className="text-sm font-black text-[var(--text-main)] leading-snug">{value}</div>
             </div>
           ))}
-          <div className="lg:col-span-4 bg-zinc-950 text-white rounded-2xl p-6 border border-indigo-500/20">
+          <div className="lg:col-span-4 bg-[var(--brand-purple)] text-white rounded-2xl p-6 shadow-[var(--shadow-soft)]">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div>
-                <div className="text-[9px] font-black uppercase tracking-widest text-indigo-300 mb-2">AI Recommendations</div>
-                <p className="text-sm text-zinc-300 font-semibold leading-relaxed">
+                <div className="text-[9px] font-black uppercase tracking-widest text-purple-200 mb-2">AI Recommendations</div>
+                <p className="text-sm text-white font-bold leading-relaxed">
                   {dsaAnalysis.startReason} Focus next on {dsaAnalysis.weakTopics[0] || 'Arrays'}, keep lessons in {langNames[selectedLang]}, and complete the Watch, Notes, Dry Run, Practice, Challenge loop before unlocking the next topic.
                 </p>
               </div>
               <div className="shrink-0 grid grid-cols-2 gap-2 text-center">
-                <div className="bg-white/5 border border-white/10 rounded-xl p-3">
-                  <div className="text-[8px] font-black text-zinc-500 uppercase">Strongest</div>
-                  <div className="text-xs font-black text-emerald-300">{dsaAnalysis.strongestTopic}</div>
+                <div className="bg-[var(--bg-card)]/20 border border-white/20 rounded-xl p-3">
+                  <div className="text-[8px] font-black text-purple-100 uppercase">Strongest</div>
+                  <div className="text-xs font-black text-white">{dsaAnalysis.strongestTopic}</div>
                 </div>
-                <div className="bg-white/5 border border-white/10 rounded-xl p-3">
-                  <div className="text-[8px] font-black text-zinc-500 uppercase">Weak Topic</div>
-                  <div className="text-xs font-black text-rose-300">{dsaAnalysis.weakTopics[0] || 'Recursion'}</div>
+                <div className="bg-[var(--bg-card)]/20 border border-white/20 rounded-xl p-3">
+                  <div className="text-[8px] font-black text-purple-100 uppercase">Weak Topic</div>
+                  <div className="text-xs font-black text-white">{dsaAnalysis.weakTopics[0] || 'Recursion'}</div>
                 </div>
               </div>
             </div>
@@ -350,7 +350,7 @@ const Roadmap = () => {
                     </div>
                   )}
                   {isCompleted && (
-                    <FiCheckCircle className="absolute -bottom-1 -right-1 text-emerald-500 bg-white dark:bg-zinc-900 rounded-full text-xl shadow" />
+                    <FiCheckCircle className="absolute -bottom-1 -right-1 text-emerald-500 bg-[var(--bg-card)] dark:bg-zinc-900 rounded-full text-xl shadow" />
                   )}
                 </motion.div>
 
@@ -423,7 +423,7 @@ const Roadmap = () => {
               {activeLevel === (activeDomainProgress.currentPhase || 1) && (
                 <button
                   onClick={handleSkipLevel}
-                  className="flex items-center justify-center gap-2 px-5 py-3 rounded-2xl bg-zinc-800 hover:bg-zinc-700 dark:bg-zinc-900 dark:hover:bg-zinc-800 border border-zinc-700 text-zinc-100 hover:text-white font-black text-xs tracking-wider uppercase transition duration-300 shadow-md w-full"
+                  className="flex items-center justify-center gap-2 px-5 py-3 rounded-2xl bg-[var(--bg-card)] hover:bg-[var(--bg-sub)] border-2 border-[var(--border)] text-[var(--text-main)] font-black text-xs tracking-wider uppercase transition duration-300 shadow-sm w-full"
                 >
                   ⏭️ Skip Whole Level
                 </button>
@@ -483,8 +483,8 @@ const TopicsList = ({ phaseId, isTopicCompleted, activeLevel, isDSA }) => {
             <div className="flex items-center gap-4">
               <div className={`w-14 h-14 rounded-xl flex items-center justify-center text-2xl transition-all duration-500 shrink-0 ${
                 completed 
-                  ? 'bg-emerald-500 text-white shadow-md' 
-                  : 'bg-[var(--bg-sub)] text-[var(--text-light)] group-hover:bg-[var(--primary-light)] group-hover:text-[var(--primary)] group-hover:rotate-6'
+                  ? 'bg-green-100 text-[var(--brand-green)] shadow-[var(--shadow-soft)]' 
+                  : 'bg-[var(--bg-sub)] text-[var(--text-light)] group-hover:bg-[var(--brand-green-light)] group-hover:text-[var(--brand-green)] group-hover:rotate-6'
               }`}>
                 {completed ? <FiCheckCircle /> : <FiPlayCircle />}
               </div>

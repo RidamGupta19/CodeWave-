@@ -1,235 +1,196 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { FiArrowRight, FiTarget, FiMap, FiAward, FiCpu, FiCheckCircle, FiUsers, FiTrendingUp, FiLayers, FiBookOpen, FiZap } from 'react-icons/fi';
+import { FiMenu, FiArrowRight, FiCheckCircle, FiStar, FiTrendingUp, FiTarget, FiZap } from 'react-icons/fi';
+import { BsLightningFill } from 'react-icons/bs';
 
 const Landing = () => {
   return (
-    <div className="min-h-screen bg-[#fcfcfd] flex flex-col selection:bg-indigo-100">
+    <div className="min-h-screen bg-[var(--land-bg)] flex flex-col font-sans selection:bg-[var(--brand-green-light)] selection:text-[var(--brand-green)]" style={{ fontFamily: "'Nunito', sans-serif" }}>
       {/* Navbar */}
-      <nav className="navbar px-6 py-4">
+      <nav className="px-6 py-4 bg-white sticky top-0 z-50 border-b border-gray-100 shadow-sm">
         <div className="max-w-7xl mx-auto flex items-center justify-between w-full">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-[#4361ee] flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-indigo-200">
+          {/* Logo */}
+          <div className="flex items-center gap-2">
+            <div className="w-10 h-10 rounded-xl bg-[var(--brand-green)] flex items-center justify-center text-white font-extrabold text-lg shadow-[var(--shadow-bubbly)]">
               CF
             </div>
-            <h1 className="text-2xl font-bold text-[#101828] tracking-tight">CareerForge</h1>
+            <h1 className="text-2xl font-black text-[var(--land-text)] tracking-tight">CareerForge</h1>
           </div>
-          <div className="hidden md:flex items-center gap-8 text-[#475467] font-medium">
-            <a href="#features" className="hover:text-[#101828] transition-colors">Features</a>
-            <a href="#how-it-works" className="hover:text-[#101828] transition-colors">How it Works</a>
-            <a href="#impact" className="hover:text-[#101828] transition-colors">Impact</a>
+          
+          {/* Center Links */}
+          <div className="hidden lg:flex items-center gap-8 text-[var(--land-nav)] font-bold text-base">
+            <a href="#roadmaps" className="hover:text-[var(--brand-green)] transition-colors">Courses & Roadmaps</a>
+            <a href="#ai-mentor" className="hover:text-[var(--brand-green)] transition-colors">Tutorials</a>
+            <a href="#gamification" className="hover:text-[var(--brand-green)] transition-colors">Practice</a>
+            <div className="px-2 py-0.5 bg-yellow-100 text-yellow-700 text-[10px] font-black rounded-md -ml-6 -mt-4 transform rotate-12">NEW</div>
           </div>
+          
+          {/* Right Actions */}
           <div className="flex items-center gap-4">
-            <Link to="/login" className="text-[#475467] hover:text-[#101828] font-semibold transition-colors px-4 py-2">Log In</Link>
-            <Link to="/signup" className="btn-primary">Get Started</Link>
+            <Link to="/login" className="hidden sm:block text-[var(--land-nav)] hover:text-[var(--brand-green)] font-extrabold transition-colors px-4 py-2">
+              Sign In
+            </Link>
+            <Link to="/signup" className="bg-[var(--brand-green)] hover:bg-[var(--brand-green-hover)] text-white font-extrabold px-6 py-2.5 rounded-lg transition-all shadow-[var(--shadow-bubbly)] hover:-translate-y-0.5 flex items-center gap-2">
+              Sign Up For Free <FiArrowRight strokeWidth={3} />
+            </Link>
+            <button className="lg:hidden text-[var(--land-text)] p-2">
+              <FiMenu size={28} strokeWidth={2.5} />
+            </button>
           </div>
         </div>
       </nav>
 
-      {/* Hero Section */}
-      <main className="flex-1">
-        <section className="relative pt-24 pb-32 px-6 overflow-hidden">
-          {/* Subtle Background Pattern */}
-          <div className="absolute inset-0 bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:32px_32px] [mask-image:radial-gradient(ellipse_50%_50%_at_50%_50%,#000_70%,transparent_100%)] opacity-30"></div>
-          
-          <div className="max-w-5xl mx-auto text-center relative z-10">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-50 border border-indigo-100 text-indigo-700 text-sm font-semibold mb-8 fade-in">
-              <span className="w-2 h-2 rounded-full bg-indigo-500 animate-pulse"></span>
-              Modern career engineering for the next generation
+      {/* Hero Section (Summer Skill Up Style) */}
+      <main className="flex-1 flex flex-col relative overflow-hidden bg-[#F0FBFE]">
+        {/* Background decorative elements */}
+        <div className="absolute top-0 right-0 w-1/2 h-full bg-[var(--brand-green-light)] rounded-bl-[200px] -z-10 opacity-60"></div>
+        <div className="absolute top-20 left-10 w-24 h-24 bg-yellow-300 rounded-full mix-blend-multiply filter blur-2xl opacity-50 -z-10"></div>
+        <div className="absolute bottom-20 right-20 w-32 h-32 bg-[var(--brand-purple)] rounded-full mix-blend-multiply filter blur-3xl opacity-30 -z-10"></div>
+
+        <section className="pt-20 pb-24 px-6 relative z-10">
+          <div className="max-w-7xl mx-auto flex flex-col lg:flex-row items-center gap-16">
+            
+            {/* Left Content */}
+            <div className="flex-1 text-center lg:text-left">
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white border border-gray-200 text-[var(--brand-orange)] font-black text-sm mb-6 shadow-sm transform -rotate-2">
+                <BsLightningFill className="text-yellow-400" size={18} /> SUMMER SKILL UP 2026
+              </div>
+              
+              <h1 className="text-5xl md:text-6xl lg:text-7xl font-black text-[var(--land-text)] leading-[1.1] mb-6 tracking-tight">
+                Level Up Your<br />
+                <span className="text-[var(--brand-green)] relative inline-block">
+                  Tech Career
+                  <svg className="absolute w-full h-4 -bottom-1 left-0 text-yellow-400" viewBox="0 0 100 10" preserveAspectRatio="none"><path d="M0 5 Q 50 15 100 5" stroke="currentColor" strokeWidth="8" fill="transparent"/></svg>
+                </span>
+                <br />This Summer.
+              </h1>
+              
+              <p className="text-[var(--land-nav)] text-lg md:text-xl font-semibold mb-10 max-w-xl mx-auto lg:mx-0">
+                Master Data Structures, Web Development, and AI. Join millions of students upgrading their skills with interactive roadmaps and AI mentorship.
+              </p>
+
+              <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4">
+                <Link to="/signup" className="bg-[var(--brand-orange)] hover:bg-[var(--brand-orange-hover)] text-white text-lg font-black px-8 py-4 rounded-xl transition-all shadow-[0_8px_20px_rgba(244,130,37,0.3)] hover:-translate-y-1 w-full sm:w-auto text-center">
+                  Start Learning Now
+                </Link>
+                <div className="flex items-center gap-3 text-[var(--land-nav)] font-bold text-sm bg-white px-6 py-4 rounded-xl shadow-sm border border-gray-100">
+                  <div className="flex -space-x-3">
+                    {[1,2,3,4].map(i => (
+                      <div key={i} className={`w-8 h-8 rounded-full border-2 border-white flex items-center justify-center text-[10px] font-black text-white ${['bg-blue-400', 'bg-green-400', 'bg-purple-400', 'bg-yellow-400'][i-1]}`}>
+                        U{i}
+                      </div>
+                    ))}
+                  </div>
+                  <span>Trusted by 2M+ Geeks</span>
+                </div>
+              </div>
             </div>
-            
-            <h1 className="text-5xl md:text-7xl font-extrabold text-[#101828] tracking-tight mb-8 leading-[1.1] fade-in">
-              Master your tech career <br className="hidden md:block" />
-              <span className="text-[#4361ee]">with intention.</span>
-            </h1>
-            
-            <p className="text-xl text-[#667085] mb-12 max-w-2xl mx-auto leading-relaxed fade-in">
-              Stop wandering. Follow expert-designed roadmaps, track your deep work, and build the technical expertise required by industry leaders.
-            </p>
-            
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 fade-in">
-              <Link to="/signup" className="btn-primary text-lg px-8 py-4 w-full sm:w-auto shadow-xl shadow-indigo-100">
-                Start Learning Now <FiArrowRight className="ml-2" />
-              </Link>
-              <Link to="/login" className="btn-secondary text-lg px-8 py-4 w-full sm:w-auto">
-                Explore Curriculum
-              </Link>
+
+            {/* Right Hero Image/Graphic */}
+            <div className="flex-1 relative w-full max-w-lg lg:max-w-none">
+              <div className="relative bg-white p-6 rounded-3xl shadow-[var(--shadow-soft)] border border-gray-100 transform rotate-2 hover:rotate-0 transition-transform duration-500">
+                <div className="absolute -top-6 -left-6 bg-[var(--brand-yellow)] text-white w-20 h-20 rounded-full flex flex-col items-center justify-center font-black shadow-lg transform -rotate-12 z-20">
+                  <span className="text-2xl leading-none">100%</span>
+                  <span className="text-[10px] uppercase">Free</span>
+                </div>
+                
+                <div className="bg-[#F8FAFC] rounded-2xl overflow-hidden border border-gray-100">
+                  <div className="bg-gray-100 px-4 py-3 flex gap-2 border-b border-gray-200">
+                    <div className="w-3 h-3 rounded-full bg-red-400"></div>
+                    <div className="w-3 h-3 rounded-full bg-yellow-400"></div>
+                    <div className="w-3 h-3 rounded-full bg-green-400"></div>
+                  </div>
+                  <div className="p-6 font-mono text-sm text-gray-800 h-[300px] flex flex-col justify-center">
+                    <div className="text-[var(--brand-purple)] font-bold">class <span className="text-[var(--brand-blue)]">CareerForge</span> {'{'}</div>
+                    <div className="pl-6 mt-2">
+                      <span className="text-[var(--brand-green)] font-bold">public static void</span> <span className="text-yellow-600 font-bold">main</span>(String[] args) {'{'}
+                    </div>
+                    <div className="pl-12 mt-2">
+                      System.out.<span className="text-[var(--brand-blue)] font-bold">println</span>(<span className="text-[var(--brand-orange)]">"Hello, Dream Job!"</span>);
+                    </div>
+                    <div className="pl-12 mt-2">
+                      <span className="text-gray-400 italic">// Your journey starts here</span>
+                    </div>
+                    <div className="pl-6 mt-2">{'}'}</div>
+                    <div className="mt-2">{'}'}</div>
+                  </div>
+                </div>
+              </div>
             </div>
+
           </div>
         </section>
 
-        {/* Impact Section */}
-        <section id="impact" className="py-20 border-y border-[#eaecf0] bg-[#f9fafb]">
+        {/* Horizontal Feature Strip */}
+        <section className="bg-white border-y border-gray-200 py-10 relative z-20">
           <div className="max-w-7xl mx-auto px-6">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-12">
-              <div className="text-center">
-                <div className="text-4xl font-bold text-[#101828] mb-2">14+</div>
-                <div className="text-[#667085] font-medium uppercase text-xs tracking-widest">Domains</div>
-              </div>
-              <div className="text-center">
-                <div className="text-4xl font-bold text-[#101828] mb-2">500+</div>
-                <div className="text-[#667085] font-medium uppercase text-xs tracking-widest">Topics</div>
-              </div>
-              <div className="text-center">
-                <div className="text-4xl font-bold text-[#101828] mb-2">2.4k</div>
-                <div className="text-[#667085] font-medium uppercase text-xs tracking-widest">Engineers</div>
-              </div>
-              <div className="text-center">
-                <div className="text-4xl font-bold text-[#101828] mb-2">100%</div>
-                <div className="text-[#667085] font-medium uppercase text-xs tracking-widest">Open Access</div>
-              </div>
+            <div className="flex flex-wrap justify-center lg:justify-between items-center gap-8">
+              {[
+                { icon: <FiTarget />, text: "14+ Structured Roadmaps", color: "text-blue-500", bg: "bg-blue-50" },
+                { icon: <BsLightningFill />, text: "Interactive AI Mentorship", color: "text-[var(--brand-orange)]", bg: "bg-orange-50" },
+                { icon: <FiCheckCircle />, text: "Industry Verified Badges", color: "text-[var(--brand-green)]", bg: "bg-green-50" },
+                { icon: <FiTrendingUp />, text: "Real-time Skill Tracking", color: "text-[var(--brand-purple)]", bg: "bg-purple-50" }
+              ].map((item, idx) => (
+                <div key={idx} className="flex items-center gap-4 group cursor-pointer">
+                  <div className={`w-12 h-12 rounded-2xl ${item.bg} ${item.color} flex items-center justify-center text-xl font-black group-hover:scale-110 transition-transform`}>
+                    {item.icon}
+                  </div>
+                  <span className="font-extrabold text-[var(--land-text)]">{item.text}</span>
+                </div>
+              ))}
             </div>
           </div>
         </section>
 
-        {/* Features Grid */}
-        <section id="features" className="py-32 px-6">
+        {/* Feature Cards Grid */}
+        <section className="px-6 py-24 bg-gray-50 relative z-10">
           <div className="max-w-7xl mx-auto">
-            <div className="text-center mb-20">
-              <h2 className="text-3xl md:text-5xl font-bold text-[#101828] mb-6 tracking-tight">Built for human focus</h2>
-              <p className="text-[#667085] max-w-2xl mx-auto text-lg">A polished, minimalist experience designed to help you focus on what matters: your growth.</p>
+            <div className="text-center mb-16">
+              <h2 className="text-4xl md:text-5xl font-black text-[var(--land-text)] mb-4">Choose Your <span className="text-[var(--brand-green)]">Pathway</span></h2>
+              <p className="text-[var(--land-nav)] text-lg font-bold">Comprehensive, step-by-step guides to master your favorite tech stack.</p>
             </div>
 
-            <div className="grid md:grid-cols-3 gap-8">
-              <div className="card p-8 card-hover border-soft bg-white">
-                <div className="w-12 h-12 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center text-2xl mb-6">
-                  <FiBookOpen />
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {[
+                { title: "Data Structures & Algorithms", desc: "Master problem solving and ace top tech interviews.", icon: "🧠", color: "border-blue-200 hover:border-blue-500" },
+                { title: "Full Stack Web Development", desc: "Build scalable web apps from frontend to backend.", icon: "🌐", color: "border-green-200 hover:border-[var(--brand-green)]" },
+                { title: "Data Science & Machine Learning", desc: "Dive into analytics, pandas, and neural networks.", icon: "📊", color: "border-purple-200 hover:border-purple-500" },
+                { title: "Cloud Computing & DevOps", desc: "Learn AWS, Docker, Kubernetes and CI/CD pipelines.", icon: "☁️", color: "border-orange-200 hover:border-[var(--brand-orange)]" },
+                { title: "System Design", desc: "Architect highly scalable and distributed systems.", icon: "🏗️", color: "border-yellow-200 hover:border-yellow-500" },
+                { title: "Cybersecurity", desc: "Ethical hacking, network security, and cryptography.", icon: "🛡️", color: "border-red-200 hover:border-red-500" }
+              ].map((card, idx) => (
+                <div key={idx} className={`bg-white rounded-3xl p-8 border-2 ${card.color} transition-all duration-300 hover:shadow-[var(--shadow-bubbly)] hover:-translate-y-2 group cursor-pointer`}>
+                  <div className="text-4xl mb-6 bg-gray-50 w-16 h-16 rounded-2xl flex items-center justify-center shadow-inner group-hover:scale-110 transition-transform">{card.icon}</div>
+                  <h3 className="text-2xl font-black text-[var(--land-text)] mb-3">{card.title}</h3>
+                  <p className="text-[var(--land-nav)] font-bold mb-6 leading-relaxed">{card.desc}</p>
+                  <div className="flex items-center text-[var(--brand-green)] font-extrabold uppercase tracking-widest text-xs">
+                    Explore Track <FiArrowRight className="ml-2 group-hover:translate-x-1 transition-transform" strokeWidth={3} />
+                  </div>
                 </div>
-                <h3 className="text-xl font-bold text-[#101828] mb-3">Structured Content</h3>
-                <p className="text-[#667085] leading-relaxed">No more infinite scrolling through tutorials. Follow a logical progression from fundamentals to mastery.</p>
-              </div>
-
-              <div className="card p-8 card-hover border-soft bg-white">
-                <div className="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center text-2xl mb-6">
-                  <FiTrendingUp />
-                </div>
-                <h3 className="text-xl font-bold text-[#101828] mb-3">Progress Tracking</h3>
-                <p className="text-[#667085] leading-relaxed">Visualize your learning journey with clean activity heatmaps and beautiful, informative dashboard widgets.</p>
-              </div>
-
-              <div className="card p-8 card-hover border-soft bg-white">
-                <div className="w-12 h-12 bg-amber-50 text-amber-600 rounded-xl flex items-center justify-center text-2xl mb-6">
-                  <FiAward />
-                </div>
-                <h3 className="text-xl font-bold text-[#101828] mb-3">Skill Validation</h3>
-                <p className="text-[#667085] leading-relaxed">Validate your theoretical knowledge with assessments and earn badges that actually mean something.</p>
-              </div>
+              ))}
             </div>
           </div>
         </section>
 
-        {/* How It Works Section */}
-        <section id="how-it-works" className="py-32 px-6 bg-[#f9fafb] border-y border-[#eaecf0]">
-          <div className="max-w-7xl mx-auto">
-            <div className="grid lg:grid-cols-2 gap-20 items-center">
-              <div>
-                <h2 className="text-3xl md:text-5xl font-bold text-[#101828] mb-8 leading-tight tracking-tight">Simple. Intentional. <br/>Results-driven.</h2>
-                <div className="space-y-10">
-                  <div className="flex gap-6">
-                    <div className="flex-shrink-0 w-10 h-10 rounded-full bg-white border border-[#eaecf0] shadow-sm flex items-center justify-center font-bold text-[#4361ee]">1</div>
-                    <div>
-                      <h4 className="text-xl font-bold text-[#101828] mb-2">Identify your domain</h4>
-                      <p className="text-[#667085] text-lg">Select your specialized path from 14+ technical domains, each mapped to real-world job requirements.</p>
-                    </div>
-                  </div>
-                  <div className="flex gap-6">
-                    <div className="flex-shrink-0 w-10 h-10 rounded-full bg-white border border-[#eaecf0] shadow-sm flex items-center justify-center font-bold text-[#4361ee]">2</div>
-                    <div>
-                      <h4 className="text-xl font-bold text-[#101828] mb-2">Build deep expertise</h4>
-                      <p className="text-[#667085] text-lg">Work through structured modules with curated resources that avoid the common 'tutorial hell'.</p>
-                    </div>
-                  </div>
-                  <div className="flex gap-6">
-                    <div className="flex-shrink-0 w-10 h-10 rounded-full bg-white border border-[#eaecf0] shadow-sm flex items-center justify-center font-bold text-[#4361ee]">3</div>
-                    <div>
-                      <h4 className="text-xl font-bold text-[#101828] mb-2">Earn your credentials</h4>
-                      <p className="text-[#667085] text-lg">Complete assessments to verify your mastery and earn badges that document your learning progression.</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div className="relative">
-                <div className="card overflow-hidden shadow-2xl border-soft p-1.5 bg-[#f2f4f7] rotate-1">
-                  <div className="bg-white rounded-[10px] p-8 min-h-[400px] flex flex-col justify-center items-center text-center">
-                    <div className="w-20 h-20 bg-indigo-50 rounded-2xl mb-8 flex items-center justify-center text-3xl text-indigo-600">
-                      <FiCpu />
-                    </div>
-                    <h4 className="text-2xl font-bold text-[#101828] mb-3">Intelligent Mentorship</h4>
-                    <p className="text-[#667085] max-w-xs text-lg leading-relaxed">A dedicated AI assistant that understands your roadmap and helps you overcome technical hurdles 24/7.</p>
-                  </div>
-                </div>
-                <div className="absolute -bottom-10 -right-10 w-64 h-64 bg-indigo-200 rounded-full blur-[120px] -z-10 opacity-30"></div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* CTA Section */}
-        <section className="py-32 px-6">
-          <div className="max-w-5xl mx-auto card bg-[#101828] p-12 md:p-24 text-center relative overflow-hidden border-none">
-            <div className="absolute top-0 right-0 w-96 h-96 bg-indigo-500/10 rounded-full blur-[120px]"></div>
-            <div className="absolute bottom-0 left-0 w-64 h-64 bg-emerald-500/5 rounded-full blur-[100px]"></div>
-            <div className="relative z-10">
-              <h2 className="text-3xl md:text-5xl font-bold text-white mb-8 tracking-tight">Ready to master your future?</h2>
-              <p className="text-indigo-100/60 mb-12 text-xl max-w-2xl mx-auto leading-relaxed">Join a community of focused students building the future of technology, one module at a time.</p>
-              <div className="flex flex-col sm:flex-row items-center justify-center gap-6">
-                <Link to="/signup" className="btn-primary bg-white text-[#101828] hover:bg-[#fcfcfd] border-white px-12 py-5 w-full sm:w-auto font-bold text-xl">
-                  Get Started for Free
-                </Link>
-                <Link to="/login" className="text-white border-white/20 hover:bg-white/5 btn-secondary px-12 py-5 w-full sm:w-auto font-bold text-xl bg-transparent">
-                  Sign In
-                </Link>
-              </div>
-            </div>
-          </div>
-        </section>
       </main>
 
       {/* Footer */}
-      <footer className="bg-white border-t border-[#eaecf0] py-20 px-6">
-        <div className="max-w-7xl mx-auto">
-          <div className="flex flex-col md:flex-row justify-between items-start gap-12 pb-16 border-b border-[#f2f4f7]">
-            <div className="space-y-6 max-w-xs">
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-lg bg-[#4361ee] flex items-center justify-center text-white font-bold text-sm">CF</div>
-                <span className="text-xl font-bold text-[#101828] tracking-tight">CareerForge</span>
-              </div>
-              <p className="text-[#667085] leading-relaxed">Helping students build professional engineering careers through structured, intentional learning paths.</p>
+      <footer className="bg-[#1E293B] text-white py-16 px-6">
+        <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-8">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-[var(--brand-green)] flex items-center justify-center text-white font-extrabold text-lg">
+              CF
             </div>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-16">
-              <div className="space-y-4">
-                <h5 className="font-bold text-[#101828]">Platform</h5>
-                <ul className="space-y-3 text-[#667085]">
-                  <li><a href="#features" className="hover:text-[#4361ee]">Features</a></li>
-                  <li><a href="#how-it-works" className="hover:text-[#4361ee]">Roadmaps</a></li>
-                  <li><a href="#" className="hover:text-[#4361ee]">Curriculum</a></li>
-                </ul>
-              </div>
-              <div className="space-y-4">
-                <h5 className="font-bold text-[#101828]">Support</h5>
-                <ul className="space-y-3 text-[#667085]">
-                  <li><a href="#" className="hover:text-[#4361ee]">Help Center</a></li>
-                  <li><a href="#" className="hover:text-[#4361ee]">Resources</a></li>
-                  <li><a href="#" className="hover:text-[#4361ee]">Contact</a></li>
-                </ul>
-              </div>
-              <div className="space-y-4">
-                <h5 className="font-bold text-[#101828]">Social</h5>
-                <ul className="space-y-3 text-[#667085]">
-                  <li><a href="#" className="hover:text-[#4361ee]">Twitter</a></li>
-                  <li><a href="#" className="hover:text-[#4361ee]">GitHub</a></li>
-                  <li><a href="#" className="hover:text-[#4361ee]">LinkedIn</a></li>
-                </ul>
-              </div>
+            <div>
+              <span className="text-xl font-black tracking-tight block">CareerForge</span>
+              <span className="text-gray-400 text-sm font-semibold">© 2026 All rights reserved.</span>
             </div>
           </div>
-          <div className="pt-10 flex flex-col md:flex-row justify-between items-center gap-6 text-[#98a2b3] text-sm">
-            <p>&copy; {new Date().getFullYear()} CareerForge. All rights reserved.</p>
-            <div className="flex gap-8">
-              <a href="#" className="hover:text-[#667085]">Privacy Policy</a>
-              <a href="#" className="hover:text-[#667085]">Terms of Service</a>
-              <a href="#" className="hover:text-[#667085]">Cookies</a>
-            </div>
+          <div className="flex flex-wrap justify-center gap-8 text-gray-300 font-bold">
+            <a href="#" className="hover:text-white hover:underline transition-all">About Us</a>
+            <a href="#" className="hover:text-white hover:underline transition-all">Careers</a>
+            <a href="#" className="hover:text-white hover:underline transition-all">Privacy Policy</a>
+            <a href="#" className="hover:text-white hover:underline transition-all">Contact</a>
           </div>
         </div>
       </footer>

@@ -153,7 +153,7 @@ exports.startTopic = async (req, res) => {
     }
 
     const key = getProgressKey(user.activeDomain.slug);
-    const domainProgress = user.domainsProgress[key];
+    const domainProgress = getSafeDomainProgress(user, key);
 
     const alreadyStarted = domainProgress.startedTopics.find(t => t.topicId.toString() === topicId);
     if (alreadyStarted) {
@@ -181,7 +181,7 @@ exports.completeTopic = async (req, res) => {
     }
 
     const key = getProgressKey(user.activeDomain.slug);
-    const domainProgress = user.domainsProgress[key];
+    const domainProgress = getSafeDomainProgress(user, key);
 
     const alreadyCompleted = domainProgress.completedTopics.find(t => t.topicId.toString() === topicId);
     if (alreadyCompleted) {
@@ -353,7 +353,7 @@ exports.submitAssessment = async (req, res) => {
     }
 
     const key = getProgressKey(user.activeDomain.slug);
-    const domainProgress = user.domainsProgress[key];
+    const domainProgress = getSafeDomainProgress(user, key);
 
     const existingAttempt = domainProgress.testResults.filter(t => t.assessmentId.toString() === assessmentId);
     
@@ -516,7 +516,7 @@ exports.submitCode = async (req, res) => {
     }
 
     const key = getProgressKey(user.activeDomain.slug);
-    const domainProgress = user.domainsProgress[key];
+    const domainProgress = getSafeDomainProgress(user, key);
 
     if (!domainProgress.codeSubmissions) {
       domainProgress.codeSubmissions = [];
@@ -605,7 +605,7 @@ exports.skipPhase = async (req, res) => {
     }
 
     const key = getProgressKey(user.activeDomain.slug);
-    const domainProgress = user.domainsProgress[key];
+    const domainProgress = getSafeDomainProgress(user, key);
 
     const phase = await Phase.findById(phaseId);
     if (!phase) {
@@ -718,7 +718,7 @@ exports.saveVideoProgress = async (req, res) => {
     }
 
     const key = getProgressKey(user.activeDomain.slug);
-    const domainProgress = user.domainsProgress[key];
+    const domainProgress = getSafeDomainProgress(user, key);
 
     if (checkpointId !== undefined && timestamp !== undefined) {
       domainProgress.videoProgress = { checkpointId, timestamp };

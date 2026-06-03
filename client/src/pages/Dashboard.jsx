@@ -88,19 +88,19 @@ const Dashboard = () => {
       {/* Dynamic Welcome Header */}
       <div className="mb-10 flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
         <div className="flex-1">
-          <div className="flex items-center gap-2 mb-3 flex-wrap">
-            <div className="px-3 py-1 bg-amber-500/10 text-amber-600 dark:text-amber-400 rounded-full text-[9px] font-black uppercase tracking-wider border border-amber-500/20">
-              Level {user.currentPhase || 0} Architect
+          <div className="flex flex-wrap items-center gap-2 mb-3">
+            <div className="px-3 py-1 bg-green-100 text-[var(--brand-green)] rounded-full text-[9px] font-black uppercase tracking-wider border border-green-200">
+              Level {user.currentPhase || 0} Geek
             </div>
-            <div className="px-3 py-1 bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 rounded-full text-[9px] font-black uppercase tracking-wider border border-indigo-500/20">
+            <div className="px-3 py-1 bg-orange-100 text-[var(--brand-orange)] rounded-full text-[9px] font-black uppercase tracking-wider border border-orange-200">
               {user.profile?.roadmapType || 'Steady Pace'}
             </div>
-            <div className="px-3 py-1 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-full text-[9px] font-black uppercase tracking-wider border border-emerald-500/20">
+            <div className="px-3 py-1 bg-purple-100 text-[var(--brand-purple)] rounded-full text-[9px] font-black uppercase tracking-wider border border-purple-200">
               {user.profile?.estimatedTimeline || '6 Months'}
             </div>
           </div>
           <h1 className="text-4xl md:text-5xl font-black text-[var(--text-main)] tracking-tight mb-2">
-            Your <span className="text-gradient">Personalized Journey</span>
+            Your <span className="text-[var(--brand-green)]">Summer Skilling</span> Journey
           </h1>
           <p className="text-[var(--text-muted)] font-extrabold text-lg">"Welcome back, {user.fullName.split(' ')[0]}. You're on the {user.profile?.roadmapType} path. ⚡"</p>
         </div>
@@ -124,21 +124,21 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* Zero to Coding Arcade Invitation Card */}
-      <div className="mb-10 bg-gradient-to-r from-[#1e152a] via-[#101012] to-[#0f1d24] p-8 rounded-3xl border border-violet-500/20 shadow-xl relative overflow-hidden flex flex-col md:flex-row items-center justify-between gap-8 group">
-        <div className="absolute -top-12 -left-12 w-48 h-48 bg-violet-600/10 rounded-full blur-3xl"></div>
-        <div className="absolute -bottom-12 -right-12 w-48 h-48 bg-cyan-600/10 rounded-full blur-3xl"></div>
+      {/* Zero to Coding Arcade Invitation Card (GFG Bright Theme) */}
+      <div className="mb-10 bg-gradient-to-r from-blue-50 via-purple-50 to-pink-50 p-8 rounded-3xl border border-purple-100 shadow-[var(--shadow-soft)] relative overflow-hidden flex flex-col md:flex-row items-center justify-between gap-8 group">
+        <div className="absolute -top-12 -left-12 w-48 h-48 bg-purple-200 rounded-full blur-3xl opacity-50"></div>
+        <div className="absolute -bottom-12 -right-12 w-48 h-48 bg-blue-200 rounded-full blur-3xl opacity-50"></div>
         
         <div className="flex flex-col md:flex-row items-center gap-5 relative z-10 text-center md:text-left">
-          <div className="w-14 h-14 bg-zinc-900 border border-violet-500/30 rounded-2xl flex items-center justify-center text-3xl shadow-inner animate-pulse shrink-0">
+          <div className="w-14 h-14 bg-[var(--bg-card)] border border-purple-200 rounded-2xl flex items-center justify-center text-3xl shadow-sm animate-pulse shrink-0">
             👾
           </div>
           <div>
-            <div className="inline-block px-2.5 py-0.5 bg-violet-500/20 text-violet-300 text-[9px] font-black uppercase tracking-wider rounded-lg mb-1.5 border border-violet-500/30">
+            <div className="inline-block px-2.5 py-0.5 bg-purple-100 text-[var(--brand-purple)] text-[9px] font-black uppercase tracking-wider rounded-lg mb-1.5 border border-purple-200">
               New to Programming?
             </div>
-            <h2 className="text-xl font-black text-white tracking-tight">Zero to Coding Arcade</h2>
-            <p className="text-xs text-zinc-400 font-semibold mt-1">
+            <h2 className="text-xl font-black text-[var(--land-text)] tracking-tight">Zero to Coding Arcade</h2>
+            <p className="text-xs text-[var(--text-muted)] font-bold mt-1">
               Start with our Duolingo-style interactives! Print statements, simple math, variables, and logic games.
             </p>
           </div>
@@ -146,28 +146,28 @@ const Dashboard = () => {
 
         <Link 
           to="/zero-to-coding" 
-          className="relative z-10 px-6 py-3 bg-gradient-to-r from-violet-500 to-cyan-500 hover:from-violet-600 hover:to-cyan-600 text-white rounded-xl text-xs font-black uppercase tracking-wider shadow-lg hover:-translate-y-0.5 transition-all flex items-center gap-2 shrink-0"
+          className="relative z-10 px-6 py-3 bg-[var(--brand-purple)] hover:bg-purple-700 text-white rounded-xl text-xs font-black uppercase tracking-wider shadow-lg hover:-translate-y-1 transition-all flex items-center gap-2 shrink-0"
         >
-          Enter Arcade <FiArrowRight className="group-hover:translate-x-1 transition-transform" />
+          Enter Arcade <FiArrowRight strokeWidth={3} className="group-hover:translate-x-1 transition-transform" />
         </Link>
       </div>
 
       {/* Certifications Banner (if earned) */}
       {certificates.length > 0 && (
-        <div className="mb-10 bg-gradient-to-r from-emerald-950 via-[#101012] to-[#0f1d24] p-8 rounded-3xl border border-emerald-500/20 shadow-xl relative overflow-hidden flex flex-col md:flex-row items-center justify-between gap-8 group">
-          <div className="absolute -top-12 -left-12 w-48 h-48 bg-emerald-600/10 rounded-full blur-3xl"></div>
-          <div className="absolute -bottom-12 -right-12 w-48 h-48 bg-teal-600/10 rounded-full blur-3xl"></div>
+        <div className="mb-10 bg-gradient-to-r from-green-50 via-teal-50 to-emerald-50 p-8 rounded-3xl border border-green-200 shadow-[var(--shadow-soft)] relative overflow-hidden flex flex-col md:flex-row items-center justify-between gap-8 group">
+          <div className="absolute -top-12 -left-12 w-48 h-48 bg-green-200 rounded-full blur-3xl opacity-50"></div>
+          <div className="absolute -bottom-12 -right-12 w-48 h-48 bg-teal-200 rounded-full blur-3xl opacity-50"></div>
           
           <div className="flex flex-col md:flex-row items-center gap-5 relative z-10 text-center md:text-left">
-            <div className="w-14 h-14 bg-zinc-900 border border-emerald-500/30 rounded-2xl flex items-center justify-center text-3xl shadow-inner shrink-0">
+            <div className="w-14 h-14 bg-[var(--bg-card)] border border-green-200 rounded-2xl flex items-center justify-center text-3xl shadow-sm shrink-0">
               🏆
             </div>
             <div>
-              <div className="inline-block px-2.5 py-0.5 bg-emerald-500/20 text-emerald-300 text-[9px] font-black uppercase tracking-wider rounded-lg mb-1.5 border border-emerald-500/30">
+              <div className="inline-block px-2.5 py-0.5 bg-green-100 text-[var(--brand-green)] text-[9px] font-black uppercase tracking-wider rounded-lg mb-1.5 border border-green-200">
                 Official Certification
               </div>
-              <h2 className="text-xl font-black text-white tracking-tight">Course Certified!</h2>
-              <p className="text-xs text-zinc-400 font-semibold mt-1">
+              <h2 className="text-xl font-black text-[var(--land-text)] tracking-tight">Course Certified!</h2>
+              <p className="text-xs text-[var(--text-muted)] font-bold mt-1">
                 You have successfully completed all lectures and requirements for {certificates[0].domainId?.name || 'DSA'}.
               </p>
             </div>
@@ -175,9 +175,9 @@ const Dashboard = () => {
 
           <button 
             onClick={() => setSelectedCertificate(certificates[0])}
-            className="relative z-10 px-6 py-3.5 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white rounded-xl text-xs font-black uppercase tracking-wider shadow-lg hover:-translate-y-0.5 transition-all flex items-center gap-2 shrink-0 cursor-pointer"
+            className="relative z-10 px-6 py-3.5 bg-[var(--brand-green)] hover:bg-[var(--brand-green-hover)] text-white rounded-xl text-xs font-black uppercase tracking-wider shadow-lg hover:-translate-y-1 transition-all flex items-center gap-2 shrink-0 cursor-pointer"
           >
-            View Certificate <FiAward />
+            View Certificate <FiAward strokeWidth={3} />
           </button>
         </div>
       )}
@@ -274,7 +274,9 @@ const Dashboard = () => {
               </div>
               <div>
                 <div className="text-[var(--primary)] font-black text-[9px] uppercase tracking-widest mb-1.5">Current Mission Map</div>
-                <h2 className="text-2xl font-black text-[var(--text-main)] tracking-tight mb-1.5">{user.selectedDomain.name}</h2>
+                <h2 className="text-2xl font-black text-[var(--text-main)] tracking-tight mb-1.5">
+                  {user.selectedDomain.name?.toLowerCase().includes('web development') ? 'Full Stack Web Development' : user.selectedDomain.name}
+                </h2>
                 <div className="flex items-center gap-1.5 text-[var(--text-muted)] font-bold text-sm">
                   <FiClock className="text-[var(--primary)]" /> {user.overallProgress}% Complete
                 </div>
@@ -296,23 +298,23 @@ const Dashboard = () => {
           </div>
 
           {currentPhaseData ? (
-            <div className="bg-[var(--bg-sub)] rounded-2xl p-6 border border-[var(--border)] flex flex-col sm:flex-row justify-between items-center gap-6 transition-colors">
+            <div className="bg-[var(--land-bg-alt)] rounded-2xl p-6 border border-[var(--border-light)] flex flex-col sm:flex-row justify-between items-center gap-6 transition-colors">
               <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-xl bg-[var(--bg-card)] border border-[var(--border)] flex items-center justify-center text-[var(--primary)] text-xl font-black shadow-sm shrink-0">
+                <div className="w-12 h-12 rounded-xl bg-[var(--bg-card)] border border-[var(--border-light)] flex items-center justify-center text-[var(--brand-green)] text-xl font-black shadow-[var(--shadow-soft)] shrink-0">
                   {user.currentPhase}
                 </div>
                 <div>
-                  <div className="text-[9px] text-[var(--primary)] font-black uppercase tracking-widest mb-0.5">Active Quest</div>
-                  <div className="font-black text-[var(--text-main)] text-xl leading-tight">{currentPhaseData.name}</div>
+                  <div className="text-[9px] text-[var(--brand-green)] font-black uppercase tracking-widest mb-0.5">Active Quest</div>
+                  <div className="font-black text-[var(--land-text)] text-xl leading-tight">{currentPhaseData.name}</div>
                 </div>
               </div>
-              <Link to="/roadmap" className="btn-primary py-3 px-8 rounded-xl text-xs shrink-0 shadow-lg shadow-indigo-500/20">
-                Continue Quest <FiArrowRight className="ml-2" />
+              <Link to="/roadmap" className="btn-primary py-3 px-8 rounded-xl text-xs shrink-0 shadow-[var(--shadow-bubbly)] hover:-translate-y-1">
+                Continue Quest <FiArrowRight strokeWidth={3} className="ml-2" />
               </Link>
             </div>
           ) : (
-            <div className="bg-emerald-500/10 rounded-2xl p-6 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 font-black flex items-center gap-4">
-              <FiStar className="text-3xl text-emerald-500 animate-pulse shrink-0" />
+            <div className="bg-green-50 rounded-2xl p-6 border border-green-200 text-green-700 font-black flex items-center gap-4 shadow-[var(--shadow-soft)]">
+              <FiStar className="text-3xl text-green-500 animate-pulse shrink-0" />
               <div>
                 <div className="text-xl">Mission Accomplished!</div>
                 <div className="text-xs font-bold opacity-80">You've mastered all architectural phases.</div>
@@ -372,9 +374,9 @@ const Dashboard = () => {
               </div>
 
               <div className="grid md:grid-cols-3 gap-3 mb-6">
-                <div className="p-4 bg-zinc-950 text-white rounded-xl border border-indigo-500/20">
-                  <div className="text-[8px] font-black text-indigo-300 uppercase tracking-widest mb-1">AI Recommendation</div>
-                  <div className="text-[11px] font-semibold leading-relaxed text-zinc-300">
+                <div className="p-4 bg-[var(--brand-purple)] text-white rounded-xl shadow-[var(--shadow-soft)]">
+                  <div className="text-[8px] font-black text-purple-200 uppercase tracking-widest mb-1">AI Recommendation</div>
+                  <div className="text-[11px] font-bold leading-relaxed text-purple-50">
                     Practice {dsaAnalysis?.weakTopics?.[0] || user.dsaStats?.weakestTopic || 'Recursion'} next with one tutorial, one dry run, and one accepted submission.
                   </div>
                 </div>
@@ -450,37 +452,37 @@ const Dashboard = () => {
         
         {/* Left Column: AI Journeys & Activity heatmap */}
         <div className="space-y-8">
-          {/* AI Journey Analysis */}
-          <div className="card p-8 bg-zinc-950 text-white relative overflow-hidden group">
-            <div className="absolute -top-10 -right-10 w-64 h-64 bg-[var(--primary)]/20 rounded-full blur-[100px] group-hover:scale-110 transition-transform pointer-events-none"></div>
+          {/* AI Journey Analysis (Bright Theme) */}
+          <div className="card p-8 bg-[var(--brand-purple)] text-white relative overflow-hidden group shadow-lg">
+            <div className="absolute -top-10 -right-10 w-64 h-64 bg-[var(--bg-card)]/20 rounded-full blur-[100px] group-hover:scale-110 transition-transform pointer-events-none"></div>
             
             <div className="flex items-center gap-3 mb-6 relative z-10">
-              <div className="w-11 h-11 rounded-xl bg-[var(--primary)] flex items-center justify-center text-xl shadow-lg shrink-0">🤖</div>
+              <div className="w-11 h-11 rounded-xl bg-[var(--bg-card)]/20 flex items-center justify-center text-xl shadow-sm shrink-0 border border-white/20">🤖</div>
               <h3 className="text-xl font-black tracking-tight">AI Journey Analysis</h3>
             </div>
             
             <div className="space-y-6 relative z-10">
-              <div className="bg-white/5 border border-white/10 rounded-2xl p-6 backdrop-blur-md">
-                <p className="text-zinc-300 leading-relaxed font-semibold italic text-base">
+              <div className="bg-[var(--bg-card)]/10 border border-white/20 rounded-2xl p-6 backdrop-blur-md">
+                <p className="text-purple-50 leading-relaxed font-bold italic text-base">
                   "{user.profile?.aiSummary || "I'm analyzing your progress to give you personalized insights. Keep learning to unlock my analysis!"}"
                 </p>
               </div>
 
               {user.profile?.recommendedProjects?.length > 0 && (
-                <div className="bg-[var(--primary)]/10 border border-[var(--primary)]/25 rounded-2xl p-6">
-                  <div className="text-[9px] text-[var(--primary)] font-black uppercase tracking-widest mb-3">Recommended Projects</div>
+                <div className="bg-[var(--bg-card)]/10 border border-white/20 rounded-2xl p-6">
+                  <div className="text-[9px] text-purple-200 font-black uppercase tracking-widest mb-3">Recommended Projects</div>
                   <ul className="space-y-2.5">
                     {user.profile.recommendedProjects.map((project, idx) => (
-                      <li key={idx} className="flex items-center gap-2.5 text-xs font-bold text-zinc-200">
-                        <div className="w-1.5 h-1.5 bg-[var(--primary)] rounded-full shrink-0"></div> {project}
+                      <li key={idx} className="flex items-center gap-2.5 text-xs font-bold text-white">
+                        <div className="w-1.5 h-1.5 bg-[var(--bg-card)] rounded-full shrink-0"></div> {project}
                       </li>
                     ))}
                   </ul>
                 </div>
               )}
 
-              <Link to="/code-guru" className="flex items-center justify-center gap-2 w-full py-4 bg-[var(--primary)] hover:bg-[var(--primary-hover)] text-white rounded-xl text-xs font-black transition-all shadow-lg shadow-indigo-500/25">
-                Discuss Strategy with Code Guru <FiArrowRight size={14} />
+              <Link to="/code-guru" className="flex items-center justify-center gap-2 w-full py-4 bg-[var(--bg-card)] text-[var(--brand-purple)] hover:bg-purple-50 rounded-xl text-xs font-black transition-all shadow-lg hover:-translate-y-1">
+                Discuss Strategy with Code Guru <FiArrowRight strokeWidth={3} size={14} />
               </Link>
             </div>
           </div>
@@ -503,11 +505,11 @@ const Dashboard = () => {
                     whileHover={{ scale: 1.1 }}
                     className="w-10 h-10 rounded-xl flex items-center justify-center transition-all cursor-pointer border border-[var(--border)] bg-[var(--bg-card)]"
                     style={{ 
-                      backgroundColor: intensity > 0 ? `rgba(99, 102, 241, ${0.05 + intensity * 0.4})` : 'transparent'
+                      backgroundColor: intensity > 0 ? `rgba(48, 141, 70, ${0.05 + intensity * 0.4})` : 'transparent'
                     }}
                     title={`${date}: ${dayLog?.minutes || 0} mins`}
                   >
-                    {intensity > 0 && <div className="w-2 h-2 rounded-full bg-[var(--primary)] shadow-lg shadow-indigo-500/50"></div>}
+                    {intensity > 0 && <div className="w-2 h-2 rounded-full bg-[var(--brand-green)] shadow-[var(--shadow-bubbly)]"></div>}
                   </motion.div>
                 );
               })}
@@ -553,7 +555,7 @@ const Dashboard = () => {
           )}
           
           <div className="mt-8 pt-6 border-t border-[var(--border)]">
-             <Link to="/roadmap" className="w-full btn-primary py-4 text-xs rounded-xl shadow-lg shadow-indigo-500/20 uppercase tracking-widest font-black">
+             <Link to="/roadmap" className="w-full btn-primary py-4 text-xs rounded-xl shadow-[var(--shadow-bubbly)] uppercase tracking-widest font-black flex justify-center hover:-translate-y-1 transition-all">
                 Resume Adventure
              </Link>
           </div>
@@ -636,7 +638,7 @@ const Dashboard = () => {
                   </div>
                   
                   <div className="flex flex-col items-center">
-                    <div className="w-14 h-14 border border-stone-800 rounded bg-white p-1 flex items-center justify-center opacity-85 select-none pointer-events-none">
+                    <div className="w-14 h-14 border border-stone-800 rounded bg-[var(--bg-card)] p-1 flex items-center justify-center opacity-85 select-none pointer-events-none">
                       <div className="text-[7px] text-stone-900 font-bold leading-none select-none text-center">
                         CF VERIFY<br />🔒<br />{selectedCertificate.certificateId.substring(selectedCertificate.certificateId.length - 6)}
                       </div>

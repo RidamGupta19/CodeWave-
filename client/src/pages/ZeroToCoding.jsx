@@ -72,6 +72,14 @@ const ZeroToCoding = () => {
   const [theme, setTheme] = useState(() => localStorage.getItem('editor_theme') || 'light');
   const [selectedLang, setSelectedLang] = useState(() => localStorage.getItem('editor_lang') || 'cpp');
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [aiInput, setAiInput] = useState('');
+  const [isAiTyping, setIsAiTyping] = useState(false);
+  const [isAiChatOpen, setIsAiChatOpen] = useState(false);
+  const [aiMessages, setAiMessages] = useState([
+    { role: 'assistant', content: 'Hi there! I am Code Guru, your personal AI coding mentor. Stuck on a bug or need a hint on the approach? Let me know!' }
+  ]);
+  const chatScrollRef = useRef(null);
+
   const [isMuted, setIsMuted] = useState(false);
   const [activeTab, setActiveTab] = useState('testcases'); // 'testcases' | 'console' | 'custominput' | 'results'
   const [leftTab, setLeftTab] = useState('description'); // 'description' | 'examples' | 'clues'
@@ -526,6 +534,39 @@ const ZeroToCoding = () => {
     triggerSoundEffect('click');
   };
 
+  // AI Chat Handler
+  const sendAiMessage = (e) => {
+    e.preventDefault();
+    if (!aiInput.trim()) return;
+    
+    const userMsg = { role: 'user', content: aiInput };
+    setAiMessages(prev => [...prev, userMsg]);
+    setAiInput('');
+    setIsAiTyping(true);
+    
+    // Simulate AI response
+    setTimeout(() => {
+      setIsAiTyping(false);
+      setAiMessages(prev => [...prev, {
+        role: 'assistant',
+        content: `I noticed you're working on "${activeLevel.title}". Here's a tip: check your loop conditions and ensure you're using the correct variables. If you're still stuck, try mapping out the logical steps first!`
+      }]);
+    }, 2000);
+  };
+
+  // Scroll AI chat to bottom
+  useEffect(() => {
+    if (chatScrollRef.current) {
+      chatScrollRef.current.scrollTop = chatScrollRef.current.scrollHeight;
+    }
+  }, [aiMessages, isAiTyping]);
+
+  // Prevent horizontal scroll on mobile layout bug
+  useEffect(() => {
+    document.body.style.overflow = 'hidden';
+    return () => { document.body.style.overflow = 'auto'; };
+  }, []);
+
   return (
     <div className={`h-screen flex flex-col font-sans transition-colors duration-300 relative overflow-hidden select-none ${
       theme === 'dark' ? 'bg-[#1a1a1a] text-[#f4f4f5] dark-mode' : 'bg-[#f0f0f0] text-[#0f172a] light-mode'
@@ -648,7 +689,7 @@ const ZeroToCoding = () => {
         <section 
           style={{ width: `${leftWidth}%` }}
           className={`h-full flex flex-col border-r transition-colors duration-300 select-text overflow-hidden shrink-0 ${
-            theme === 'dark' ? 'bg-[#1e1e1e] border-[#2e2e2e]' : 'bg-white border-slate-200'
+            'bg-white border-slate-200 dark:bg-[#1e1e1e] dark:border-[#2e2e2e]'
           }`}
         >
           {/* Header tabs */}
@@ -906,7 +947,7 @@ const ZeroToCoding = () => {
                 triggerSoundEffect('click');
               }}
               className={`flex items-center gap-1 text-xs font-bold px-3 py-2 rounded-lg transition-all disabled:opacity-30 ${
-                theme === 'dark' ? 'text-zinc-400 hover:text-white hover:bg-zinc-800' : 'text-slate-500 hover:text-slate-800 hover:bg-slate-100'
+                'text-slate-500 hover:text-slate-800 hover:bg-slate-100 dark:text-zinc-400 dark:hover:text-white dark:hover:bg-zinc-800'
               }`}
             >
               Next Lvl <ChevronRight size={16} />
@@ -1313,9 +1354,98 @@ const ZeroToCoding = () => {
 
             </div>
           </div>
-
         </section>
 
+        {/* --- AI CODE GURU SLIDE-OUT PANEL & FAB --- */}
+        <AnimatePresence>
+          {isAiChatOpen && (
+            <motion.div
+              initial={{ x: 400, opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              exit={{ x: 400, opacity: 0 }}
+              transition={{ type: "spring", stiffness: 300, damping: 30 }}
+              className="absolute top-4 right-4 bottom-4 w-80 lg:w-96 rounded-2xl shadow-2xl flex flex-col overflow-hidden border border-slate-200 dark:border-zinc-800 bg-white/95 dark:bg-zinc-950/95 backdrop-blur-xl z-40"
+            >
+              {/* Header */}
+              <div className="p-4 border-b border-slate-100 dark:border-zinc-800 flex items-center justify-between bg-gradient-to-r from-indigo-500/10 to-violet-500/10">
+                <div className="flex items-center gap-2">
+                  <div className="text-xl">🤖</div>
+                  <div>
+                    <div className="text-sm font-black text-slate-800 dark:text-white">Code Guru</div>
+                    <div className="text-[10px] text-indigo-500 font-bold uppercase tracking-wider">AI Assistant</div>
+                  </div>
+                </div>
+                <button 
+                  onClick={() => setIsAiChatOpen(false)}
+                  className="p-1.5 rounded-lg hover:bg-slate-200 dark:hover:bg-zinc-800 text-slate-500 dark:text-zinc-400 transition-colors"
+                >
+                  <XCircle size={18} />
+                </button>
+              </div>
+
+              {/* Chat Messages Area */}
+              <div ref={chatScrollRef} className="flex-1 overflow-y-auto p-4 space-y-4 select-text">
+                {aiMessages.map((msg, idx) => (
+                  <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                    <div className={`max-w-[85%] rounded-2xl p-3 text-xs leading-relaxed whitespace-pre-wrap ${
+                      msg.role === 'user'
+                        ? 'bg-indigo-500 text-white rounded-br-sm shadow-md'
+                        : 'bg-slate-100 dark:bg-zinc-900 text-slate-700 dark:text-zinc-300 rounded-bl-sm border border-slate-200 dark:border-zinc-800 shadow-sm'
+                    }`}>
+                      {msg.content}
+                    </div>
+                  </div>
+                ))}
+                {isAiTyping && (
+                  <div className="flex justify-start">
+                    <div className="bg-slate-100 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl rounded-bl-sm p-3 flex gap-1 items-center h-10 shadow-sm">
+                      <div className="w-1.5 h-1.5 rounded-full bg-slate-400 dark:bg-zinc-500 animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                      <div className="w-1.5 h-1.5 rounded-full bg-slate-400 dark:bg-zinc-500 animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                      <div className="w-1.5 h-1.5 rounded-full bg-slate-400 dark:bg-zinc-500 animate-bounce" style={{ animationDelay: '300ms' }}></div>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Input Area */}
+              <div className="p-3 border-t border-slate-100 dark:border-zinc-800 bg-white dark:bg-zinc-950">
+                <form onSubmit={sendAiMessage} className="relative flex items-center">
+                  <input
+                    type="text"
+                    value={aiInput}
+                    onChange={(e) => setAiInput(e.target.value)}
+                    placeholder="Ask about this code..."
+                    className="w-full bg-slate-50 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-xl py-2.5 pl-3 pr-10 text-xs text-slate-800 dark:text-white focus:outline-none focus:border-indigo-500 dark:focus:border-indigo-500 transition-colors"
+                  />
+                  <button 
+                    type="submit"
+                    disabled={isAiTyping || !aiInput.trim()}
+                    className="absolute right-1.5 p-1.5 text-white bg-indigo-500 hover:bg-indigo-600 rounded-lg disabled:opacity-50 transition-colors"
+                  >
+                    <Sparkles size={14} />
+                  </button>
+                </form>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Floating Action Button (FAB) when chat is closed */}
+        <AnimatePresence>
+          {!isAiChatOpen && (
+            <motion.button
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              exit={{ scale: 0 }}
+              whileHover={{ scale: 1.05 }}
+              onClick={() => setIsAiChatOpen(true)}
+              className="absolute bottom-6 right-6 w-12 h-12 bg-indigo-500 hover:bg-indigo-600 text-white rounded-full shadow-lg shadow-indigo-500/30 flex items-center justify-center z-30 transition-colors group"
+            >
+              <div className="absolute inset-0 bg-white/20 rounded-full animate-ping opacity-75"></div>
+              <Sparkles size={20} className="relative z-10 group-hover:rotate-12 transition-transform" />
+            </motion.button>
+          )}
+        </AnimatePresence>
       </main>
 
       {/* CELEBRATION MODAL COMPONENT */}

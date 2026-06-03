@@ -44,6 +44,7 @@
     "mongodb-memory-server": "^11.1.0",
     "mongoose": "^8.13.2",
     "morgan": "^1.10.0",
+    "resend": "^6.12.4",
     "slugify": "^1.6.9"
   },
   "devDependencies": {

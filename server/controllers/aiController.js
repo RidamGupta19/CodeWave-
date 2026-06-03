@@ -278,7 +278,7 @@ What's on your mind: roadmap strategy, performance insights, or code help?`;
 // @route   POST /api/ai/chat
 exports.chat = async (req, res) => {
   try {
-    const { message } = req.body;
+    const { message, codeContext, language, currentError } = req.body;
     const user = await User.findById(req.user._id);
 
     if (!user) {
@@ -321,10 +321,14 @@ exports.chat = async (req, res) => {
         Student's context:
         - Domain: ${insights.domain} (Lvl ${insights.phase}, Progress ${insights.progress}%)
         - Streak: ${insights.streak} days (Consistency: ${insights.consistency})
-        - Language: ${insights.preferredLang}
-        - Strongest Area: ${insights.strongestTopic}
-        - Needs Revision: ${insights.weakestTopic}
-        - Onboarding Answers: ${onboardingSummary}
+        - Learning Language: ${insights.preferredLang}
+        
+        Current Editor Context (if applicable):
+        - Code Language: ${language || 'None provided'}
+        - User's Code: \n\`\`\`\n${codeContext || 'No code provided'}\n\`\`\`
+        - Current Compiler Error: ${currentError || 'None'}
+        
+        If the user asks for help with an error or code, reference specific line numbers from the provided code. Suggest approaches and hint at the solution without giving away the complete final code immediately.
         
         Examples of style:
         - If they ask "what domain should I choose", reply with: "You already started with ${insights.preferredLang}. What interests you more: Web Dev, AI, placements, or app dev?"

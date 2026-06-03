@@ -159,7 +159,7 @@ const TopicDetail = () => {
   
   // Interactive Code Playground States
   const [editorCode, setEditorCode] = useState('');
-  const [editorTheme, setEditorTheme] = useState('vs-dark');
+  const [editorTheme, setEditorTheme] = useState('light');
   const [consoleLogs, setConsoleLogs] = useState([]);
   const [compilerStatus, setCompilerStatus] = useState('idle'); // 'idle' | 'running' | 'passed' | 'failed' | 'compile_error'
   const [challengePassed, setChallengePassed] = useState(false);
@@ -1526,23 +1526,23 @@ const TopicDetail = () => {
 
           {/* Header: gradient brand block */}
           <div className="p-4 border-b border-[var(--border)] bg-gradient-to-br from-indigo-600 via-indigo-700 to-purple-800 shrink-0">
-            <Link to="/roadmap" className="flex items-center gap-1.5 text-white/60 hover:text-white text-[9px] font-black uppercase tracking-widest mb-3 transition-colors group">
+            <Link to="/roadmap" className="flex items-center gap-1.5 text-[var(--text-main)]/60 hover:text-[var(--text-main)] text-[9px] font-black uppercase tracking-widest mb-3 transition-colors group">
               <FiArrowLeft className="group-hover:-translate-x-0.5 transition-transform" /> Back to Roadmap
             </Link>
             <div className="flex items-center gap-3 mb-3">
-              <div className="w-10 h-10 rounded-xl bg-white/15 flex items-center justify-center text-xl shadow-inner">🚀</div>
+              <div className="w-10 h-10 rounded-xl bg-[var(--bg-card)]/15 flex items-center justify-center text-xl shadow-inner">🚀</div>
               <div>
-                <div className="text-white font-black text-sm leading-tight">{topic?.title || 'Start Coding'}</div>
-                <div className="text-white/50 text-[9px] font-bold uppercase tracking-widest mt-0.5">{topic?.difficulty ? `Level 1 · ${topic.difficulty}` : 'Level 0 · Foundations'}</div>
+                <div className="text-[var(--text-main)] font-black text-sm leading-tight">{topic?.title || 'Start Coding'}</div>
+                <div className="text-[var(--text-main)]/50 text-[9px] font-bold uppercase tracking-widest mt-0.5">{topic?.difficulty ? `Level 1 · ${topic.difficulty}` : 'Level 0 · Foundations'}</div>
               </div>
             </div>
             {/* Progress bar */}
             <div className="space-y-1.5">
               <div className="flex items-center justify-between">
-                <span className="text-white/50 text-[9px] font-black uppercase tracking-wider">Your Progress</span>
-                <span className="text-white text-[9px] font-black">{completedCheckpoints.length} / {CHECKPOINTS.length} done</span>
+                <span className="text-[var(--text-main)]/50 text-[9px] font-black uppercase tracking-wider">Your Progress</span>
+                <span className="text-[var(--text-main)] text-[9px] font-black">{completedCheckpoints.length} / {CHECKPOINTS.length} done</span>
               </div>
-              <div className="h-2 bg-white/15 rounded-full overflow-hidden">
+              <div className="h-2 bg-[var(--bg-card)]/15 rounded-full overflow-hidden">
                 <div
                   className="h-full bg-gradient-to-r from-emerald-400 to-teal-400 rounded-full transition-all duration-700 ease-out"
                   style={{ width: `${(completedCheckpoints.length / CHECKPOINTS.length) * 100}%` }}
@@ -1564,7 +1564,7 @@ const TopicDetail = () => {
                   <button
                     key={lang}
                     onClick={() => { setSelectedLang(lang); setEditorCode(''); }}
-                    className={`flex-1 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-wider transition-all ${selectedLang === lang ? 'bg-[var(--primary)] text-white shadow-sm' : 'bg-[var(--bg-sub)] text-[var(--text-muted)] hover:text-[var(--text-main)]'}`}
+                    className={`flex-1 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-wider transition-all ${selectedLang === lang ? 'bg-[var(--primary)] text-[var(--text-main)] shadow-sm' : 'bg-[var(--bg-sub)] text-[var(--text-muted)] hover:text-[var(--text-main)]'}`}
                   >
                     {label}
                   </button>
@@ -1612,11 +1612,11 @@ const TopicDetail = () => {
                   {/* Status indicator */}
                   <div className={`w-8 h-8 rounded-full flex-shrink-0 flex items-center justify-center text-sm font-black shadow-sm border ${
                     isDone
-                      ? 'bg-emerald-500 border-emerald-500 text-white'
+                      ? 'bg-emerald-500 border-emerald-500 text-[var(--text-main)]'
                       : isActive
-                        ? 'bg-[var(--primary)] border-[var(--primary)] text-white'
+                        ? 'bg-[var(--primary)] border-[var(--primary)] text-[var(--text-main)]'
                         : isLocked
-                          ? 'bg-zinc-800 border-zinc-700 text-zinc-600'
+                          ? 'bg-[var(--border-light)] border-[var(--border)] text-[var(--text-light)]'
                           : 'bg-[var(--bg-card)] border-[var(--border)] text-[var(--text-muted)]'
                   }`}>
                     {isDone ? '✓' : isLocked ? '🔒' : cpIcon}
@@ -1669,7 +1669,7 @@ const TopicDetail = () => {
                     finally { setSubmitting(false); }
                   }}
                   disabled={submitting}
-                  className="w-full py-2.5 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white rounded-xl text-[10px] font-black uppercase tracking-wider transition-all shadow-md shadow-emerald-500/20"
+                  className="w-full py-2.5 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-[var(--text-main)] rounded-xl text-[10px] font-black uppercase tracking-wider transition-all shadow-md shadow-emerald-500/20"
                 >
                   Claim Rewards 🏆
                 </button>
@@ -1689,7 +1689,7 @@ const TopicDetail = () => {
                   onClick={() => setActiveWorkspaceTab('learn')}
                   className={`flex-1 py-2 rounded-lg text-[10px] font-black uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all ${
                     activeWorkspaceTab === 'learn'
-                      ? 'bg-[var(--primary)] text-white shadow-sm'
+                      ? 'bg-[var(--primary)] text-[var(--text-main)] shadow-sm'
                       : 'text-[var(--text-muted)] hover:text-[var(--text-main)]'
                   }`}
                 >
@@ -1699,7 +1699,7 @@ const TopicDetail = () => {
                   onClick={() => setActiveWorkspaceTab('code')}
                   className={`flex-1 py-2 rounded-lg text-[10px] font-black uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all ${
                     activeWorkspaceTab === 'code'
-                      ? 'bg-[var(--primary)] text-white shadow-sm'
+                      ? 'bg-[var(--primary)] text-[var(--text-main)] shadow-sm'
                       : 'text-[var(--text-muted)] hover:text-[var(--text-main)]'
                   }`}
                 >
@@ -1742,11 +1742,11 @@ const TopicDetail = () => {
               </div>
               <div className="flex items-center gap-2">
                 {isLastCp ? (
-                  <div className="px-3 py-1 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-lg text-[9px] font-black shadow tracking-wider flex items-center gap-1.5">
+                  <div className="px-3 py-1 bg-gradient-to-r from-amber-500 to-orange-500 text-[var(--text-main)] rounded-lg text-[9px] font-black shadow tracking-wider flex items-center gap-1.5">
                     <FiZap size={10} /> Final Challenge
                   </div>
                 ) : (
-                  <div className="px-3 py-1 bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-lg text-[9px] font-black shadow tracking-wider flex items-center gap-1.5">
+                  <div className="px-3 py-1 bg-gradient-to-r from-indigo-500 to-purple-600 text-[var(--text-main)] rounded-lg text-[9px] font-black shadow tracking-wider flex items-center gap-1.5">
                     <FiYoutube size={10} /> Watch &amp; Code
                   </div>
                 )}
@@ -1772,7 +1772,7 @@ const TopicDetail = () => {
                     </div>
                   </div>
 
-                  <div className="aspect-video bg-black rounded-xl overflow-hidden border border-zinc-800 shadow-lg">
+                  <div className="aspect-video bg-black rounded-xl overflow-hidden border border-[var(--border)] shadow-lg">
                     <iframe
                       key={`video-${activeCheckpoint}-${selectedLang}`}
                       id={`checkpoint-video-${activeCheckpoint}`}
@@ -1868,7 +1868,7 @@ const TopicDetail = () => {
                         <div className="text-[var(--text-muted)]">
                           Input: <span className="text-[var(--text-main)] font-black">{tc.input || '(no input)'}</span>
                         </div>
-                        <div className="text-zinc-600">→</div>
+                        <div className="text-[var(--text-light)]">→</div>
                         <div className="text-[var(--text-muted)]">
                           Expected: <span className="text-emerald-400 font-black">{tc.expected}</span>
                         </div>
@@ -1913,8 +1913,8 @@ const TopicDetail = () => {
                     disabled={!checkpointVideoFinished || !checkpointCodePassed}
                     className={`w-full py-3 rounded-xl font-black text-sm uppercase tracking-wider transition-all duration-200 flex items-center justify-center gap-2 mt-2 ${
                       !checkpointVideoFinished || !checkpointCodePassed
-                        ? 'bg-zinc-800 text-zinc-600 cursor-not-allowed border border-zinc-700'
-                        : 'bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white shadow-lg shadow-emerald-500/25 cursor-pointer hover:scale-[1.01]'
+                        ? 'bg-[var(--border-light)] text-[var(--text-light)] cursor-not-allowed border border-[var(--border)]'
+                        : 'bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-[var(--text-main)] shadow-lg shadow-emerald-500/25 cursor-pointer hover:scale-[1.01]'
                     }`}
                   >
                     {completedCheckpoints.includes(activeCheckpoint) ? (
@@ -1944,7 +1944,7 @@ const TopicDetail = () => {
                         toast.success('Checkpoint skipped and marked as complete! 🚀');
                       }
                     }}
-                    className="w-full py-2 bg-transparent border border-dashed border-zinc-700 hover:border-zinc-500 text-zinc-500 hover:text-zinc-300 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all duration-200 mt-2 flex items-center justify-center gap-1.5 cursor-pointer"
+                    className="w-full py-2 bg-transparent border border-dashed border-[var(--border)] hover:border-zinc-500 text-[var(--text-muted)] hover:text-[var(--text-main)] rounded-xl text-[10px] font-black uppercase tracking-wider transition-all duration-200 mt-2 flex items-center justify-center gap-1.5 cursor-pointer"
                   >
                     ⏭️ Skip &amp; Complete Checkpoint
                   </button>
@@ -1970,21 +1970,21 @@ const TopicDetail = () => {
             <div className="flex items-center justify-between px-4 py-2 bg-[#252526] border-b border-[#3e3e42] shrink-0">
               <div className="flex items-center gap-2">
                 <FiCode className="text-[var(--primary)] text-sm" />
-                <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Code Editor</span>
-                <span className="text-[9px] font-bold text-zinc-600 bg-zinc-800 px-2 py-0.5 rounded border border-zinc-700">
+                <span className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest">Code Editor</span>
+                <span className="text-[9px] font-bold text-[var(--text-light)] bg-[var(--border-light)] px-2 py-0.5 rounded border border-[var(--border)]">
                   {selectedLang.toUpperCase()}
                 </span>
               </div>
               <div className="flex items-center gap-2">
                 {/* Challenge title in editor bar */}
                 {cpContent?.challengeTitle && (
-                  <span className="text-[9px] text-zinc-600 font-semibold hidden sm:block">
+                  <span className="text-[9px] text-[var(--text-light)] font-semibold hidden sm:block">
                     {cpContent.challengeTitle}
                   </span>
                 )}
                 <button
                   onClick={() => { if (cpContent?.editorBoilerplate) setEditorCode(cpContent.editorBoilerplate); }}
-                  className="text-[9px] font-black text-zinc-500 hover:text-zinc-200 uppercase tracking-wider transition-colors px-2.5 py-1 rounded hover:bg-zinc-700 border border-zinc-700"
+                  className="text-[9px] font-black text-[var(--text-muted)] hover:text-[var(--text-main)] uppercase tracking-wider transition-colors px-2.5 py-1 rounded hover:bg-gray-300 border border-[var(--border)]"
                 >
                   Reset ↺
                 </button>
@@ -1994,8 +1994,8 @@ const TopicDetail = () => {
             {cpContent?.assessmentType === 'mcq' || cpContent?.assessmentType === 'tracing' ? (
               <div className="flex-1 overflow-y-auto p-8 flex flex-col items-center justify-center text-center">
                 <div className="text-6xl mb-4">🧠</div>
-                <h3 className="text-xl font-black text-white mb-2">Interactive {cpContent.assessmentType === 'mcq' ? 'Knowledge Check' : 'Tracing Challenge'}</h3>
-                <p className="text-zinc-400 mb-6 max-w-md">
+                <h3 className="text-xl font-black text-[var(--text-main)] mb-2">Interactive {cpContent.assessmentType === 'mcq' ? 'Knowledge Check' : 'Tracing Challenge'}</h3>
+                <p className="text-[var(--text-muted)] mb-6 max-w-md">
                   This checkpoint focuses on conceptual understanding. Answer the questions on the left panel (or mark as done) to proceed.
                 </p>
                 <button
@@ -2004,7 +2004,7 @@ const TopicDetail = () => {
                     setCheckpointCodePassed(true);
                     toast.success('Assessment completed! You can now mark this checkpoint as done.');
                   }}
-                  className="px-6 py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl shadow-lg transition-colors"
+                  className="px-6 py-3 bg-indigo-600 hover:bg-indigo-500 text-[var(--text-main)] font-bold rounded-xl shadow-lg transition-colors"
                 >
                   Simulate Assessment Pass ✅
                 </button>
@@ -2038,7 +2038,7 @@ const TopicDetail = () => {
               <button
                 onClick={handleCheckpointRunCode}
                 disabled={compilerStatus === 'running'}
-                className="flex items-center gap-2 px-5 py-2 bg-[#2d7d46] hover:bg-emerald-600 text-white rounded-lg text-[10px] font-black uppercase tracking-wider transition-all disabled:opacity-40 shadow"
+                className="flex items-center gap-2 px-5 py-2 bg-[#2d7d46] hover:bg-emerald-600 text-[var(--text-main)] rounded-lg text-[10px] font-black uppercase tracking-wider transition-all disabled:opacity-40 shadow"
               >
                 <FiPlay size={11} />
                 {compilerStatus === 'running' ? 'Running...' : 'Run Code'}
@@ -2050,7 +2050,7 @@ const TopicDetail = () => {
                   compilerStatus === 'passed' ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30' :
                   compilerStatus === 'failed' ? 'bg-red-500/15 text-red-400 border-red-500/30' :
                   compilerStatus === 'compile_error' ? 'bg-orange-500/15 text-orange-400 border-orange-500/30' :
-                  'bg-zinc-800 text-zinc-400 border-zinc-700'
+                  'bg-[var(--border-light)] text-[var(--text-muted)] border-[var(--border)]'
                 }`}>
                   {compilerStatus === 'passed' ? '✅ All Passed!' :
                    compilerStatus === 'failed' ? '❌ Wrong Answer' :
@@ -2070,20 +2070,20 @@ const TopicDetail = () => {
               <div className="flex items-center gap-4 px-4 py-1.5 bg-[#252526] border-b border-[#3e3e42]">
                 <button
                   onClick={() => setActiveConsoleTab('testcase')}
-                  className={`text-[10px] font-black uppercase tracking-wider pb-0.5 transition-colors ${activeConsoleTab === 'testcase' ? 'text-white border-b-2 border-[var(--primary)]' : 'text-zinc-500 hover:text-zinc-300'}`}
+                  className={`text-[10px] font-black uppercase tracking-wider pb-0.5 transition-colors ${activeConsoleTab === 'testcase' ? 'text-[var(--text-main)] border-b-2 border-[var(--primary)]' : 'text-[var(--text-muted)] hover:text-[var(--text-main)]'}`}
                 >
                   Test Cases
                 </button>
                 <button
                   onClick={() => setActiveConsoleTab('result')}
-                  className={`text-[10px] font-black uppercase tracking-wider pb-0.5 transition-colors ${activeConsoleTab === 'result' ? 'text-white border-b-2 border-[var(--primary)]' : 'text-zinc-500 hover:text-zinc-300'}`}
+                  className={`text-[10px] font-black uppercase tracking-wider pb-0.5 transition-colors ${activeConsoleTab === 'result' ? 'text-[var(--text-main)] border-b-2 border-[var(--primary)]' : 'text-[var(--text-muted)] hover:text-[var(--text-main)]'}`}
                 >
                   Output Log
                 </button>
                 {selectedLang === 'html' && (
                   <button
                     onClick={() => setActiveConsoleTab('preview')}
-                    className={`text-[10px] font-black uppercase tracking-wider pb-0.5 transition-colors ${activeConsoleTab === 'preview' ? 'text-white border-b-2 border-[var(--primary)]' : 'text-zinc-500 hover:text-zinc-300'}`}
+                    className={`text-[10px] font-black uppercase tracking-wider pb-0.5 transition-colors ${activeConsoleTab === 'preview' ? 'text-[var(--text-main)] border-b-2 border-[var(--primary)]' : 'text-[var(--text-muted)] hover:text-[var(--text-main)]'}`}
                   >
                     Live Preview 👁️
                   </button>
@@ -2093,7 +2093,7 @@ const TopicDetail = () => {
                 {activeConsoleTab === 'testcase' ? (
                   <div className="space-y-2">
                     {testResults.length === 0 ? (
-                      <p className="text-zinc-600 text-[10px] font-mono italic">Click "Run Code" to test your solution...</p>
+                      <p className="text-[var(--text-light)] text-[10px] font-mono italic">Click "Run Code" to test your solution...</p>
                     ) : testResults.map((r, i) => (
                       <div key={i} className={`flex items-center gap-3 p-2.5 rounded-lg text-[10px] font-mono border ${
                         r.status === 'passed'
@@ -2101,10 +2101,10 @@ const TopicDetail = () => {
                           : 'bg-red-500/8 text-red-400 border-red-500/20'
                       }`}>
                         <span className="text-sm">{r.status === 'passed' ? '✅' : '❌'}</span>
-                        <span className="text-zinc-500">TC {i + 1}</span>
-                        <span className="text-zinc-600">Expected:</span>
-                        <span className="text-zinc-200 font-black">{r.expected}</span>
-                        <span className="text-zinc-600">Got:</span>
+                        <span className="text-[var(--text-muted)]">TC {i + 1}</span>
+                        <span className="text-[var(--text-light)]">Expected:</span>
+                        <span className="text-[var(--text-main)] font-black">{r.expected}</span>
+                        <span className="text-[var(--text-light)]">Got:</span>
                         <span className={r.status === 'passed' ? 'text-emerald-400 font-black' : 'text-red-400 font-black'}>{r.actual}</span>
                       </div>
                     ))}
@@ -2112,19 +2112,25 @@ const TopicDetail = () => {
                 ) : activeConsoleTab === 'result' ? (
                   <div className="space-y-1">
                     {consoleLogs.length === 0 ? (
-                      <p className="text-zinc-600 text-[10px] font-mono italic">No output yet...</p>
+                      <p className="text-[var(--text-light)] text-[10px] font-mono italic">No output yet...</p>
                     ) : consoleLogs.map((log, i) => (
-                      <div key={i} className="text-[10px] font-mono text-zinc-400 leading-relaxed">{log}</div>
+                      <div key={i} className="text-[10px] font-mono text-[var(--text-muted)] leading-relaxed">{log}</div>
                     ))}
                   </div>
                 ) : (
-                  <div className="w-full h-full min-h-[120px] bg-white rounded-lg overflow-hidden border border-zinc-800">
+                  <div className="w-full h-full min-h-[120px] bg-[var(--bg-card)] rounded-lg overflow-hidden border border-[var(--border)] relative group">
                     <iframe
                       title="checkpoint-live-preview"
                       srcDoc={editorCode}
                       sandbox="allow-scripts"
-                      className="w-full h-full bg-white border-none min-h-[120px]"
+                      className="w-full h-full bg-[var(--bg-card)] border-none min-h-[120px]"
                     />
+                    <button
+                      onClick={handleOpenInNewTab}
+                      className="absolute top-2 right-2 px-3 py-1.5 bg-black/70 hover:bg-black text-white text-[10px] font-black uppercase tracking-wider rounded border border-white/10 opacity-0 group-hover:opacity-100 transition-all shadow-lg backdrop-blur-sm"
+                    >
+                      Open in Local Host
+                    </button>
                   </div>
                 )}
               </div>
@@ -2138,6 +2144,71 @@ const TopicDetail = () => {
     );
   }
 
+
+  // Setup Emmet-like snippets and HTML language features for Monaco
+  const handleEditorWillMount = (monaco) => {
+    // Ensure HTML language defaults are rich
+    if (monaco.languages.html && monaco.languages.html.htmlDefaults) {
+      monaco.languages.html.htmlDefaults.setOptions({
+        suggest: { html5: true, angular1: false, ionic: false }
+      });
+    }
+
+    // Register custom snippets provider for HTML
+    monaco.languages.registerCompletionItemProvider('html', {
+      provideCompletionItems: (model, position) => {
+        const word = model.getWordUntilPosition(position);
+        const range = {
+          startLineNumber: position.lineNumber,
+          endLineNumber: position.lineNumber,
+          startColumn: word.startColumn,
+          endColumn: word.endColumn
+        };
+
+        const suggestions = [
+          {
+            label: '!',
+            kind: monaco.languages.CompletionItemKind.Snippet,
+            documentation: 'HTML5 Boilerplate',
+            insertText: `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+<body>
+  $1
+</body>
+</html>`,
+            insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+            range
+          }
+        ];
+        
+        const tags = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'div', 'p', 'span', 'main', 'section', 'header', 'footer', 'nav', 'ul', 'ol', 'li', 'a', 'img', 'button', 'input', 'style', 'script'];
+        
+        tags.forEach(tag => {
+          suggestions.push({
+            label: tag,
+            kind: monaco.languages.CompletionItemKind.Snippet,
+            documentation: `HTML <${tag}> element`,
+            insertText: tag === 'img' ? '<img src="$1" alt="$2" />' : tag === 'input' ? '<input type="${1:text}" />' : `<${tag}>$1</${tag}>`,
+            insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+            range
+          });
+        });
+
+        return { suggestions };
+      }
+    });
+  };
+
+  const handleOpenInNewTab = () => {
+    const blob = new Blob([editorCode], { type: 'text/html' });
+    const url = URL.createObjectURL(blob);
+    window.open(url, '_blank');
+  };
 
   return (
     <div className="flex flex-col lg:flex-row h-[calc(100vh-64px)] w-full overflow-hidden bg-[var(--bg-main)] transition-colors duration-300 relative select-none">
@@ -2206,9 +2277,9 @@ const TopicDetail = () => {
                 >
                   <div className={`mt-0.5 w-5 h-5 rounded flex-shrink-0 flex items-center justify-center transition-all ${
                     done 
-                      ? 'bg-emerald-500 text-white shadow' 
+                      ? 'bg-emerald-500 text-[var(--text-main)] shadow' 
                       : active 
-                        ? 'bg-[var(--primary)] text-white shadow' 
+                        ? 'bg-[var(--primary)] text-[var(--text-main)] shadow' 
                         : 'bg-[var(--bg-sub)] text-[var(--text-light)]'
                   }`}>
                     {done ? <FiCheckCircle className="text-[10px]" /> : <span className="text-[8px] font-black">{index + 1}</span>}
@@ -2233,260 +2304,204 @@ const TopicDetail = () => {
       {/* DUAL-PANE Split Workspace Content */}
       <div className="flex-1 flex flex-col lg:flex-row h-full overflow-hidden">
         
+        {/* Mobile View Tab Switcher for non-checkpoint modules */}
+        {isMobile && shouldSplitWorkspace && (
+          <div className="flex p-2 bg-[#141416] border-b border-[var(--border)] shrink-0 gap-2">
+            <button
+              onClick={() => setActiveWorkspaceTab('learn')}
+              className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-xs font-black uppercase transition-all ${
+                activeWorkspaceTab === 'learn'
+                  ? 'bg-[var(--primary)] text-[var(--text-main)] shadow-sm'
+                  : 'bg-[var(--bg-sub)] text-[var(--text-muted)] hover:text-[var(--text-main)] border border-[var(--border)]'
+              }`}
+            >
+              <FiBookOpen size={14} /> Learn
+            </button>
+            <button
+              onClick={() => setActiveWorkspaceTab('code')}
+              className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-xs font-black uppercase transition-all ${
+                activeWorkspaceTab === 'code'
+                  ? 'bg-[var(--primary)] text-[var(--text-main)] shadow-sm'
+                  : 'bg-[var(--bg-sub)] text-[var(--text-muted)] hover:text-[var(--text-main)] border border-[var(--border)]'
+              }`}
+            >
+              <FiCode size={14} /> Code
+            </button>
+          </div>
+        )}
+
         {/* LEFT PANE: Details, Approach, and Submissions */}
         <div 
-          style={{ width: shouldSplitWorkspace ? `${leftWidth}%` : '100%' }} 
-          className="w-full lg:w-auto h-full flex flex-col border-r border-[var(--border)] bg-[var(--bg-card)] overflow-hidden shrink-0"
+          style={{ width: isMobile ? '100%' : (shouldSplitWorkspace ? `${leftWidth}%` : '100%') }} 
+          className={`w-full lg:w-auto h-full flex-col border-r border-[var(--border)] bg-[var(--bg-card)] overflow-hidden shrink-0 ${isMobile && activeWorkspaceTab !== 'learn' && shouldSplitWorkspace ? 'hidden' : 'flex'}`}
         >
           
           {/* Tabs / Stepper Bar Header */}
-          <div className="bg-[var(--bg-sub)] border-b border-[var(--border)] px-4 py-2 flex flex-col shrink-0 gap-2">
-            {/* Top Stepper Bar */}
-            <div className="flex items-center justify-between gap-2">
-              <div className="flex items-center gap-1.5 overflow-x-auto custom-scrollbar pb-1 sm:pb-0">
-                {[
-                  { step: 1, label: '1. Watch & Code' },
-                  { step: 2, label: '2. Mini Assessment' }
-                ].map(s => {
-                  const isLocked = s.step === 2 && !isCompleted && !isVideoFinished;
-                  return (
+          {learningStep !== 1 && learningStep !== 'transition' && (
+            <div className="bg-[var(--bg-sub)] border-b border-[var(--border)] px-4 py-2 flex flex-col shrink-0 gap-2">
+              {/* Top Stepper Bar */}
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center gap-1.5 overflow-x-auto custom-scrollbar pb-1 sm:pb-0">
+                  {[
+                    { step: 1, label: '1. Watch & Code' },
+                    { step: 2, label: '2. Mini Assessment' }
+                  ].map(s => {
+                    const isLocked = s.step === 2 && !isCompleted && !isVideoFinished;
+                    return (
+                      <button
+                        key={s.step}
+                        onClick={() => {
+                          if (isLocked) {
+                            toast.error("Please watch the video tutorial to unlock the assessment!");
+                            return;
+                          }
+                          setLearningStep(s.step);
+                        }}
+                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-black uppercase transition-all whitespace-nowrap ${
+                          learningStep === s.step
+                            ? 'bg-[var(--bg-card)] text-[var(--primary)] border border-[var(--border)] shadow-sm'
+                            : !isLocked
+                              ? 'bg-[var(--primary-light)] text-[var(--primary)] border border-transparent cursor-pointer hover:bg-[var(--primary)] hover:text-[var(--text-main)]'
+                              : 'text-[var(--text-muted)] opacity-50 cursor-pointer'
+                        }`}
+                      >
+                        <div className={`w-4 h-4 rounded-full flex items-center justify-center text-[8px] ${learningStep > s.step || (s.step === 2 && isCompleted) ? 'bg-[var(--primary)] text-[var(--text-main)]' : 'border border-current'}`}>
+                          {learningStep > s.step || (s.step === 2 && isCompleted) ? <FiCheckCircle size={8} /> : s.step}
+                        </div>
+                        {s.label}
+                      </button>
+                    );
+                  })}
+                </div>
+                
+                {learningStep === 1 ? (
+                  <div className="flex items-center gap-1.5 px-2.5 py-1 bg-gradient-to-r from-indigo-500 to-purple-600 text-[var(--text-main)] rounded-lg text-[9px] font-black shadow-inner tracking-widest shrink-0">
+                    <FiBookOpen /> INTERACTIVE CLASSROOM
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-1.5 px-2.5 py-1 bg-gradient-to-r from-amber-400 to-orange-500 text-[var(--text-main)] rounded-lg text-[9px] font-black shadow-inner tracking-widest shrink-0">
+                    <FiZap /> +100 XP
+                  </div>
+                )}
+              </div>
+
+              {/* Tabs (only shown on step 2) */}
+              {learningStep >= 2 && (
+                <div className="flex gap-1.5 mt-1.5 pt-1.5 border-t border-[var(--border)]">
+                  {[
+                    { id: 'description', label: 'Description', icon: <FiBookOpen size={12} /> },
+                    { id: 'approach', label: 'Solution Guide', icon: <FiBook size={12} /> },
+                    { id: 'submissions', label: 'Submissions', icon: <FiClock size={12} />, badge: submissions.length }
+                  ].map(tab => (
                     <button
-                      key={s.step}
-                      onClick={() => {
-                        if (isLocked) {
-                          toast.error("Please watch the video tutorial to unlock the assessment!");
-                          return;
-                        }
-                        setLearningStep(s.step);
-                      }}
-                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-black uppercase transition-all whitespace-nowrap ${
-                        learningStep === s.step
+                      key={tab.id}
+                      onClick={() => setLeftTab(tab.id)}
+                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-black uppercase transition-all ${
+                        leftTab === tab.id
                           ? 'bg-[var(--bg-card)] text-[var(--primary)] border border-[var(--border)] shadow-sm'
-                          : !isLocked
-                            ? 'bg-[var(--primary-light)] text-[var(--primary)] border border-transparent cursor-pointer hover:bg-[var(--primary)] hover:text-white'
-                            : 'text-[var(--text-muted)] opacity-50 cursor-pointer'
+                          : 'text-[var(--text-muted)] hover:text-[var(--text-main)]'
                       }`}
                     >
-                      <div className={`w-4 h-4 rounded-full flex items-center justify-center text-[8px] ${learningStep > s.step || (s.step === 2 && isCompleted) ? 'bg-[var(--primary)] text-white' : 'border border-current'}`}>
-                        {learningStep > s.step || (s.step === 2 && isCompleted) ? <FiCheckCircle size={8} /> : s.step}
-                      </div>
-                      {s.label}
+                      {tab.icon}
+                      <span>{tab.label}</span>
+                      {tab.badge !== undefined && (
+                        <span className="w-4 h-4 rounded-full bg-[var(--primary-light)] text-[var(--primary)] text-[8px] font-black flex items-center justify-center shadow-inner">
+                          {tab.badge}
+                        </span>
+                      )}
                     </button>
-                  );
-                })}
-              </div>
-              
-              {learningStep === 1 ? (
-                <div className="flex items-center gap-1.5 px-2.5 py-1 bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-lg text-[9px] font-black shadow-inner tracking-widest shrink-0">
-                  <FiBookOpen /> INTERACTIVE CLASSROOM
-                </div>
-              ) : (
-                <div className="flex items-center gap-1.5 px-2.5 py-1 bg-gradient-to-r from-amber-400 to-orange-500 text-white rounded-lg text-[9px] font-black shadow-inner tracking-widest shrink-0">
-                  <FiZap /> +100 XP
+                  ))}
                 </div>
               )}
             </div>
-
-            {/* Tabs (only shown on step 2) */}
-            {learningStep >= 2 && (
-              <div className="flex gap-1.5 mt-1.5 pt-1.5 border-t border-[var(--border)]">
-                {[
-                  { id: 'description', label: 'Description', icon: <FiBookOpen size={12} /> },
-                  { id: 'approach', label: 'Solution Guide', icon: <FiBook size={12} /> },
-                  { id: 'submissions', label: 'Submissions', icon: <FiClock size={12} />, badge: submissions.length }
-                ].map(tab => (
-                  <button
-                    key={tab.id}
-                    onClick={() => setLeftTab(tab.id)}
-                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-black uppercase transition-all ${
-                      leftTab === tab.id
-                        ? 'bg-[var(--bg-card)] text-[var(--primary)] border border-[var(--border)] shadow-sm'
-                        : 'text-[var(--text-muted)] hover:text-[var(--text-main)]'
-                    }`}
-                  >
-                    {tab.icon}
-                    <span>{tab.label}</span>
-                    {tab.badge !== undefined && (
-                      <span className="w-4 h-4 rounded-full bg-[var(--primary-light)] text-[var(--primary)] text-[8px] font-black flex items-center justify-center shadow-inner">
-                        {tab.badge}
-                      </span>
-                    )}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
+          )}
 
           {/* Left Pane Scrollable Content */}
-          <div className="flex-1 overflow-y-auto p-5 space-y-6 custom-scrollbar bg-[var(--bg-card)]">
-            
-            {/* --- GUIDED LEARNING STEPS (1 to 4) --- */}
-            {learningStep === 1 && (
-              <div className="space-y-6 animate-fade-in">
-                <div className="flex flex-col items-center text-center space-y-2 mb-4 mt-2">
-                  <div className="w-12 h-12 bg-indigo-500/10 text-[var(--primary)] rounded-full flex items-center justify-center mb-1">
-                    <FiYoutube size={24} />
+          {learningStep === 1 ? (
+            <div className="flex-1 flex flex-col bg-black relative w-full h-full">
+              <iframe
+                id="tutorial-video-iframe"
+                src={activeVideoEmbedUrl ? `${activeVideoEmbedUrl}${activeVideoEmbedUrl.includes('?') ? '&' : '?'}enablejsapi=1` : "https://www.youtube.com/embed/EAR7De6Goz4"}
+                className="w-full flex-1"
+                frameBorder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+              ></iframe>
+              <div className="p-4 bg-[#18181b] border-t border-[#2e2e2e] flex flex-col xl:flex-row xl:items-center justify-between gap-4">
+                <div className="space-y-1">
+                  <h2 className="text-white text-lg font-bold">{topic?.title || "Coding Foundations"}</h2>
+                  <div className="flex items-center gap-2">
+                    <div className="text-[10px] uppercase tracking-widest font-bold text-indigo-500">Video Tutorial</div>
+                    <span className="text-zinc-600 text-[10px]">•</span>
+                    <p className="text-zinc-400 text-xs">Learn the core concepts before practicing.</p>
                   </div>
-                  <h2 className="text-lg font-black text-[var(--text-main)]">Watch & Code Alongside</h2>
-                  <p className="text-xs text-[var(--text-muted)] max-w-sm leading-relaxed">
-                    Watch the video tutorial on the left and write code simultaneously on the right! Change languages in the editor panel to sync the tutorial and start code.
-                  </p>
                 </div>
-                
-                {activeVideoEmbedUrl ? (
-                  <div className="space-y-2">
-                    <div className="aspect-video bg-black shadow-lg rounded-xl overflow-hidden border border-zinc-800 relative group">
-                      <iframe
-                        id="tutorial-video-iframe"
-                        className="w-full h-full"
-                        src={`${activeVideoEmbedUrl}${activeVideoEmbedUrl.includes('?') ? '&' : '?'}enablejsapi=1`}
-                        title={topic.title}
-                        frameBorder="0"
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                        allowFullScreen
-                      ></iframe>
-                    </div>
-                    <div className="flex justify-between items-center px-1 text-zinc-500">
-                      <span className="text-[10px] italic font-semibold">Finish the video to unlock the assessment automatically.</span>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setIsVideoFinished(true);
-                          toast.success("Dev Bypass: Video marked as completed! 🔓");
-                        }}
-                        className="text-[10px] text-[var(--primary)] hover:text-[var(--primary-dark)] hover:underline font-black uppercase tracking-wider bg-transparent border-none cursor-pointer"
-                      >
-                        ⚡ Dev Bypass
-                      </button>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="p-8 text-center border border-[var(--border)] rounded-xl bg-[var(--bg-sub)]">
-                    <p className="text-sm font-bold text-[var(--text-muted)]">No video tutorial available for this topic.</p>
-                  </div>
-                )}
-
-                <div className="p-4 rounded-xl bg-indigo-500/5 border border-indigo-500/15 text-xs space-y-2">
-                  <div className="font-black text-indigo-500 uppercase tracking-wider flex items-center gap-1.5">
-                    <FiTerminal /> Guided Bootcamp Mode
-                  </div>
-                  <p className="text-[var(--text-muted)] font-semibold leading-relaxed">
-                    Once you have finished watching and practicing alongside the tutorial, click below to unlock your mini-coding challenge. Pass the test cases to earn XP and unlock the next lesson!
-                  </p>
-                </div>
-                
-                <button
-                  onClick={async () => {
-                    if (isDsaDomain) {
-                      if (!isCompleted && !isVideoFinished) {
-                        toast.error("Please watch the video tutorial to unlock the assessment!");
-                        return;
-                      }
-                      setLearningStep(2);
-                      setLeftTab('description');
-                      toast.success('Mini Assessment Unlocked! 🚀');
-                    } else {
-                      try {
-                        setSubmitting(true);
-                        const res = await api.post('/progress/complete-topic', { 
-                          topicId: id,
-                          studyTimeMinutes: Number(studyTime),
-                          notes: notes || 'Completed guided learning.',
-                          difficultyFeedback: difficultyFeedback || 'easy',
-                          confidenceLevel: confidenceLevel || 5,
-                          revisionNeeded: false
-                        });
-                        await refreshUser();
-                        toast.success('Topic Completed successfully! +50 XP 🚀');
-                        triggerConfettiExplosion();
-                        
-                        const { newlyEarnedBadges, newlyEarnedCertificate, topicBadge } = res.data.data;
-                        const finalBadges = newlyEarnedBadges && newlyEarnedBadges.length > 0
-                          ? newlyEarnedBadges
-                          : (topicBadge ? [topicBadge] : (topic?.badge ? [topic.badge] : []));
-
-                        setCelebrationData({
-                          xpEarned: 50,
-                          streak: res.data.data.dailyStreak || 1,
-                          quote: "Congratulations on completing this lesson!",
-                          rank: { badge: "Mastered", title: "Topic Complete", style: "text-emerald-500" },
-                          leveledUp: false,
-                          newlyEarnedBadges: finalBadges,
-                          newlyEarnedCertificate,
-                          navigateOnClose: '/roadmap'
-                        });
-                      } catch (err) {
-                        toast.error('Failed to log quest completion progress');
-                      } finally {
-                        setSubmitting(false);
-                      }
+                <button 
+                  onClick={() => {
+                    if (isDsaDomain && !isCompleted && !isVideoFinished) {
+                      toast.error("Please watch the video tutorial to unlock the assessment!");
+                      return;
                     }
+                    setLearningStep('transition');
                   }}
-                  disabled={submitting || (isDsaDomain && !isCompleted && !isVideoFinished)}
-                  className={`w-full py-3 text-white rounded-xl font-black uppercase tracking-wider transition-all shadow-md mt-4 flex items-center justify-center gap-2 ${
+                  className={`font-bold py-2.5 px-6 rounded-xl shadow-lg transition-all hover:scale-105 active:scale-95 text-sm shrink-0 flex items-center justify-center gap-2 ${
                     isDsaDomain && !isCompleted && !isVideoFinished
-                      ? 'bg-zinc-700 hover:bg-zinc-700 cursor-not-allowed opacity-50'
-                      : 'bg-[var(--primary)] hover:bg-[var(--primary-dark)] cursor-pointer'
+                      ? 'bg-zinc-800 text-zinc-500 cursor-not-allowed'
+                      : 'bg-indigo-500 hover:bg-indigo-600 text-white shadow-indigo-500/20'
                   }`}
                 >
-                  {isDsaDomain ? (
-                    (!isCompleted && !isVideoFinished) ? (
-                      <>🔒 Assessment Locked (Watch Video)</>
-                    ) : (
-                      <>Start Mini Assessment <FiArrowRight /></>
-                    )
-                  ) : (
-                    <>Complete Topic & Claim Rewards <FiArrowRight /></>
-                  )}
+                  <FiCheckCircle size={16} />
+                  Ready For Assessment
                 </button>
-                {isDsaDomain && (
-                  <button
-                    type="button"
-                    onClick={async () => {
-                      if (window.confirm("Are you sure you want to skip the assessment and mark this topic as completed?")) {
-                        try {
-                          setSubmitting(true);
-                          const res = await api.post('/progress/complete-topic', { 
-                            topicId: id,
-                            studyTimeMinutes: 10,
-                            notes: 'Skipped coding assessment.',
-                            difficultyFeedback: 'easy',
-                            confidenceLevel: 3,
-                            revisionNeeded: false
-                          });
-                          await refreshUser();
-                          toast.success('Topic completed (assessment skipped)! 🚀');
-                          triggerConfettiExplosion();
-                          const { newlyEarnedBadges, newlyEarnedCertificate, topicBadge } = res.data.data || {};
-                          const finalBadges = newlyEarnedBadges && newlyEarnedBadges.length > 0
-                            ? newlyEarnedBadges
-                            : (topicBadge ? [topicBadge] : (topic?.badge ? [topic.badge] : []));
-
-                          setCelebrationData({
-                            xpEarned: 50,
-                            streak: res.data.data?.dailyStreak || 1,
-                            quote: "Congratulations on completing this lesson!",
-                            rank: { badge: "Mastered", title: "Topic Complete", style: "text-emerald-500" },
-                            leveledUp: false,
-                            newlyEarnedBadges: finalBadges,
-                            newlyEarnedCertificate,
-                            navigateOnClose: '/roadmap'
-                          });
-                        } catch (err) {
-                          toast.error('Failed to skip and complete topic');
-                        } finally {
-                          setSubmitting(false);
-                        }
-                      }
-                    }}
-                    disabled={submitting}
-                    className="w-full py-2.5 bg-transparent border border-dashed border-zinc-700 hover:border-zinc-500 text-zinc-500 hover:text-zinc-300 rounded-xl font-bold uppercase tracking-wider text-[9px] transition-all cursor-pointer mt-2 text-center"
-                  >
-                    Skip Assessment & Mark Completed ⏭️
-                  </button>
-                )}
               </div>
-            )}
+            </div>
+          ) : learningStep === 'transition' ? (
+            <div className="flex-1 flex items-center justify-center bg-black/80 backdrop-blur-md p-6 select-text w-full h-full absolute inset-0 z-[100]">
+              <motion.div
+                initial={{ scale: 0.9, opacity: 0, y: 20 }}
+                animate={{ scale: 1, opacity: 1, y: 0 }}
+                exit={{ scale: 0.9, opacity: 0, y: 20 }}
+                className={`max-w-md w-full rounded-3xl p-8 space-y-6 shadow-2xl border ${
+                  'bg-white border-slate-200 dark:bg-zinc-950 dark:border-zinc-800'
+                }`}
+              >
+                <div className="text-center space-y-2">
+                  <div className="text-5xl mb-4">✅</div>
+                  <h2 className="text-2xl font-black text-slate-800 dark:text-white">Tutorial Completed</h2>
+                  <p className="text-sm font-medium text-slate-500 dark:text-zinc-400">
+                    Great job completing the {topic?.title || 'Coding Foundations'} tutorial!
+                  </p>
+                </div>
+
+                <div className="bg-slate-50 dark:bg-zinc-900 rounded-xl p-4 border border-slate-100 dark:border-zinc-800 space-y-3">
+                  <div className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-zinc-500 mb-2">Topics Covered</div>
+                  <div className="flex items-center gap-3 text-sm font-medium text-slate-700 dark:text-zinc-300">
+                    <FiCheckCircle size={16} className="text-emerald-500" /> Basic Syntax
+                  </div>
+                  <div className="flex items-center gap-3 text-sm font-medium text-slate-700 dark:text-zinc-300">
+                    <FiCheckCircle size={16} className="text-emerald-500" /> Structure & Logic
+                  </div>
+                  <div className="flex items-center gap-3 text-sm font-medium text-slate-700 dark:text-zinc-300">
+                    <FiCheckCircle size={16} className="text-emerald-500" /> Hands-on Example
+                  </div>
+                </div>
+
+                <button
+                  onClick={() => {
+                    setLearningStep(2);
+                    setLeftTab('description');
+                    toast.success('Mini Assessment Unlocked! 🚀');
+                  }}
+                  className="w-full bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-3.5 px-6 rounded-xl shadow-lg transition-transform hover:scale-105 active:scale-95"
+                >
+                  Start Assessment
+                </button>
+              </motion.div>
+            </div>
+          ) : (
+            <div className="flex-1 overflow-y-auto p-5 space-y-6 custom-scrollbar bg-[var(--bg-card)]">
+            
+            {/* --- END OF GUIDED LEARNING STEPS --- */}
 
             {/* --- ORIGINAL CODING CHALLENGE TABS (Shown only on Step 2) --- */}
             {learningStep >= 2 && (
@@ -2542,7 +2557,7 @@ const TopicDetail = () => {
                                     ? 'bg-[var(--bg-card)] border-[var(--primary)] shadow-sm ring-1 ring-[var(--primary)] text-[var(--primary)]' 
                                     : isUnlocked 
                                       ? 'hover:bg-[var(--bg-card)] border-[var(--border)] cursor-pointer text-[var(--text-main)]' 
-                                      : 'opacity-40 cursor-not-allowed border-dashed bg-zinc-900/10 text-[var(--text-muted)]'
+                                      : 'opacity-40 cursor-not-allowed border-dashed bg-[var(--bg-sub)]/10 text-[var(--text-muted)]'
                                 }`}
                               >
                                 <div className={`text-[8px] font-black uppercase tracking-wider mb-1 ${isActive ? 'text-[var(--primary)]' : 'text-[var(--text-muted)]'}`}>
@@ -2550,9 +2565,9 @@ const TopicDetail = () => {
                                 </div>
                                 <div className={`w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-black ${
                                   isCompleted 
-                                    ? 'bg-emerald-500 text-white shadow' 
+                                    ? 'bg-emerald-500 text-[var(--text-main)] shadow' 
                                     : isActive 
-                                      ? 'bg-[var(--primary)] text-white shadow' 
+                                      ? 'bg-[var(--primary)] text-[var(--text-main)] shadow' 
                                       : 'bg-[var(--bg-sub)] text-[var(--text-light)] border border-[var(--border)]'
                                 }`}>
                                   {isCompleted ? '✓' : idx + 1}
@@ -2624,7 +2639,7 @@ const TopicDetail = () => {
                     {/* Completion Banners */}
                     {isCompleted && nextTopic && (
                       <div className="p-5 bg-gradient-to-r from-emerald-500/10 to-teal-500/10 border border-emerald-500/30 rounded-2xl flex flex-col items-center text-center space-y-3 shadow-md shadow-emerald-500/5 animate-fade-in">
-                        <div className="w-12 h-12 bg-emerald-500 text-white rounded-full flex items-center justify-center text-xl shadow-lg shadow-emerald-500/20">
+                        <div className="w-12 h-12 bg-emerald-500 text-[var(--text-main)] rounded-full flex items-center justify-center text-xl shadow-lg shadow-emerald-500/20">
                           🎉
                         </div>
                         <div>
@@ -2638,7 +2653,7 @@ const TopicDetail = () => {
                         </div>
                          <Link
                           to={`/topic/${nextTopic._id}`}
-                          className="px-6 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white rounded-xl text-[9px] font-black uppercase tracking-widest shadow-lg shadow-emerald-500/20 transition-all flex items-center gap-2 group cursor-pointer hover:scale-105 duration-300 animate-pulse"
+                          className="px-6 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-[var(--text-main)] rounded-xl text-[9px] font-black uppercase tracking-widest shadow-lg shadow-emerald-500/20 transition-all flex items-center gap-2 group cursor-pointer hover:scale-105 duration-300 animate-pulse"
                         >
                           Unlock Next Topic <FiArrowRight className="group-hover:translate-x-1 transition-transform" />
                         </Link>
@@ -2647,7 +2662,7 @@ const TopicDetail = () => {
 
                     {isCompleted && !nextTopic && (
                       <div className="p-5 bg-gradient-to-r from-amber-500/10 to-orange-500/10 border border-amber-500/30 rounded-2xl flex flex-col items-center text-center space-y-3 shadow-md shadow-amber-500/5 animate-fade-in">
-                        <div className="w-12 h-12 bg-amber-500 text-white rounded-full flex items-center justify-center text-xl shadow-lg shadow-amber-500/20">
+                        <div className="w-12 h-12 bg-amber-500 text-[var(--text-main)] rounded-full flex items-center justify-center text-xl shadow-lg shadow-amber-500/20">
                           🏆
                         </div>
                         <div>
@@ -2658,7 +2673,7 @@ const TopicDetail = () => {
                         </div>
                         <Link
                           to="/roadmap"
-                          className="px-6 py-2.5 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white rounded-xl text-[9px] font-black uppercase tracking-widest shadow-lg shadow-amber-500/20 transition-all flex items-center gap-2 group cursor-pointer hover:scale-105 duration-300"
+                          className="px-6 py-2.5 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-[var(--text-main)] rounded-xl text-[9px] font-black uppercase tracking-widest shadow-lg shadow-amber-500/20 transition-all flex items-center gap-2 group cursor-pointer hover:scale-105 duration-300"
                         >
                           Go to Roadmap <FiArrowRight className="group-hover:translate-x-1 transition-transform" />
                         </Link>
@@ -2693,7 +2708,7 @@ const TopicDetail = () => {
                               onClick={() => setConfidenceLevel(lvl)}
                               className={`flex-1 h-7 rounded text-[10px] font-black flex items-center justify-center transition-all ${
                                 confidenceLevel === lvl
-                                  ? 'bg-emerald-500 text-white shadow-sm'
+                                  ? 'bg-emerald-500 text-[var(--text-main)] shadow-sm'
                                   : 'text-[var(--text-muted)] hover:bg-[var(--bg-card)] bg-[var(--bg-card)]'
                               }`}
                             >
@@ -2731,7 +2746,7 @@ const TopicDetail = () => {
                     <button
                       type="submit"
                       disabled={submitting}
-                      className="w-full py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg font-black uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 disabled:opacity-50 cursor-pointer"
+                      className="w-full py-2.5 bg-emerald-500 hover:bg-emerald-600 text-[var(--text-main)] rounded-lg font-black uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 disabled:opacity-50 cursor-pointer"
                     >
                       {submitting ? 'Submitting...' : 'Save Notes & Manual Complete'} <FiChevronRight />
                     </button>
@@ -2790,7 +2805,7 @@ const TopicDetail = () => {
 
                 {submissions.length === 0 ? (
                   <div className="text-center py-10 text-[var(--text-light)]">
-                    <FiTerminal className="mx-auto text-3xl mb-3 text-zinc-500 animate-pulse" />
+                    <FiTerminal className="mx-auto text-3xl mb-3 text-[var(--text-muted)] animate-pulse" />
                     <p className="text-xs font-bold">No submissions yet.</p>
                     <p className="text-[9px] mt-1">Develop code and click "Submit Code" to save history!</p>
                   </div>
@@ -2812,7 +2827,7 @@ const TopicDetail = () => {
                               }`}>
                                 {sub.status}
                               </span>
-                              <span className="text-[9px] font-black text-zinc-500 uppercase">
+                              <span className="text-[9px] font-black text-[var(--text-muted)] uppercase">
                                 {sub.language === 'cpp' ? 'C++' : sub.language === 'javascript' ? 'JS' : sub.language}
                               </span>
                             </div>
@@ -2838,40 +2853,41 @@ const TopicDetail = () => {
             </>
           )}
           </div>
+          )}
         </div>
 
         {/* Resizable Divider Bar */}
         {shouldSplitWorkspace && (
           <div 
             onMouseDown={startResize}
-            className={`hidden lg:flex w-1 hover:w-1.5 bg-zinc-800 hover:bg-[#6366f1] cursor-col-resize transition-all shrink-0 items-center justify-center relative group ${isDragging ? 'bg-[#6366f1] w-1.5' : ''}`}
+            className={`hidden lg:flex w-1 hover:w-1.5 bg-[var(--border-light)] hover:bg-[var(--brand-green)] cursor-col-resize transition-all shrink-0 items-center justify-center relative group ${isDragging ? 'bg-[var(--brand-green)] w-1.5' : ''}`}
           >
-            <div className="absolute h-10 w-0.5 bg-zinc-600 rounded-full group-hover:bg-white" />
+            <div className="absolute h-10 w-0.5 bg-gray-400 rounded-full group-hover:bg-[var(--bg-card)]" />
           </div>
         )}
 
         {/* RIGHT PANE: Code Monaco Editor & Console Terminal */}
         {shouldSplitWorkspace && (
         <div 
-          style={{ width: isFullscreen ? '100%' : `${100 - leftWidth}%` }} 
-          className={`flex-1 h-full flex flex-col overflow-hidden bg-[#09090b] transition-all duration-150 shrink-0 ${
+          style={{ width: isFullscreen ? '100%' : (isMobile ? '100%' : `${100 - leftWidth}%`) }} 
+          className={`flex-1 h-full flex-col overflow-hidden bg-[#09090b] transition-all duration-150 shrink-0 ${
             isFullscreen ? 'fixed inset-0 z-50 w-screen h-screen' : 'relative'
-          }`}
+          } ${isMobile && activeWorkspaceTab !== 'code' ? 'hidden' : 'flex'}`}
         >
           
           {/* Editor Header Controller panel */}
-          <div className="bg-[#141416] px-4 py-2 border-b border-zinc-800 flex justify-between items-center text-xs text-zinc-400 shrink-0">
+          <div className="bg-[#141416] px-4 py-2 border-b border-[var(--border)] flex justify-between items-center text-xs text-[var(--text-muted)] shrink-0">
             <div className="flex items-center gap-3">
               {/* Language selection selector */}
-              <div className="flex items-center gap-1 bg-zinc-900 p-0.5 rounded-lg border border-zinc-800">
+              <div className="flex items-center gap-1 bg-[var(--bg-sub)] p-0.5 rounded-lg border border-[var(--border)]">
                 {availableLanguages.map((lang) => (
                   <button
                     key={lang}
                     onClick={() => setSelectedLang(lang)}
                     className={`px-2.5 py-1 rounded-md text-[9px] font-black uppercase transition-all ${
                       selectedLang === lang 
-                        ? 'bg-[var(--primary)] text-white shadow-sm' 
-                        : 'text-zinc-500 hover:text-zinc-300'
+                        ? 'bg-[var(--primary)] text-[var(--text-main)] shadow-sm' 
+                        : 'text-[var(--text-muted)] hover:text-[var(--text-main)]'
                     }`}
                   >
                     {lang === 'cpp' ? 'C++' : lang === 'javascript' ? 'JS' : lang.toUpperCase()}
@@ -2883,14 +2899,14 @@ const TopicDetail = () => {
             <div className="flex items-center gap-2">
               <button
                 onClick={toggleWorkspaceTheme}
-                className="px-2.5 py-1 rounded bg-zinc-900 border border-zinc-800 hover:bg-zinc-800 text-zinc-400 hover:text-white text-[9px] font-black transition-all uppercase cursor-pointer"
+                className="px-2.5 py-1 rounded bg-[var(--bg-sub)] border border-[var(--border)] hover:bg-[var(--border-light)] text-[var(--text-muted)] hover:text-[var(--text-main)] text-[9px] font-black transition-all uppercase cursor-pointer"
               >
                 Theme: {editorTheme === 'vs-dark' ? 'DARK 🌙' : 'LIGHT ☀️'}
               </button>
 
               <button
                 onClick={() => setIsFullscreen(!isFullscreen)}
-                className="px-2.5 py-1 rounded bg-zinc-900 border border-zinc-800 hover:bg-zinc-800 text-zinc-400 hover:text-white text-[9px] font-black transition-all uppercase flex items-center gap-1 cursor-pointer"
+                className="px-2.5 py-1 rounded bg-[var(--bg-sub)] border border-[var(--border)] hover:bg-[var(--border-light)] text-[var(--text-muted)] hover:text-[var(--text-main)] text-[9px] font-black transition-all uppercase flex items-center gap-1 cursor-pointer"
                 title="Maximize code playground workspace"
               >
                 {isFullscreen ? <FiMinimize2 size={10} /> : <FiMaximize2 size={10} />}
@@ -2904,7 +2920,7 @@ const TopicDetail = () => {
                     toast.success("Editor code reset to default boilerplate!");
                   }
                 }}
-                className="px-2.5 py-1 rounded bg-zinc-900 border border-zinc-800 hover:bg-zinc-800 text-rose-400 hover:text-rose-300 text-[9px] font-black transition-all uppercase cursor-pointer"
+                className="px-2.5 py-1 rounded bg-[var(--bg-sub)] border border-[var(--border)] hover:bg-[var(--border-light)] text-rose-400 hover:text-rose-300 text-[9px] font-black transition-all uppercase cursor-pointer"
               >
                 Reset
               </button>
@@ -2917,6 +2933,7 @@ const TopicDetail = () => {
               height="100%"
               language={selectedLang === 'js' ? 'javascript' : selectedLang}
               value={editorCode}
+              beforeMount={handleEditorWillMount}
               onChange={(val) => setEditorCode(val || '')}
               theme={editorTheme}
               options={{
@@ -2932,17 +2949,17 @@ const TopicDetail = () => {
           </div>
 
           {/* BOTTOM PANEL: Console Terminal & Runner Results */}
-          <div className="h-[38%] min-h-[200px] border-t border-zinc-800 bg-[#09090b] flex flex-col justify-between overflow-hidden shrink-0">
+          <div className="h-[38%] min-h-[200px] border-t border-[var(--border)] bg-[#09090b] flex flex-col justify-between overflow-hidden shrink-0">
             
             {/* Console Tab header selectors */}
-            <div className="bg-[#111113] px-4 py-2 border-b border-zinc-900 flex items-center justify-between shrink-0">
+            <div className="bg-[#111113] px-4 py-2 border-b border-[var(--border)] flex items-center justify-between shrink-0">
               <div className="flex gap-2">
                 <button
                   onClick={() => setActiveConsoleTab('testcase')}
                   className={`flex items-center gap-1 px-3 py-1 rounded text-[9px] font-black uppercase transition-all ${
                     activeConsoleTab === 'testcase'
-                      ? 'bg-zinc-900 border border-zinc-800 text-white shadow-sm'
-                      : 'text-zinc-500 hover:text-zinc-300'
+                      ? 'bg-[var(--bg-sub)] border border-[var(--border)] text-[var(--text-main)] shadow-sm'
+                      : 'text-[var(--text-muted)] hover:text-[var(--text-main)]'
                   }`}
                 >
                   Test Cases
@@ -2951,8 +2968,8 @@ const TopicDetail = () => {
                   onClick={() => setActiveConsoleTab('result')}
                   className={`flex items-center gap-1.5 px-3 py-1 rounded text-[9px] font-black uppercase transition-all ${
                     activeConsoleTab === 'result'
-                      ? 'bg-zinc-900 border border-zinc-800 text-white shadow-sm'
-                      : 'text-zinc-500 hover:text-zinc-300'
+                      ? 'bg-[var(--bg-sub)] border border-[var(--border)] text-[var(--text-main)] shadow-sm'
+                      : 'text-[var(--text-muted)] hover:text-[var(--text-main)]'
                   }`}
                 >
                   Run Result
@@ -2967,8 +2984,8 @@ const TopicDetail = () => {
                     onClick={() => setActiveConsoleTab('preview')}
                     className={`flex items-center gap-1 px-3 py-1 rounded text-[9px] font-black uppercase transition-all ${
                       activeConsoleTab === 'preview'
-                        ? 'bg-zinc-900 border border-zinc-800 text-white shadow-sm'
-                        : 'text-zinc-500 hover:text-zinc-300'
+                        ? 'bg-[var(--bg-sub)] border border-[var(--border)] text-[var(--text-main)] shadow-sm'
+                        : 'text-[var(--text-muted)] hover:text-[var(--text-main)]'
                     }`}
                   >
                     Live Preview 👁️
@@ -2976,33 +2993,33 @@ const TopicDetail = () => {
                 )}
               </div>
               
-              <div className="text-[8px] font-mono text-zinc-600 uppercase">
+              <div className="text-[8px] font-mono text-[var(--text-light)] uppercase">
                 {compilerStatus === 'running' ? 'Sandbox Busy...' : 'Console Ready'}
               </div>
             </div>
 
             {/* Console Body Area */}
-            <div className="flex-1 overflow-y-auto p-4 font-mono text-[10px] text-zinc-400 custom-scrollbar select-text">
+            <div className="flex-1 overflow-y-auto p-4 font-mono text-[10px] text-[var(--text-muted)] custom-scrollbar select-text">
               
               {/* Active Tab: Testcases list display (Masking hidden test cases) */}
               {activeConsoleTab === 'testcase' && langContent && langContent.testCases && (
                 <div className="space-y-3">
-                  <div className="text-zinc-600 uppercase text-[8px] font-black tracking-widest mb-2">Sample Test Cases (Vetted Inputs)</div>
+                  <div className="text-[var(--text-light)] uppercase text-[8px] font-black tracking-widest mb-2">Sample Test Cases (Vetted Inputs)</div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                     {langContent.testCases.slice(0, 2).map((tc, idx) => (
-                      <div key={idx} className="p-2.5 rounded-lg bg-zinc-950 border border-zinc-900 flex flex-col justify-between gap-1.5">
+                      <div key={idx} className="p-2.5 rounded-lg bg-[var(--bg-sub)] border border-[var(--border)] flex flex-col justify-between gap-1.5">
                         <div>
-                          <div className="text-[7px] font-black text-zinc-500 uppercase">Input Case {idx + 1}</div>
-                          <div className="text-[10px] font-bold text-zinc-300 select-all truncate">{tc.input}</div>
+                          <div className="text-[7px] font-black text-[var(--text-muted)] uppercase">Input Case {idx + 1}</div>
+                          <div className="text-[10px] font-bold text-[var(--text-main)] select-all truncate">{tc.input}</div>
                         </div>
                         <div>
-                          <div className="text-[7px] font-black text-zinc-500 uppercase">Expected Output</div>
+                          <div className="text-[7px] font-black text-[var(--text-muted)] uppercase">Expected Output</div>
                           <div className="text-[9px] font-black text-emerald-400 select-all truncate">{tc.expected}</div>
                         </div>
                       </div>
                     ))}
                   </div>
-                  <div className="text-[8.5px] text-zinc-500 italic mt-1 font-bold uppercase tracking-wider">
+                  <div className="text-[8.5px] text-[var(--text-muted)] italic mt-1 font-bold uppercase tracking-wider">
                     🔒 Hidden Test Cases are active and will run on "Submit Code" to verify optimality.
                   </div>
                 </div>
@@ -3019,17 +3036,17 @@ const TopicDetail = () => {
                       <div className="bg-black/40 p-3 rounded-lg border border-red-950 text-[10px] leading-relaxed max-h-[120px] overflow-y-auto whitespace-pre-wrap select-text scrollbar-thin">
                         {consoleLogs[consoleLogs.length - 1]}
                       </div>
-                      <div className="text-[10px] text-zinc-500 italic mt-2">
+                      <div className="text-[10px] text-[var(--text-muted)] italic mt-2">
                         Tip: Check your brackets, semicolons, and variable types. Make sure your syntax matches standard implementations.
                       </div>
                     </div>
                   ) : consoleLogs.length === 0 ? (
-                    <div className="text-zinc-600 italic py-5 text-center">
+                    <div className="text-[var(--text-light)] italic py-5 text-center">
                       No compilation outputs logged yet. Click "Run Code" or "Submit Code" below!
                     </div>
                   ) : (
                     <div className="space-y-2">
-                      <div className="border-b border-zinc-900 pb-1 flex justify-between items-center text-[8px] font-black text-zinc-500 uppercase tracking-widest">
+                      <div className="border-b border-[var(--border)] pb-1 flex justify-between items-center text-[8px] font-black text-[var(--text-muted)] uppercase tracking-widest">
                         <span>Compiler Console Logs</span>
                         <span className={compilerStatus === 'passed' ? 'text-emerald-500' : compilerStatus === 'failed' ? 'text-rose-500' : 'text-amber-500'}>
                           Status: {compilerStatus.toUpperCase()}
@@ -3069,25 +3086,25 @@ const TopicDetail = () => {
                                   : 'bg-rose-950/15 border-rose-900/40 text-rose-300'
                               }`}>
                                 <div>
-                                  <div className="text-[7px] font-black uppercase text-zinc-500 flex justify-between">
+                                  <div className="text-[7px] font-black uppercase text-[var(--text-muted)] flex justify-between">
                                     <span>{tr.isHidden ? `Hidden Case ${idx + 1}` : `Sample Case ${idx + 1}`}</span>
                                     <span className={tr.status === 'passed' ? 'text-emerald-400 font-bold' : 'text-rose-400 font-bold'}>
                                       {tr.status.toUpperCase()}
                                     </span>
                                   </div>
-                                  <div className="text-[9px] font-bold text-zinc-400 select-all truncate mt-0.5">
+                                  <div className="text-[9px] font-bold text-[var(--text-muted)] select-all truncate mt-0.5">
                                     Input: {tr.isHidden ? '[Hidden Test Case]' : tr.input}
                                   </div>
                                 </div>
-                                <div className="grid grid-cols-2 gap-1 mt-1 pt-1.5 border-t border-zinc-900 font-mono text-[8px]">
+                                <div className="grid grid-cols-2 gap-1 mt-1 pt-1.5 border-t border-[var(--border)] font-mono text-[8px]">
                                   <div>
-                                    <div className="text-[6px] font-black text-zinc-600 uppercase">Expected</div>
+                                    <div className="text-[6px] font-black text-[var(--text-light)] uppercase">Expected</div>
                                     <div className="text-[9px] font-bold truncate text-emerald-400">
                                       {tr.isHidden ? '[Hidden]' : tr.expected}
                                     </div>
                                   </div>
                                   <div>
-                                    <div className="text-[6px] font-black text-zinc-600 uppercase">Actual</div>
+                                    <div className="text-[6px] font-black text-[var(--text-light)] uppercase">Actual</div>
                                     <div className={`text-[9px] font-bold truncate ${tr.status === 'passed' ? 'text-emerald-400' : 'text-rose-400'}`}>
                                       {tr.isHidden ? '[Hidden]' : tr.actual}
                                     </div>
@@ -3107,7 +3124,7 @@ const TopicDetail = () => {
                               ? 'text-emerald-400' 
                               : log.startsWith('❌') || log.startsWith('💥') 
                                 ? 'text-rose-400' 
-                                : 'text-zinc-400'
+                                : 'text-[var(--text-muted)]'
                           }`}>
                             {log}
                           </div>
@@ -3118,20 +3135,26 @@ const TopicDetail = () => {
                 </div>
               )}
               {activeConsoleTab === 'preview' && selectedLang === 'html' && (
-                <div className="w-full h-full min-h-[160px] bg-white rounded-lg overflow-hidden border border-zinc-800">
+                <div className="w-full h-full min-h-[160px] bg-[var(--bg-card)] rounded-lg overflow-hidden border border-[var(--border)] relative group">
                   <iframe
                     title="live-preview"
                     srcDoc={editorCode}
                     sandbox="allow-scripts"
-                    className="w-full h-full bg-white border-none min-h-[160px]"
+                    className="w-full h-full bg-[var(--bg-card)] border-none min-h-[160px]"
                   />
+                  <button
+                    onClick={handleOpenInNewTab}
+                    className="absolute top-2 right-2 px-3 py-1.5 bg-black/70 hover:bg-black text-white text-[10px] font-black uppercase tracking-wider rounded border border-white/10 opacity-0 group-hover:opacity-100 transition-all shadow-lg backdrop-blur-sm"
+                  >
+                    Open in Local Host
+                  </button>
                 </div>
               )}
             </div>
 
             {/* Terminal Actions Bottom sticky bar */}
-            <div className="bg-[#0b0b0d] border-t border-zinc-900 px-4 py-3 flex justify-between items-center shrink-0">
-              <Link to="/roadmap" className="flex items-center gap-1.5 text-zinc-500 hover:text-white text-[9px] font-black uppercase tracking-wider transition-colors shrink-0">
+            <div className="bg-[#0b0b0d] border-t border-[var(--border)] px-4 py-3 flex justify-between items-center shrink-0">
+              <Link to="/roadmap" className="flex items-center gap-1.5 text-[var(--text-muted)] hover:text-[var(--text-main)] text-[9px] font-black uppercase tracking-wider transition-colors shrink-0">
                 <FiArrowLeft size={10} /> Roadmap
               </Link>
               
@@ -3162,21 +3185,21 @@ const TopicDetail = () => {
                       toast.success('Challenge skipped and marked as complete! 🚀');
                     }
                   }}
-                  className="px-3 py-2 bg-zinc-950 hover:bg-zinc-900 text-zinc-400 hover:text-white border border-dashed border-zinc-800 rounded-lg text-[9px] font-black uppercase tracking-wider transition-all flex items-center gap-1 cursor-pointer"
+                  className="px-3 py-2 bg-[var(--bg-sub)] hover:bg-[var(--bg-sub)] text-[var(--text-muted)] hover:text-[var(--text-main)] border border-dashed border-[var(--border)] rounded-lg text-[9px] font-black uppercase tracking-wider transition-all flex items-center gap-1 cursor-pointer"
                 >
                   ⏭️ Skip Challenge
                 </button>
                 <button
                   onClick={handleRunCode}
                   disabled={compilerStatus === 'running'}
-                  className="px-4 py-2 bg-zinc-900 border border-zinc-800 hover:bg-zinc-800 text-white rounded-lg text-[9px] font-black uppercase tracking-wider shadow-sm transition-all flex items-center gap-1.5 disabled:opacity-50 cursor-pointer"
+                  className="px-4 py-2 bg-[var(--bg-sub)] border border-[var(--border)] hover:bg-[var(--border-light)] text-[var(--text-main)] rounded-lg text-[9px] font-black uppercase tracking-wider shadow-sm transition-all flex items-center gap-1.5 disabled:opacity-50 cursor-pointer"
                 >
                   <FiTerminal size={10} /> Run Code
                 </button>
                 <button
                   onClick={handleSubmitCode}
                   disabled={compilerStatus === 'running'}
-                  className="px-5 py-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg text-[9px] font-black uppercase tracking-wider shadow-md transition-all flex items-center gap-1.5 disabled:opacity-50 cursor-pointer"
+                  className="px-5 py-2 bg-emerald-500 hover:bg-emerald-600 text-[var(--text-main)] rounded-lg text-[9px] font-black uppercase tracking-wider shadow-md transition-all flex items-center gap-1.5 disabled:opacity-50 cursor-pointer"
                 >
                   <FiCheckCircle size={10} /> Submit Code
                 </button>
@@ -3212,7 +3235,7 @@ const TopicDetail = () => {
               </div>
               <button 
                 onClick={() => setSelectedSubCode(null)}
-                className="w-7 h-7 rounded-lg bg-[var(--bg-card)] border border-[var(--border)] text-zinc-500 hover:text-[var(--text-main)] font-black text-xs flex items-center justify-center transition-colors cursor-pointer"
+                className="w-7 h-7 rounded-lg bg-[var(--bg-card)] border border-[var(--border)] text-[var(--text-muted)] hover:text-[var(--text-main)] font-black text-xs flex items-center justify-center transition-colors cursor-pointer"
               >
                 ✕
               </button>
@@ -3238,7 +3261,7 @@ const TopicDetail = () => {
                       handleLoadSubmission(selectedSubCode.code, selectedSubCode.language);
                       setSelectedSubCode(null);
                     }}
-                    className="px-2 py-0.5 bg-[var(--primary-light)] text-[var(--primary)] hover:bg-[var(--primary)] hover:text-white rounded border border-[var(--primary)]/10 transition-all font-black text-[8px] uppercase tracking-wider cursor-pointer"
+                    className="px-2 py-0.5 bg-[var(--primary-light)] text-[var(--primary)] hover:bg-[var(--primary)] hover:text-[var(--text-main)] rounded border border-[var(--primary)]/10 transition-all font-black text-[8px] uppercase tracking-wider cursor-pointer"
                   >
                     Load into Playground
                   </button>
@@ -3276,9 +3299,9 @@ const TopicDetail = () => {
               )}
 
               {/* Success Badge Icon */}
-              <div className="w-20 h-20 bg-gradient-to-br from-[var(--primary)] to-[var(--secondary)] rounded-full flex items-center justify-center text-white shadow-xl relative animate-bounce">
+              <div className="w-20 h-20 bg-gradient-to-br from-[var(--primary)] to-[var(--secondary)] rounded-full flex items-center justify-center text-[var(--text-main)] shadow-xl relative animate-bounce">
                 <FiTrophy className="text-3xl" />
-                <div className="absolute -bottom-2 bg-emerald-500 text-white font-black text-[8px] uppercase tracking-wider px-2 py-0.5 rounded-full border border-white">
+                <div className="absolute -bottom-2 bg-emerald-500 text-[var(--text-main)] font-black text-[8px] uppercase tracking-wider px-2 py-0.5 rounded-full border border-white">
                   Passed
                 </div>
               </div>
@@ -3341,7 +3364,7 @@ const TopicDetail = () => {
 
               {/* Curated Celebration Quote Box */}
               <div className="p-4 bg-[var(--bg-sub)] border border-[var(--border)] rounded-2xl relative w-full text-center">
-                <div className="absolute -top-2 left-6 bg-[var(--primary)] text-white text-[7px] font-black uppercase tracking-widest px-2 py-0.5 rounded">
+                <div className="absolute -top-2 left-6 bg-[var(--primary)] text-[var(--text-main)] text-[7px] font-black uppercase tracking-widest px-2 py-0.5 rounded">
                   Milestone Note
                 </div>
                 <p className="italic text-xs text-[var(--text-muted)] font-medium leading-relaxed mt-1 select-text">
@@ -3366,7 +3389,7 @@ const TopicDetail = () => {
                     navigate(dest);
                   }
                 }}
-                className="w-full py-3.5 bg-gradient-to-r from-[var(--primary)] to-[var(--secondary)] hover:shadow-lg text-white font-black text-xs uppercase tracking-widest rounded-2xl shadow-md transition-all active:scale-[0.98] cursor-pointer"
+                className="w-full py-3.5 bg-gradient-to-r from-[var(--primary)] to-[var(--secondary)] hover:shadow-lg text-[var(--text-main)] font-black text-xs uppercase tracking-widest rounded-2xl shadow-md transition-all active:scale-[0.98] cursor-pointer"
               >
                 Continue Quest
               </button>
