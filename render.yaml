@@ -1,0 +1,18 @@
+services:
+  - type: web
+    name: careerforge-backend
+    env: node
+    rootDir: server
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      # You will need to manually enter your MONGO_URI and JWT_SECRET 
+      # in the Render dashboard after the service is created.
+      - key: MONGO_URI
+        sync: false
+      - key: JWT_SECRET
+        sync: false
