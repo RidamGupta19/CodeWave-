@@ -252,7 +252,19 @@ exports.completeTopic = async (req, res) => {
     let newlyEarnedCertificate = null;
 
     // 1. Topic completion badge (One video = One badge)
-    const topicBadge = await Badge.findOne({ topicId });
+    let topicBadge = await Badge.findOne({ topicId });
+    if (!topicBadge) {
+      const topicObj = await Topic.findById(topicId);
+      topicBadge = await Badge.create({
+        name: `Mastered: ${topicObj ? topicObj.title : 'Topic'}`,
+        description: 'Successfully completed the lecture and code exercises.',
+        icon: '🎖️',
+        type: 'topic-completion',
+        topicId: topicId,
+        domainId: user.activeDomain._id
+      });
+    }
+
     if (topicBadge) {
       const alreadyEarned = user.earnedBadges.some(b => b.badgeId.toString() === topicBadge._id.toString());
       if (!alreadyEarned) {

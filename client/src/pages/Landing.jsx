@@ -1,9 +1,16 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
-import { FiMenu, FiArrowRight, FiCheckCircle, FiStar, FiTrendingUp, FiTarget, FiZap } from 'react-icons/fi';
+import React, { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+import { FiMenu, FiX, FiArrowRight, FiCheckCircle, FiStar, FiTrendingUp, FiTarget, FiZap } from 'react-icons/fi';
 import { BsLightningFill } from 'react-icons/bs';
 
 const Landing = () => {
+  const { user, isAuthenticated } = useAuth();
+  const navigate = useNavigate();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  // Removed auto-redirect useEffect to allow logged-in users to view the landing page
+
   return (
     <div className="min-h-screen bg-[var(--land-bg)] flex flex-col font-sans selection:bg-[var(--brand-green-light)] selection:text-[var(--brand-green)]" style={{ fontFamily: "'Nunito', sans-serif" }}>
       {/* Navbar */}
@@ -20,25 +27,70 @@ const Landing = () => {
           {/* Center Links */}
           <div className="hidden lg:flex items-center gap-8 text-[var(--land-nav)] font-bold text-base">
             <a href="#roadmaps" className="hover:text-[var(--brand-green)] transition-colors">Courses & Roadmaps</a>
-            <a href="#ai-mentor" className="hover:text-[var(--brand-green)] transition-colors">Tutorials</a>
-            <a href="#gamification" className="hover:text-[var(--brand-green)] transition-colors">Practice</a>
+            <a href="#roadmaps" className="hover:text-[var(--brand-green)] transition-colors">Tutorials</a>
+            <a href="#roadmaps" className="hover:text-[var(--brand-green)] transition-colors">Practice</a>
             <div className="px-2 py-0.5 bg-yellow-100 text-yellow-700 text-[10px] font-black rounded-md -ml-6 -mt-4 transform rotate-12">NEW</div>
           </div>
           
           {/* Right Actions */}
           <div className="flex items-center gap-4">
-            <Link to="/login" className="hidden sm:block text-[var(--land-nav)] hover:text-[var(--brand-green)] font-extrabold transition-colors px-4 py-2">
-              Sign In
-            </Link>
-            <Link to="/signup" className="bg-[var(--brand-green)] hover:bg-[var(--brand-green-hover)] text-white font-extrabold px-6 py-2.5 rounded-lg transition-all shadow-[var(--shadow-bubbly)] hover:-translate-y-0.5 flex items-center gap-2">
-              Sign Up For Free <FiArrowRight strokeWidth={3} />
-            </Link>
-            <button className="lg:hidden text-[var(--land-text)] p-2">
+            {isAuthenticated ? (
+              <Link to="/dashboard" className="bg-[var(--brand-green)] hover:bg-[var(--brand-green-hover)] text-white font-extrabold px-6 py-2.5 rounded-lg transition-all shadow-[var(--shadow-bubbly)] hover:-translate-y-0.5 flex items-center gap-2">
+                Go to Dashboard <FiArrowRight strokeWidth={3} />
+              </Link>
+            ) : (
+              <>
+                <Link to="/login" className="hidden sm:block text-[var(--land-nav)] hover:text-[var(--brand-green)] font-extrabold transition-colors px-4 py-2">
+                  Sign In
+                </Link>
+                <Link to="/signup" className="bg-[var(--brand-green)] hover:bg-[var(--brand-green-hover)] text-white font-extrabold px-6 py-2.5 rounded-lg transition-all shadow-[var(--shadow-bubbly)] hover:-translate-y-0.5 flex items-center gap-2">
+                  Sign Up For Free <FiArrowRight strokeWidth={3} />
+                </Link>
+              </>
+            )}
+            <button onClick={() => setIsMobileMenuOpen(true)} className="lg:hidden text-[var(--land-text)] p-2 hover:bg-gray-100 rounded-lg transition-colors">
               <FiMenu size={28} strokeWidth={2.5} />
             </button>
           </div>
         </div>
       </nav>
+
+      {/* Mobile Navigation Menu */}
+      {isMobileMenuOpen && (
+        <div className="fixed inset-0 z-[100] lg:hidden flex">
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setIsMobileMenuOpen(false)}></div>
+          <div className="relative w-full max-w-sm bg-white h-full shadow-2xl flex flex-col ml-auto animate-fade-in">
+            <div className="p-4 border-b border-gray-100 flex items-center justify-between">
+              <h2 className="text-xl font-black text-[var(--land-text)]">Menu</h2>
+              <button onClick={() => setIsMobileMenuOpen(false)} className="p-2 text-gray-500 hover:bg-gray-100 rounded-lg">
+                <FiX size={24} />
+              </button>
+            </div>
+            <div className="flex-1 overflow-y-auto py-6 px-6 flex flex-col gap-6 text-[var(--land-nav)] font-bold">
+              <a href="#roadmaps" onClick={() => setIsMobileMenuOpen(false)} className="hover:text-[var(--brand-green)] text-lg">Courses & Roadmaps</a>
+              <a href="#roadmaps" onClick={() => setIsMobileMenuOpen(false)} className="hover:text-[var(--brand-green)] text-lg">Tutorials</a>
+              <a href="#roadmaps" onClick={() => setIsMobileMenuOpen(false)} className="hover:text-[var(--brand-green)] text-lg">Practice</a>
+              
+              <div className="border-t border-gray-100 pt-6 mt-4 flex flex-col gap-4">
+                {isAuthenticated ? (
+                  <Link to="/dashboard" onClick={() => setIsMobileMenuOpen(false)} className="bg-[var(--brand-green)] text-white text-center font-extrabold px-6 py-3 rounded-lg w-full">
+                    Go to Dashboard
+                  </Link>
+                ) : (
+                  <>
+                    <Link to="/login" onClick={() => setIsMobileMenuOpen(false)} className="w-full text-center text-lg font-bold hover:text-[var(--brand-green)] py-2">
+                      Sign In
+                    </Link>
+                    <Link to="/signup" onClick={() => setIsMobileMenuOpen(false)} className="bg-[var(--brand-green)] text-white text-center font-extrabold px-6 py-3 rounded-lg w-full shadow-md">
+                      Sign Up For Free
+                    </Link>
+                  </>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Hero Section (Summer Skill Up Style) */}
       <main className="flex-1 flex flex-col relative overflow-hidden bg-[#F0FBFE]">
@@ -53,16 +105,16 @@ const Landing = () => {
             {/* Left Content */}
             <div className="flex-1 text-center lg:text-left">
               <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white border border-gray-200 text-[var(--brand-orange)] font-black text-sm mb-6 shadow-sm transform -rotate-2">
-                <BsLightningFill className="text-yellow-400" size={18} /> SUMMER SKILL UP 2026
+                <BsLightningFill className="text-yellow-400" size={18} /> YOUR TECH JOURNEY STARTS HERE
               </div>
               
               <h1 className="text-5xl md:text-6xl lg:text-7xl font-black text-[var(--land-text)] leading-[1.1] mb-6 tracking-tight">
                 Level Up Your<br />
                 <span className="text-[var(--brand-green)] relative inline-block">
-                  Tech Career
+                  {isAuthenticated && user?.selectedDomain?.name ? user.selectedDomain.name : 'Tech'} Career
                   <svg className="absolute w-full h-4 -bottom-1 left-0 text-yellow-400" viewBox="0 0 100 10" preserveAspectRatio="none"><path d="M0 5 Q 50 15 100 5" stroke="currentColor" strokeWidth="8" fill="transparent"/></svg>
                 </span>
-                <br />This Summer.
+                <br />Today.
               </h1>
               
               <p className="text-[var(--land-nav)] text-lg md:text-xl font-semibold mb-10 max-w-xl mx-auto lg:mx-0">
@@ -70,9 +122,15 @@ const Landing = () => {
               </p>
 
               <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4">
-                <Link to="/signup" className="bg-[var(--brand-orange)] hover:bg-[var(--brand-orange-hover)] text-white text-lg font-black px-8 py-4 rounded-xl transition-all shadow-[0_8px_20px_rgba(244,130,37,0.3)] hover:-translate-y-1 w-full sm:w-auto text-center">
-                  Start Learning Now
-                </Link>
+                {isAuthenticated ? (
+                  <Link to="/dashboard" className="bg-[var(--brand-orange)] hover:bg-[var(--brand-orange-hover)] text-white text-lg font-black px-8 py-4 rounded-xl transition-all shadow-[0_8px_20px_rgba(244,130,37,0.3)] hover:-translate-y-1 w-full sm:w-auto text-center">
+                    Continue Learning
+                  </Link>
+                ) : (
+                  <Link to="/signup" className="bg-[var(--brand-orange)] hover:bg-[var(--brand-orange-hover)] text-white text-lg font-black px-8 py-4 rounded-xl transition-all shadow-[0_8px_20px_rgba(244,130,37,0.3)] hover:-translate-y-1 w-full sm:w-auto text-center">
+                    Start Learning Now
+                  </Link>
+                )}
                 <div className="flex items-center gap-3 text-[var(--land-nav)] font-bold text-sm bg-white px-6 py-4 rounded-xl shadow-sm border border-gray-100">
                   <div className="flex -space-x-3">
                     {[1,2,3,4].map(i => (
@@ -81,7 +139,7 @@ const Landing = () => {
                       </div>
                     ))}
                   </div>
-                  <span>Trusted by 2M+ Geeks</span>
+                  <span>Join our growing community</span>
                 </div>
               </div>
             </div>
@@ -143,7 +201,7 @@ const Landing = () => {
         </section>
 
         {/* Feature Cards Grid */}
-        <section className="px-6 py-24 bg-gray-50 relative z-10">
+        <section id="roadmaps" className="px-6 py-24 bg-gray-50 relative z-10">
           <div className="max-w-7xl mx-auto">
             <div className="text-center mb-16">
               <h2 className="text-4xl md:text-5xl font-black text-[var(--land-text)] mb-4">Choose Your <span className="text-[var(--brand-green)]">Pathway</span></h2>
@@ -159,14 +217,14 @@ const Landing = () => {
                 { title: "System Design", desc: "Architect highly scalable and distributed systems.", icon: "🏗️", color: "border-yellow-200 hover:border-yellow-500" },
                 { title: "Cybersecurity", desc: "Ethical hacking, network security, and cryptography.", icon: "🛡️", color: "border-red-200 hover:border-red-500" }
               ].map((card, idx) => (
-                <div key={idx} className={`bg-white rounded-3xl p-8 border-2 ${card.color} transition-all duration-300 hover:shadow-[var(--shadow-bubbly)] hover:-translate-y-2 group cursor-pointer`}>
+                <Link to="/signup" key={idx} className={`bg-white rounded-3xl p-8 border-2 ${card.color} transition-all duration-300 hover:shadow-[var(--shadow-bubbly)] hover:-translate-y-2 group cursor-pointer block`}>
                   <div className="text-4xl mb-6 bg-gray-50 w-16 h-16 rounded-2xl flex items-center justify-center shadow-inner group-hover:scale-110 transition-transform">{card.icon}</div>
                   <h3 className="text-2xl font-black text-[var(--land-text)] mb-3">{card.title}</h3>
                   <p className="text-[var(--land-nav)] font-bold mb-6 leading-relaxed">{card.desc}</p>
                   <div className="flex items-center text-[var(--brand-green)] font-extrabold uppercase tracking-widest text-xs">
                     Explore Track <FiArrowRight className="ml-2 group-hover:translate-x-1 transition-transform" strokeWidth={3} />
                   </div>
-                </div>
+                </Link>
               ))}
             </div>
           </div>

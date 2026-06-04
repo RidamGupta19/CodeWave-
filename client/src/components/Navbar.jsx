@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { NavLink, useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { 
@@ -10,9 +10,26 @@ import { MdOutlineDashboard } from "react-icons/md";
 const Navbar = ({ isAdmin }) => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const notifRef = useRef(null);
   const [theme, setTheme] = useState(() => localStorage.getItem('careerforge_theme') || 'light');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
+  const [isNotifMenuOpen, setIsNotifMenuOpen] = useState(false);
+  const [hasUnreadNotif, setHasUnreadNotif] = useState(true);
+  const [notification, setNotification] = useState('');
+
+  useEffect(() => {
+    if (user) {
+      const messages = [
+        "Grind until you reach your goals! 💪",
+        "Consistency is the key to mastery. 🚀",
+        "Every line of code makes you better! 💻",
+        "Keep pushing forward, you got this! 🔥",
+        "Small steps every day lead to big results! 📈"
+      ];
+      setNotification(messages[Math.floor(Math.random() * messages.length)]);
+    }
+  }, [user]);
 
   useEffect(() => {
     const handleThemeChange = () => {
@@ -43,7 +60,7 @@ const Navbar = ({ isAdmin }) => {
 
   const adminLinks = [
     { name: 'Admin Dashboard', path: '/admin', icon: <MdOutlineDashboard /> },
-    { name: 'Manage Users', path: '/admin/users', icon: <FiUsers /> }, // Note: Need to import FiUsers if used
+    { name: 'Manage Users', path: '/admin/users', icon: <FiUsers /> },
   ];
 
   const links = isAdmin ? adminLinks : studentLinks;
@@ -94,7 +111,6 @@ const Navbar = ({ isAdmin }) => {
 
         {/* Right Actions */}
         <div className="flex items-center gap-2 sm:gap-4">
-          {/* Search (Desktop Only) */}
           <div className="hidden xl:flex items-center gap-2 bg-[var(--bg-sub)] border border-[var(--border)] px-3 py-1.5 rounded-xl w-48 focus-within:border-[var(--primary)] transition-colors">
             <FiSearch className="text-[var(--text-light)] shrink-0" />
             <input 
@@ -112,10 +128,37 @@ const Navbar = ({ isAdmin }) => {
             {theme === 'dark' ? <FiSun className="text-lg text-amber-400" /> : <FiMoon className="text-lg text-indigo-500" />}
           </button>
 
-          <button className="relative p-2 text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--bg-sub)] rounded-xl transition-all">
-            <FiBell className="text-lg" />
-            <span className="absolute top-2 right-2 w-1.5 h-1.5 bg-rose-500 rounded-full"></span>
-          </button>
+          <div className="relative" ref={notifRef}>
+            <button 
+              onClick={() => {
+                setIsNotifMenuOpen(!isNotifMenuOpen);
+                setHasUnreadNotif(false);
+              }}
+              className="relative p-2 text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--bg-sub)] rounded-xl transition-all focus:outline-none"
+            >
+              <FiBell className="text-lg" />
+              {hasUnreadNotif && (
+                <span className="absolute top-2 right-2 w-1.5 h-1.5 bg-rose-500 rounded-full animate-pulse"></span>
+              )}
+            </button>
+            
+            {/* Notification Dropdown */}
+            {isNotifMenuOpen && (
+              <>
+                <div className="fixed inset-0 z-40" onClick={() => setIsNotifMenuOpen(false)}></div>
+                <div className="absolute right-0 mt-2 w-64 bg-[var(--bg-card)] border border-[var(--border)] rounded-xl shadow-xl z-50 overflow-hidden py-2">
+                  <div className="px-4 py-2 border-b border-[var(--border)]">
+                    <h3 className="text-sm font-black text-[var(--text-main)]">Notifications</h3>
+                  </div>
+                  <div className="px-4 py-3 bg-[var(--bg-sub)]/50 hover:bg-[var(--bg-sub)] transition-colors cursor-pointer border-l-2 border-[var(--primary)]">
+                    <p className="text-xs font-bold text-[var(--text-main)] mb-1">Welcome Back, {user?.fullName?.split(' ')[0]}!</p>
+                    <p className="text-xs text-[var(--text-muted)] leading-relaxed">{notification}</p>
+                    <span className="text-[10px] text-[var(--text-light)] mt-2 block font-semibold">Just now</span>
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
           
           <div className="relative border-l border-[var(--border)] pl-2 sm:pl-4">
             <button 
@@ -140,6 +183,9 @@ const Navbar = ({ isAdmin }) => {
                     <p className="text-sm font-black text-[var(--text-main)] truncate">{user?.fullName}</p>
                     <p className="text-xs text-[var(--text-muted)] truncate">{user?.email}</p>
                   </div>
+                  <Link to="/profile" className="flex items-center gap-2 px-4 py-2.5 text-sm font-bold text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--bg-sub)] transition-colors" onClick={() => setIsProfileMenuOpen(false)}>
+                    <MdOutlineDashboard /> My Profile (Stats)
+                  </Link>
                   {!isAdmin && (
                     <Link to="/setup-profile" className="flex items-center gap-2 px-4 py-2.5 text-sm font-bold text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--bg-sub)] transition-colors" onClick={() => setIsProfileMenuOpen(false)}>
                       <FiSettings /> Settings

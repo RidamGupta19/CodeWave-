@@ -114,6 +114,19 @@ html, body, #root {
   transition: background-color 0.3s ease, color 0.3s ease;
 }
 
+body:not(.dark) {
+  background: linear-gradient(135deg, #F4F7FB 0%, #E2E8F0 100%);
+  background-attachment: fixed;
+}
+
+body:not(.dark) .shadow-sm {
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05), 0 4px 10px rgba(0, 0, 0, 0.03) !important;
+}
+
+body:not(.dark) .shadow-md {
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08), 0 8px 20px rgba(0, 0, 0, 0.04) !important;
+}
+
 body {
   font-family: 'Nunito', system-ui, -apple-system, sans-serif;
   -webkit-font-smoothing: antialiased;
@@ -415,4 +428,31 @@ h1, h2, h3, h4, h5, h6 {
 }
 .animate-shake {
   animation: shake 0.2s ease-in-out 2;
+}
+
+/* Animated Medals */
+.medal-badge {
+  position: relative;
+  overflow: hidden;
+  transform-style: preserve-3d;
+  transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.medal-badge:hover {
+  transform: rotateY(180deg) scale(1.1);
+}
+.medal-badge::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(to right, rgba(255,255,255,0) 0%, rgba(255,255,255,0.8) 50%, rgba(255,255,255,0) 100%);
+  transform: skewX(-25deg);
+  animation: medal-shine 3s infinite;
+}
+@keyframes medal-shine {
+  0% { left: -100%; }
+  20% { left: 200%; }
+  100% { left: 200%; }
 }

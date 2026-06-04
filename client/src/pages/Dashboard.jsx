@@ -99,8 +99,8 @@ const Dashboard = () => {
               {user.profile?.estimatedTimeline || '6 Months'}
             </div>
           </div>
-          <h1 className="text-4xl md:text-5xl font-black text-[var(--text-main)] tracking-tight mb-2">
-            Your <span className="text-[var(--brand-green)]">Summer Skilling</span> Journey
+          <h1 className="text-3xl sm:text-4xl font-black text-[var(--text-main)] mb-2 tracking-tight">
+            Your <span className="text-[var(--brand-green)]">Tech Career</span> Journey
           </h1>
           <p className="text-[var(--text-muted)] font-extrabold text-lg">"Welcome back, {user.fullName.split(' ')[0]}. You're on the {user.profile?.roadmapType} path. ⚡"</p>
         </div>
@@ -536,13 +536,13 @@ const Dashboard = () => {
                   initial={{ opacity: 0, scale: 0.9 }}
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ delay: i * 0.1 }}
-                  className="text-center p-4 rounded-2xl bg-[var(--bg-sub)] border border-[var(--border)] hover:border-[var(--primary)] hover:bg-[var(--bg-card)] transition-all group shadow-sm"
+                  className="text-center p-4 rounded-2xl bg-[var(--bg-sub)] border border-[var(--border)] hover:border-[var(--primary)] hover:bg-[var(--bg-card)] transition-all group shadow-sm medal-badge"
                 >
-                  <div className="text-4xl mb-2 group-hover:scale-110 group-hover:rotate-6 transition-transform filter drop-shadow-sm">
+                  <div className="text-4xl mb-2 group-hover:scale-110 transition-transform filter drop-shadow-sm">
                     {b.badgeId?.icon || '🏅'}
                   </div>
-                  <div className="text-xs font-black text-[var(--text-main)] uppercase tracking-tight line-clamp-2 leading-tight">{b.badgeId?.name}</div>
-                  <div className="text-[8px] font-bold text-[var(--text-light)] uppercase mt-1 tracking-wider">Verified</div>
+                  <div className="text-xs font-black text-[var(--text-main)] uppercase tracking-tight line-clamp-2 leading-tight relative z-10">{b.badgeId?.name}</div>
+                  <div className="text-[8px] font-bold text-[var(--text-light)] uppercase mt-1 tracking-wider relative z-10">Verified</div>
                 </motion.div>
               ))}
             </div>

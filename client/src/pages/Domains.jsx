@@ -170,7 +170,7 @@ const Domains = () => {
                 <div className="mt-auto pt-4 border-t border-[var(--border-light)] flex items-center justify-between">
                   <div className="flex items-center gap-1.5 text-xs font-bold text-[var(--text-light)]">
                     <svg className="w-3.5 h-3.5 text-[var(--brand-green)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
-                    74k+ interested Geeks
+                    Join the pioneer batch!
                   </div>
                   <button 
                     onClick={() => handleSelectDomain(domain._id)}
