@@ -23,16 +23,14 @@ app.use(helmet({
 }));
 
 // CORS
-const allowedOrigins = [
-  'http://localhost:5173',
-  'https://careerfor.netlify.app',
-  'https://career-forge-qxaj.vercel.app',
-  process.env.CLIENT_URL
-].filter(Boolean);
-
 app.use(cors({
   origin: function (origin, callback) {
-    if (!origin || allowedOrigins.includes(origin)) {
+    // Allow any localhost, Vercel, or Netlify URL to prevent deployment friction
+    if (!origin || 
+        origin.includes('localhost') || 
+        origin.includes('vercel.app') || 
+        origin.includes('netlify.app') || 
+        origin === process.env.CLIENT_URL) {
       callback(null, true);
     } else {
       callback(new Error('Not allowed by CORS'));
