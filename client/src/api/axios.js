@@ -1,7 +1,10 @@
 import axios from 'axios';
 
+const rawApiUrl = import.meta.env.VITE_API_URL || 'https://careerforge-nkf0.onrender.com/api';
+const baseURL = rawApiUrl.endsWith('/api') ? rawApiUrl : `${rawApiUrl.replace(/\/$/, '')}/api`;
+
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'https://careerforge-nkf0.onrender.com/api',
+  baseURL,
   headers: { 'Content-Type': 'application/json' }
 });
 
