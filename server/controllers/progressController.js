@@ -4,6 +4,7 @@ const Phase = require('../models/Phase');
 const Topic = require('../models/Topic');
 const Badge = require('../models/Badge');
 const Certificate = require('../models/Certificate');
+const WebDevProject = require('../models/WebDevProject');
 
 // Helper function to map database slugs to domainsProgress keys
 const getProgressKey = (slug) => {
@@ -746,6 +747,48 @@ exports.saveVideoProgress = async (req, res) => {
     await user.save();
 
     res.json({ success: true, message: 'Video and learning state updated', data: domainProgress.videoProgress });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// @desc    Save Web Dev Project files
+// @route   POST /api/progress/webdev-project
+exports.saveWebDevProject = async (req, res) => {
+  try {
+    const { topicId, files } = req.body;
+    
+    let project = await WebDevProject.findOne({ userId: req.user._id, topicId });
+    
+    if (project) {
+      project.files = files;
+      project.version += 1;
+      project.lastSavedAt = Date.now();
+      await project.save();
+    } else {
+      project = await WebDevProject.create({
+        userId: req.user._id,
+        topicId,
+        files
+      });
+    }
+
+    res.json({ success: true, data: project });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// @desc    Get Web Dev Project files
+// @route   GET /api/progress/webdev-project/:topicId
+exports.getWebDevProject = async (req, res) => {
+  try {
+    const project = await WebDevProject.findOne({ 
+      userId: req.user._id, 
+      topicId: req.params.topicId 
+    });
+    
+    res.json({ success: true, data: project || null });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }

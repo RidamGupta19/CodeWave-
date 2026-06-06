@@ -94,7 +94,8 @@ const Domains = () => {
           return (
             <div 
               key={domain._id} 
-              className={`card flex flex-col relative overflow-hidden transition-all duration-300 bg-[var(--bg-card)] border-2 border-[var(--border-light)] group ${
+              onClick={() => handleSelectDomain(domain._id)}
+              className={`card flex flex-col relative overflow-hidden transition-all duration-300 bg-[var(--bg-card)] border-2 border-[var(--border-light)] group cursor-pointer ${
                 isSelected ? 'ring-2 ring-[var(--brand-green)] shadow-[var(--shadow-bubbly)] border-transparent' : 'hover:border-[var(--brand-green-light)] hover:shadow-lg'
               }`}
             >

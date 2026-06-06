@@ -1,6 +1,8 @@
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Inter:wght@400;500;600;700;800&family=Nunito:wght@400;600;700;800;900&display=swap');
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 :root {
   /* Color Palette - GFG Summer Skill Up Theme (Default) */
   --bg-main: #F3F4F6; /* Gray 100 for better contrast */
@@ -114,16 +116,16 @@ html, body, #root {
   transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-body:not(.dark) {
+html:not(.dark) body {
   background: linear-gradient(135deg, #F4F7FB 0%, #E2E8F0 100%);
   background-attachment: fixed;
 }
 
-body:not(.dark) .shadow-sm {
+html:not(.dark) .shadow-sm {
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05), 0 4px 10px rgba(0, 0, 0, 0.03) !important;
 }
 
-body:not(.dark) .shadow-md {
+html:not(.dark) .shadow-md {
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08), 0 8px 20px rgba(0, 0, 0, 0.04) !important;
 }
 

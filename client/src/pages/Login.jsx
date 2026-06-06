@@ -12,19 +12,6 @@ const Login = () => {
   const { login } = useAuth();
   const navigate = useNavigate();
 
-  const handleAdminBypass = async () => {
-    setIsLoading(true);
-    try {
-      const data = await login('admin@careerforge.com', 'Admin@123');
-      toast.success('Logged in as Administrator! 🛡️');
-      navigate('/admin');
-    } catch (error) {
-      toast.error('Admin quick login failed. Make sure the database is seeded.');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
@@ -105,18 +92,6 @@ const Login = () => {
               )}
             </button>
           </form>
-
-          <div className="mt-8 flex flex-col items-center">
-            <span className="text-[10px] text-gray-400 font-black uppercase tracking-widest mb-3">Or developer bypass</span>
-            <button 
-              type="button" 
-              onClick={handleAdminBypass}
-              disabled={isLoading}
-              className="w-full py-3 px-4 border-2 border-gray-100 bg-white text-[var(--land-text)] hover:border-gray-200 hover:bg-gray-50 rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-2 cursor-pointer uppercase tracking-wider"
-            >
-              🛡️ Login as Admin
-            </button>
-          </div>
 
           <div className="mt-8 pt-8 border-t border-gray-100 text-center">
             <p className="text-[var(--land-nav)] font-bold">

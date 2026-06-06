@@ -14,5 +14,7 @@ router.get('/dashboard', protect, c.getDashboard);
 router.get('/heatmap', protect, c.getHeatmap);
 router.post('/skip-phase', protect, c.skipPhase);
 router.post('/video-progress', protect, c.saveVideoProgress);
+router.post('/webdev-project', protect, c.saveWebDevProject);
+router.get('/webdev-project/:topicId', protect, c.getWebDevProject);
 
 module.exports = router;

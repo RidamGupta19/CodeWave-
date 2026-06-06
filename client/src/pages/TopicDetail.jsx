@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import api from '../api/axios';
 import { useAuth } from '../context/AuthContext';
+import WebDevPlayground from '../components/WebDevPlayground';
 import { 
   FiCheckCircle, FiPlay, FiBook, FiYoutube, FiCode, FiArrowLeft, 
   FiMessageSquare, FiZap, FiAward, FiClock, FiArrowRight, FiInfo,
@@ -813,7 +814,7 @@ const TopicDetail = () => {
       js = js.replace(/\b(vector<int>&|vector<string>&|vector<double>&|vector<int>|vector<string>|vector<double>|TreeNode\*|ListNode\*|int\*|char\*|double\*|int\[\]|string\[\]|double\[\]|float\[\]|const)(?:\b)?/g, '');
       
       // Remove standard primitive types with word boundaries
-      js = js.replace(/\b(int|bool|double|void|float|long|long\s+long|string|char|TreeNode|ListNode)\b/g, '');
+      js = js.replace(/\b(int|bool|double|double|void|float|long|long\s+long|string|char|TreeNode|ListNode)\b/g, '');
       
       // Strip any stray C++ reference/pointer symbols and const keywords inside parameter declarations
       js = js.replace(/([,\(]\s*)[&*]/g, '$1');
@@ -1965,7 +1966,18 @@ const TopicDetail = () => {
           <div className={`flex-1 h-full flex flex-col overflow-hidden bg-[#1e1e1e] min-w-0
             ${isMobile && activeWorkspaceTab !== 'code' ? 'hidden' : 'flex'}
           `}>
-
+          {isWebDevDomain ? (
+            <WebDevPlayground 
+              topicId={id} 
+              boilerplate={{
+                html: cpContent?.editorBoilerplate || '',
+                css: '',
+                js: ''
+              }} 
+              editorTheme={editorTheme} 
+            />
+          ) : (
+            <>
             {/* Editor toolbar */}
             <div className="flex items-center justify-between px-4 py-2 bg-[#252526] border-b border-[#3e3e42] shrink-0">
               <div className="flex items-center gap-2">
@@ -2137,6 +2149,8 @@ const TopicDetail = () => {
             </div>
             </>
             )}
+            </>
+          )}
           </div>
         </div>
       </div>
@@ -2874,7 +2888,18 @@ const TopicDetail = () => {
             isFullscreen ? 'fixed inset-0 z-50 w-screen h-screen' : 'relative'
           } ${isMobile && activeWorkspaceTab !== 'code' ? 'hidden' : 'flex'}`}
         >
-          
+          {isWebDevDomain ? (
+            <WebDevPlayground 
+              topicId={id} 
+              boilerplate={{
+                html: langContent?.editorBoilerplate || '',
+                css: '',
+                js: ''
+              }} 
+              editorTheme={editorTheme} 
+            />
+          ) : (
+            <>
           {/* Editor Header Controller panel */}
           <div className="bg-[#141416] px-4 py-2 border-b border-[var(--border)] flex justify-between items-center text-xs text-[var(--text-muted)] shrink-0">
             <div className="flex items-center gap-3">
@@ -3205,9 +3230,9 @@ const TopicDetail = () => {
                 </button>
               </div>
             </div>
-
           </div>
-
+          </>
+          )}
         </div>
         )}
 

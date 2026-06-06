@@ -458,10 +458,10 @@ exports.generateRoadmap = async (req, res) => {
           startingLevel = 3;
         } else if (solved === 'some_leetcode' || knowsArrays) {
           startingLevel = 2;
-        } else if (solved === 'beginner' || knowsCore) {
+        } else if (knowsCore) {
           startingLevel = 1;
         } else {
-          startingLevel = 0;
+          startingLevel = 0; // Complete beginners start at level 0 (Basics)
         }
         unlockedLevels = Array.from({ length: startingLevel + 1 }, (_, index) => index);
       }

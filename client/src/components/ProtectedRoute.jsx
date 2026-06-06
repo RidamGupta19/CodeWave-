@@ -1,17 +1,14 @@
 import React from 'react';
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import GlobalLoader from './GlobalLoader';
 
 const ProtectedRoute = ({ allowedRoles }) => {
   const { user, loading } = useAuth();
   const location = useLocation();
 
   if (loading) {
-    return (
-      <div className="flex h-screen w-screen items-center justify-center">
-        <div className="spinner"></div>
-      </div>
-    );
+    return <GlobalLoader />;
   }
 
   if (!user) {
