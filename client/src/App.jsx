@@ -32,6 +32,18 @@ import ManageSubmissions from './pages/admin/ManageSubmissions';
 import ManageTestCases from './pages/admin/ManageTestCases';
 import ManageTopics from './pages/admin/ManageTopics';
 
+// Institute Pages
+import StudentManagement from './pages/institute/StudentManagement';
+import TeacherManagement from './pages/institute/TeacherManagement';
+import CourseManagement from './pages/institute/CourseManagement';
+import BatchManagement from './pages/institute/BatchManagement';
+import AttendanceManagement from './pages/institute/AttendanceManagement';
+import FeesManagement from './pages/institute/FeesManagement';
+import NoticeBoard from './pages/institute/NoticeBoard';
+import StudyMaterials from './pages/institute/StudyMaterials';
+import ClassScheduler from './pages/institute/ClassScheduler';
+import AssignmentManagement from './pages/institute/AssignmentManagement';
+
 function App() {
   return (
     <AuthProvider>
@@ -43,8 +55,8 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
 
-          {/* Protected Student Routes */}
-          <Route element={<ProtectedRoute allowedRoles={['student', 'admin']} />}>
+          {/* Protected Student / Teacher / Admin Routes */}
+          <Route element={<ProtectedRoute allowedRoles={['student', 'admin', 'teacher']} />}>
             <Route element={<Layout />}>
               <Route path="/setup-profile" element={<Onboarding />} />
               <Route path="/dashboard" element={<Dashboard />} />
@@ -57,6 +69,18 @@ function App() {
               <Route path="/career-guide" element={<CareerGuide />} />
               <Route path="/zero-to-coding" element={<ZeroToCoding />} />
               <Route path="/profile" element={<Profile />} />
+              
+              {/* Institute Management Routes */}
+              <Route path="/institute/students" element={<StudentManagement />} />
+              <Route path="/institute/teachers" element={<TeacherManagement />} />
+              <Route path="/institute/courses" element={<CourseManagement />} />
+              <Route path="/institute/batches" element={<BatchManagement />} />
+              <Route path="/institute/attendance" element={<AttendanceManagement />} />
+              <Route path="/institute/fees" element={<FeesManagement />} />
+              <Route path="/institute/notices" element={<NoticeBoard />} />
+              <Route path="/institute/materials" element={<StudyMaterials />} />
+              <Route path="/institute/schedule" element={<ClassScheduler />} />
+              <Route path="/institute/assignments" element={<AssignmentManagement />} />
             </Route>
           </Route>
 

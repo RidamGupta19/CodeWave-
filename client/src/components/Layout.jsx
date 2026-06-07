@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { Outlet } from 'react-router-dom';
-import Navbar from './Navbar';
+import Sidebar from './Sidebar';
 import GlobalAiChat from './GlobalAiChat';
 
-const Layout = ({ isAdmin = false }) => {
-  const [theme, setTheme] = useState(() => localStorage.getItem('careerforge_theme') || 'light');
+const Layout = () => {
+  const [theme, setTheme] = useState(() => localStorage.getItem('codewave_theme') || 'light');
 
   useEffect(() => {
     if (theme === 'dark') {
@@ -17,16 +17,16 @@ const Layout = ({ isAdmin = false }) => {
   // Listen to global theme changes
   useEffect(() => {
     const handleThemeChange = () => {
-      setTheme(localStorage.getItem('careerforge_theme') || 'light');
+      setTheme(localStorage.getItem('codewave_theme') || 'light');
     };
     window.addEventListener('themechange', handleThemeChange);
     return () => window.removeEventListener('themechange', handleThemeChange);
   }, []);
 
   return (
-    <div className="flex flex-col bg-[var(--bg-main)] min-h-screen text-[var(--text-main)] transition-colors duration-300 relative">
-      <Navbar isAdmin={isAdmin} />
-      <main className="flex-1 overflow-y-auto bg-[var(--bg-main)] relative">
+    <div className="flex flex-col lg:flex-row bg-[var(--bg-main)] min-h-screen text-[var(--text-main)] transition-colors duration-300 relative">
+      <Sidebar />
+      <main className="flex-1 overflow-y-auto bg-[var(--bg-main)] relative p-4 sm:p-6 lg:p-8">
         <Outlet />
       </main>
       <GlobalAiChat />

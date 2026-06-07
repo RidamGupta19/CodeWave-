@@ -298,11 +298,11 @@ const TopicDetail = () => {
     if (isDark) {
       document.documentElement.classList.remove('dark');
       setEditorTheme('light');
-      localStorage.setItem('careerforge_theme', 'light');
+      localStorage.setItem('codewave_theme', 'light');
     } else {
       document.documentElement.classList.add('dark');
       setEditorTheme('vs-dark');
-      localStorage.setItem('careerforge_theme', 'dark');
+      localStorage.setItem('codewave_theme', 'dark');
     }
   };
 

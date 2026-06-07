@@ -16,6 +16,16 @@ const CloudCredit = require('../models/CloudCredit');
 const Problem = require('../models/Problem');
 const Submission = require('../models/Submission');
 const UserProgress = require('../models/UserProgress');
+const Student = require('../models/Student');
+const Teacher = require('../models/Teacher');
+const Course = require('../models/Course');
+const Batch = require('../models/Batch');
+const Attendance = require('../models/Attendance');
+const Fee = require('../models/Fee');
+const Notice = require('../models/Notice');
+const StudyMaterial = require('../models/StudyMaterial');
+const Schedule = require('../models/Schedule');
+const Assignment = require('../models/Assignment');
 
 const domainData = require('./domainData');
 const phaseData = require('./phaseData');
@@ -37,7 +47,7 @@ const cloudCredits = [
 async function seedDB() {
   try {
     if (mongoose.connection.readyState === 0) {
-      const uri = process.env.MONGODB_URI || 'mongodb://localhost:27017/careerforge';
+      const uri = process.env.MONGODB_URI || 'mongodb://localhost:27017/codewave';
       await mongoose.connect(uri);
       console.log('✅ Connected to MongoDB');
     } else {
@@ -55,7 +65,17 @@ async function seedDB() {
       CloudCredit.deleteMany({}),
       Problem.deleteMany({}),
       Submission.deleteMany({}),
-      UserProgress.deleteMany({})
+      UserProgress.deleteMany({}),
+      Student.deleteMany({}),
+      Teacher.deleteMany({}),
+      Course.deleteMany({}),
+      Batch.deleteMany({}),
+      Attendance.deleteMany({}),
+      Fee.deleteMany({}),
+      Notice.deleteMany({}),
+      StudyMaterial.deleteMany({}),
+      Schedule.deleteMany({}),
+      Assignment.deleteMany({})
     ]);
     console.log('🗑️  Cleared existing data');
 
@@ -64,14 +84,146 @@ async function seedDB() {
     console.log('☁️  Cloud credits seeded');
 
     // Seed admin user
-    const adminPassword = await bcrypt.hash(process.env.ADMIN_PASSWORD || 'Admin@123', 12);
-    await User.create({
-      fullName: 'CareerForge Admin',
-      email: process.env.ADMIN_EMAIL || 'admin@careerforge.com',
-      password: process.env.ADMIN_PASSWORD || 'Admin@123',
+    const adminEmail = process.env.ADMIN_EMAIL || 'admin@codewavesolution.com';
+    const adminPassword = process.env.ADMIN_PASSWORD || 'Admin@123';
+    const admin = await User.create({
+      fullName: 'CodeWave Admin',
+      email: adminEmail,
+      password: adminPassword,
       role: 'admin'
     });
     console.log('👤 Admin user created');
+
+    // Seed teacher user
+    const teacherUser = await User.create({
+      fullName: 'John Doe (Instructor)',
+      email: 'teacher@codewavesolution.com',
+      password: 'Teacher@123',
+      role: 'teacher'
+    });
+    const teacher = await Teacher.create({
+      userId: teacherUser._id,
+      name: teacherUser.fullName,
+      email: teacherUser.email,
+      phone: '+1234567890',
+      subject: 'Full Stack Development',
+      qualification: 'M.Tech Computer Science',
+      experience: '5 Years',
+      salary: 75000,
+      joiningDate: Date.now()
+    });
+    console.log('👤 Teacher user and profile created');
+
+    // Seed course
+    const course = await Course.create({
+      courseName: 'Full Stack Development',
+      description: 'Master HTML, CSS, JavaScript, React, Node.js and MongoDB.',
+      duration: '6 Months',
+      fees: 15000,
+      assignedTeacher: teacher._id
+    });
+    console.log('📚 Course created');
+
+    // Seed batch
+    const batch = await Batch.create({
+      batchName: 'Alpha Web Dev',
+      startDate: Date.now(),
+      timing: '10:00 AM - 12:00 PM',
+      assignedTeacher: teacher._id,
+      students: []
+    });
+    console.log('👥 Batch created');
+    course.batches.push(batch._id);
+    await course.save();
+
+    // Seed student user
+    const studentUser = await User.create({
+      fullName: 'Jane Smith (Student)',
+      email: 'student@codewavesolution.com',
+      password: 'Student@123',
+      role: 'student'
+    });
+    const student = await Student.create({
+      userId: studentUser._id,
+      rollNumber: 'CW-2026-001',
+      fullName: studentUser.fullName,
+      email: studentUser.email,
+      phone: '+1987654321',
+      address: '123 Code Street, Silicon Valley',
+      course: course._id,
+      batch: batch._id,
+      admissionDate: Date.now(),
+      status: 'active'
+    });
+    batch.students.push(student._id);
+    await batch.save();
+    console.log('👤 Student user and profile created');
+
+    // Seed default Fee
+    await Fee.create({
+      student: student._id,
+      course: course._id,
+      totalFees: course.fees,
+      paidAmount: 5000,
+      remainingAmount: 10000,
+      dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+      status: 'Partial'
+    });
+    console.log('💵 Student Fee initialized');
+
+    // Seed default Attendance (3 records: 2 present, 1 absent)
+    const d1 = new Date(); d1.setDate(d1.getDate() - 2); d1.setHours(0,0,0,0);
+    const d2 = new Date(); d2.setDate(d2.getDate() - 1); d2.setHours(0,0,0,0);
+    const d3 = new Date(); d3.setHours(0,0,0,0);
+    await Attendance.create({ studentId: student._id, batchId: batch._id, teacherId: teacher._id, date: d1, status: 'Present' });
+    await Attendance.create({ studentId: student._id, batchId: batch._id, teacherId: teacher._id, date: d2, status: 'Present' });
+    await Attendance.create({ studentId: student._id, batchId: batch._id, teacherId: teacher._id, date: d3, status: 'Absent' });
+    console.log('📅 Attendance logs seeded');
+
+    // Seed Notice
+    await Notice.create({
+      title: 'Welcome to CodeWave Solution!',
+      content: 'We are thrilled to launch our brand new coaching portal. Students can track their domains, check attendance, download notes and chat with the CodeWave AI Assistant.',
+      targetRoles: ['all'],
+      createdBy: admin._id
+    });
+    console.log('📢 Announcement notice seeded');
+
+    // Seed Class Schedule
+    await Schedule.create({
+      course: course._id,
+      teacher: teacher._id,
+      batch: batch._id,
+      date: new Date(),
+      time: '10:00 AM',
+      meetingLink: 'https://meet.google.com/abc-defg-hij',
+      topic: 'Introduction to React State Management'
+    });
+    console.log('🕒 Class schedule created');
+
+    // Seed Study Material
+    await StudyMaterial.create({
+      title: 'React State Management Notes',
+      description: 'Comprehensive notes covering useState, useEffect, and Context API.',
+      materialType: 'Notes',
+      fileUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf',
+      course: course._id,
+      batch: batch._id,
+      uploadedBy: teacherUser._id
+    });
+    console.log('📁 Study material uploaded');
+
+    // Seed Assignment
+    await Assignment.create({
+      title: 'Build a Todo Application in React',
+      description: 'Implement list rendering, additions, deletions, and state persistence with localStorage.',
+      course: course._id,
+      batch: batch._id,
+      dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+      fileUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf',
+      uploadedBy: teacherUser._id
+    });
+    console.log('📝 Assignment created');
 
     // Seed domains and their phases/topics
     for (const domainInfo of domainData) {
@@ -175,7 +327,7 @@ async function seedDB() {
     }
 
     console.log('\n🎉 Database seeded successfully!');
-    console.log(`📧 Admin: ${process.env.ADMIN_EMAIL || 'admin@careerforge.com'}`);
+    console.log(`📧 Admin: ${process.env.ADMIN_EMAIL || 'admin@codewavesolution.com'}`);
     console.log(`🔑 Password: ${process.env.ADMIN_PASSWORD || 'Admin@123'}`);
   } catch (error) {
     console.error('❌ Seed error:', error.message);

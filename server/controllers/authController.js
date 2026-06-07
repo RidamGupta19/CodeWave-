@@ -171,3 +171,49 @@ exports.updateProfile = async (req, res) => {
     res.status(500).json({ success: false, message: error.message });
   }
 };
+
+// @desc    Google Login/Signup
+// @route   POST /api/auth/google
+exports.googleLogin = async (req, res) => {
+  try {
+    const { email, fullName, avatar } = req.body;
+    
+    if (!email) {
+      return res.status(400).json({ success: false, message: 'Email is required for Google Sign-In' });
+    }
+
+    let user = await User.findOne({ email });
+    
+    if (!user) {
+      // Create user if not exists
+      const randomPassword = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+      user = await User.create({
+        fullName: fullName || email.split('@')[0],
+        email,
+        password: randomPassword,
+        role: 'student',
+        avatar: avatar || ''
+      });
+    }
+
+    const token = user.generateToken();
+
+    res.json({
+      success: true,
+      token,
+      user: {
+        _id: user._id,
+        fullName: user.fullName,
+        email: user.email,
+        role: user.role,
+        profile: user.profile,
+        activeDomain: user.activeDomain,
+        selectedDomain: user.activeDomain,
+        domainsProgress: user.domainsProgress,
+        dailyStreak: user.dailyStreak
+      }
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};

@@ -316,7 +316,7 @@ const AdminDashboard = () => {
     return (
       <div className="flex flex-col items-center justify-center py-32 space-y-4">
         <div className="w-12 h-12 rounded-full border-4 border-indigo-500/30 border-t-indigo-500 animate-spin"></div>
-        <p className="text-sm font-bold text-slate-400">Loading CareerForge Administration Console...</p>
+        <p className="text-sm font-bold text-slate-400">Loading CodeWave Solution Administration Console...</p>
       </div>
     );
   }
@@ -543,7 +543,7 @@ const AdminDashboard = () => {
           <div className="flex justify-between items-center">
             <div>
               <h3 className="text-lg font-black text-slate-800 dark:text-white">Domain Specializations</h3>
-              <p className="text-slate-500 dark:text-slate-400 text-xs mt-0.5">Overview of registered learning pathways inside CareerForge</p>
+              <p className="text-slate-500 dark:text-slate-400 text-xs mt-0.5">Overview of registered learning pathways inside CodeWave Solution</p>
             </div>
             <button
               onClick={() => setShowDomainModal(true)}

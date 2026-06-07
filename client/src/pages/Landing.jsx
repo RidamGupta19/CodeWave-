@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { FiMenu, FiX, FiArrowRight, FiCheckCircle, FiStar, FiTrendingUp, FiTarget, FiZap } from 'react-icons/fi';
 import { BsLightningFill } from 'react-icons/bs';
+import Logo from '../components/Logo';
 
 const Landing = () => {
   const { user, isAuthenticated } = useAuth();
@@ -17,12 +18,7 @@ const Landing = () => {
       <nav className="px-6 py-4 bg-white sticky top-0 z-50 border-b border-gray-100 shadow-sm">
         <div className="max-w-7xl mx-auto flex items-center justify-between w-full">
           {/* Logo */}
-          <div className="flex items-center gap-2">
-            <div className="w-10 h-10 rounded-xl bg-[var(--brand-green)] flex items-center justify-center text-white font-extrabold text-lg shadow-[var(--shadow-bubbly)]">
-              CF
-            </div>
-            <h1 className="text-2xl font-black text-[var(--land-text)] tracking-tight">CareerForge</h1>
-          </div>
+          <Logo />
           
           {/* Center Links */}
           <div className="hidden lg:flex items-center gap-8 text-[var(--land-nav)] font-bold text-base">
@@ -159,15 +155,15 @@ const Landing = () => {
                     <div className="w-3 h-3 rounded-full bg-green-400"></div>
                   </div>
                   <div className="p-6 font-mono text-sm text-gray-800 h-[300px] flex flex-col justify-center">
-                    <div className="text-[var(--brand-purple)] font-bold">class <span className="text-[var(--brand-blue)]">CareerForge</span> {'{'}</div>
+                    <div className="text-[var(--brand-purple)] font-bold">class <span className="text-[var(--brand-blue)]">CodeWaveSolution</span> {'{'}</div>
                     <div className="pl-6 mt-2">
                       <span className="text-[var(--brand-green)] font-bold">public static void</span> <span className="text-yellow-600 font-bold">main</span>(String[] args) {'{'}
                     </div>
                     <div className="pl-12 mt-2">
-                      System.out.<span className="text-[var(--brand-blue)] font-bold">println</span>(<span className="text-[var(--brand-orange)]">"Hello, Dream Job!"</span>);
+                      System.out.<span className="text-[var(--brand-blue)] font-bold">println</span>(<span className="text-[var(--brand-orange)]">"Welcome to CodeWave Solution!"</span>);
                     </div>
                     <div className="pl-12 mt-2">
-                      <span className="text-gray-400 italic">// Your journey starts here</span>
+                      <span className="text-gray-400 italic">// Your success journey starts here</span>
                     </div>
                     <div className="pl-6 mt-2">{'}'}</div>
                     <div className="mt-2">{'}'}</div>
@@ -236,12 +232,10 @@ const Landing = () => {
       <footer className="bg-[#1E293B] text-white py-16 px-6">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-8">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-[var(--brand-green)] flex items-center justify-center text-white font-extrabold text-lg">
-              CF
-            </div>
+            <Logo hideText={true} />
             <div>
-              <span className="text-xl font-black tracking-tight block">CareerForge</span>
-              <span className="text-gray-400 text-sm font-semibold">© 2026 All rights reserved.</span>
+              <span className="text-xl font-black tracking-tight block text-[var(--text-main)] dark:text-white">CodeWave Solution</span>
+              <span className="text-gray-400 text-sm font-semibold">© 2026 CodeWave Solution. All rights reserved.</span>
             </div>
           </div>
           <div className="flex flex-wrap justify-center gap-8 text-gray-300 font-bold">

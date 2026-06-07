@@ -69,10 +69,11 @@ app.use('/api/admin', require('./routes/admin'));
 app.use('/api/problems', require('./routes/problemRoutes'));
 app.use('/api/code', require('./routes/codeRoutes'));
 app.use('/api/submissions', require('./routes/submissionRoutes'));
+app.use('/api/institute', require('./routes/instituteRoutes'));
 
 // Health check
 app.get('/api/health', (req, res) => {
-  res.json({ success: true, message: 'CareerForge API is running', timestamp: new Date() });
+  res.json({ success: true, message: 'CodeWave Solution API is running', timestamp: new Date() });
 });
 
 // Error handler
@@ -85,7 +86,7 @@ const startServer = async () => {
     
     const PORT = process.env.PORT || 5000;
     app.listen(PORT, async () => {
-      console.log(`\n🔥 CareerForge Server running on port ${PORT}`);
+      console.log(`\n🔥 CodeWave Solution Server running on port ${PORT}`);
       console.log(`📡 Environment: ${process.env.NODE_ENV}`);
       console.log(`🌐 Client URL: ${process.env.CLIENT_URL}\n`);
 

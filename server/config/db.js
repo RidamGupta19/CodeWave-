@@ -9,7 +9,7 @@ const connectWithTimeout = (uri) => mongoose.connect(uri, {
 
 const connectDB = async () => {
   try {
-    let uri = process.env.MONGODB_URI || 'mongodb://localhost:27017/careerforge';
+    let uri = process.env.MONGODB_URI || 'mongodb://localhost:27017/codewave';
 
     if (process.env.USE_MEMORY_DB === 'true' || !process.env.MONGODB_URI) {
       console.log('Starting in-memory MongoDB server...');

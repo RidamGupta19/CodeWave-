@@ -48,7 +48,7 @@ const dsaBadges = [
 
 async function seedDSA() {
   try {
-    const uri = process.env.MONGODB_URI || 'mongodb://localhost:27017/careerforge';
+    const uri = process.env.MONGODB_URI || 'mongodb://localhost:27017/codewave';
     await mongoose.connect(uri);
     console.log('✅ Connected to MongoDB');
 

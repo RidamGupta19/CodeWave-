@@ -5,17 +5,17 @@ const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(() => {
-    const saved = localStorage.getItem('cf_user');
+    const saved = localStorage.getItem('cw_user');
     return saved ? JSON.parse(saved) : null;
   });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const token = localStorage.getItem('cf_token');
+    const token = localStorage.getItem('cw_token');
     if (token) {
       api.get('/auth/me')
-        .then(r => { setUser(r.data.user); localStorage.setItem('cf_user', JSON.stringify(r.data.user)); })
-        .catch(() => { localStorage.removeItem('cf_token'); localStorage.removeItem('cf_user'); setUser(null); })
+        .then(r => { setUser(r.data.user); localStorage.setItem('cw_user', JSON.stringify(r.data.user)); })
+        .catch(() => { localStorage.removeItem('cw_token'); localStorage.removeItem('cw_user'); setUser(null); })
         .finally(() => setLoading(false));
     } else {
       setLoading(false);
@@ -24,30 +24,30 @@ export function AuthProvider({ children }) {
 
   const login = async (email, password) => {
     const { data } = await api.post('/auth/login', { email, password });
-    localStorage.setItem('cf_token', data.token);
-    localStorage.setItem('cf_user', JSON.stringify(data.user));
+    localStorage.setItem('cw_token', data.token);
+    localStorage.setItem('cw_user', JSON.stringify(data.user));
     setUser(data.user);
     return data;
   };
 
   const register = async (formData) => {
     const { data } = await api.post('/auth/register', formData);
-    localStorage.setItem('cf_token', data.token);
-    localStorage.setItem('cf_user', JSON.stringify(data.user));
+    localStorage.setItem('cw_token', data.token);
+    localStorage.setItem('cw_user', JSON.stringify(data.user));
     setUser(data.user);
     return data;
   };
 
   const logout = () => {
-    localStorage.removeItem('cf_token');
-    localStorage.removeItem('cf_user');
+    localStorage.removeItem('cw_token');
+    localStorage.removeItem('cw_user');
     setUser(null);
   };
 
   const refreshUser = async () => {
     const { data } = await api.get('/auth/me');
     setUser(data.user);
-    localStorage.setItem('cf_user', JSON.stringify(data.user));
+    localStorage.setItem('cw_user', JSON.stringify(data.user));
     return data.user;
   };
 

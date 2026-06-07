@@ -3,6 +3,9 @@ const User = require('../models/User');
 const Domain = require('../models/Domain');
 const Phase = require('../models/Phase');
 const Topic = require('../models/Topic');
+const Student = require('../models/Student');
+const Attendance = require('../models/Attendance');
+const Fee = require('../models/Fee');
 
 // Helper function to map database slugs to domainsProgress keys
 const getProgressKey = (slug) => {
@@ -195,8 +198,57 @@ const calculatePerformanceInsights = async (userId) => {
 };
 
 // Generate highly custom, data-driven answers when no real AI keys are configured
-const generateMockResponse = (userMessage, ins) => {
+const generateMockResponse = (userMessage, ins, instContext) => {
   const lowerMsg = userMessage.toLowerCase();
+
+  // 1. Attendance queries
+  if (lowerMsg.includes('attendance')) {
+    if (instContext && instContext.enrolled) {
+      return `According to CodeWave logs, your current attendance is **${instContext.attendancePct}%**. You have been marked present for **${instContext.presents}** out of **${instContext.totalClasses}** classes. 
+      
+Would you like tips on how to improve this, or do you have queries on a specific date?`;
+    }
+    return `You aren't active in any batch currently. Once our Admin registers your profile under the Institute section, you will see your real-time attendance rate here!`;
+  }
+
+  // 2. Fees queries
+  if (lowerMsg.includes('fee') || lowerMsg.includes('pay') || lowerMsg.includes('due') || lowerMsg.includes('financial')) {
+    if (instContext && instContext.enrolled && instContext.fees) {
+      const f = instContext.fees;
+      return `Here's your fee status for **${instContext.course}**:
+- **Expected Total**: ₹${f.totalFees}
+- **Paid Amount**: ₹${f.paidAmount}
+- **Remaining Balance**: ₹${f.remainingAmount}
+- **Status**: ${f.status}
+
+Is there anything else regarding payments or receipts I can clarify?`;
+    }
+    return `We don't have a fee registry for your account. Please ask our Admin to configure your Course selection to log fee invoices.`;
+  }
+
+  // 3. Course, Batch or Class timings
+  if (lowerMsg.includes('course') || lowerMsg.includes('batch') || lowerMsg.includes('class') || lowerMsg.includes('schedule') || lowerMsg.includes('time')) {
+    if (instContext && instContext.enrolled) {
+      return `You are enrolled in **${instContext.course}** under batch **${instContext.batch}**.
+      
+You can view upcoming calendar links directly on your [Class Scheduler](file:///institute/schedule) page. Would you like suggestions on learning roadmaps for this course?`;
+    }
+    return `You don't have any active course enrollment configured in CodeWave Solution. Would you like to select one of our career tracks in the Domains section?`;
+  }
+
+  // 4. Institute FAQs
+  if (lowerMsg.includes('faq') || lowerMsg.includes('institute') || lowerMsg.includes('codewave') || lowerMsg.includes('coaching') || lowerMsg.includes('wave')) {
+    return `CodeWave Solution is a premium tech coaching institute. We offer specialized tracks in Full Stack Development, DSA Masterclass, DevOps, Cloud Computing, and AWS.
+    
+Our classes include live interactive sessions, hands-on visual sandboxes, mock interviews, and placement assistance. What course are you hoping to master today?`;
+  }
+
+  // 5. Study Guidance
+  if (lowerMsg.includes('study') || lowerMsg.includes('material') || lowerMsg.includes('notes') || lowerMsg.includes('guidance')) {
+    return `To accelerate your learning, we recommend spending 30 minutes daily on coding practices. You can download teacher notes under [Study Materials](file:///institute/materials).
+    
+Would you like me to suggest a specific project or outline a DSA learning timeline for you?`;
+  }
 
   // 1. Analyze performance / Weak topics
   if (lowerMsg.includes('weak') || lowerMsg.includes('improve') || lowerMsg.includes('performance') || lowerMsg.includes('analyze')) {
@@ -260,7 +312,7 @@ Tell me, what is your primary goal: building visual websites/apps, cracking tech
   // 7. ChatGPT style fallback for general questions
   if (!lowerMsg.includes('weak') && !lowerMsg.includes('learn next') && !lowerMsg.includes('weekly') && !lowerMsg.includes('project') && !lowerMsg.includes('readiness') && !lowerMsg.includes('internship') && !lowerMsg.includes('job')) {
     if (lowerMsg.length < 10) {
-      return `Hey! I'm Code Guru, your coding companion. What concepts or challenges are you exploring today?`;
+      return `Hey! I'm CodeWave AI Assistant, your coding companion. What concepts or challenges are you exploring today?`;
     }
 
     return `Got it! Usually, the best way to tackle this is to write a small test script and print the outputs. 
@@ -269,7 +321,7 @@ Do you want to write a quick experiment in the sandbox, or do you want me to exp
   }
 
   // 8. Default fallback
-  return `Hey there! Code Guru here. Currently tracking your progress in Phase ${ins.phase} of **${ins.domain}**.
+  return `Hey there! CodeWave AI Assistant here. Currently tracking your progress in Phase ${ins.phase} of **${ins.domain}**.
 
 What's on your mind: roadmap strategy, performance insights, or code help?`;
 };
@@ -291,6 +343,53 @@ exports.chat = async (req, res) => {
     // Calculate actual data-driven performance insights
     const insights = await calculatePerformanceInsights(req.user._id);
 
+    // Fetch Institute Management Context
+    let instituteContextStr = "No active batch/course enrollment.";
+    let instContext = { enrolled: false };
+    
+    try {
+      const studentProfile = await Student.findOne({ userId: req.user._id })
+        .populate('course')
+        .populate('batch');
+      if (studentProfile) {
+        // Attendance
+        const attRecords = await Attendance.find({ studentId: studentProfile._id });
+        const totAtt = attRecords.length;
+        const presAtt = attRecords.filter(a => a.status === 'Present').length;
+        const attPct = totAtt > 0 ? Math.round((presAtt / totAtt) * 100) : 100;
+
+        // Fees
+        const feeRecord = await Fee.findOne({ student: studentProfile._id });
+        const feeStr = feeRecord 
+          ? `Expected: ${feeRecord.totalFees}, Paid: ${feeRecord.paidAmount}, Remaining: ${feeRecord.remainingAmount}, Status: ${feeRecord.status}`
+          : "No billing record found.";
+
+        instContext = {
+          enrolled: true,
+          course: studentProfile.course?.courseName || 'None',
+          batch: studentProfile.batch?.batchName || 'None',
+          attendancePct: attPct,
+          presents: presAtt,
+          totalClasses: totAtt,
+          fees: feeRecord ? {
+            totalFees: feeRecord.totalFees,
+            paidAmount: feeRecord.paidAmount,
+            remainingAmount: feeRecord.remainingAmount,
+            status: feeRecord.status
+          } : null
+        };
+
+        instituteContextStr = `
+        - Enrolled Course: ${instContext.course}
+        - Enrolled Batch: ${instContext.batch}
+        - Attendance Percentage: ${instContext.attendancePct}% (${instContext.presents} present out of ${instContext.totalClasses} total classes)
+        - Fees Ledger: ${feeStr}
+        `;
+      }
+    } catch (dbErr) {
+      console.log('Error pulling institute context for AI:', dbErr.message);
+    }
+
     let aiResponse;
 
     // Try real AI API if configured
@@ -302,38 +401,31 @@ exports.chat = async (req, res) => {
         let body;
         let headers = { 'Content-Type': 'application/json' };
 
-        const onboardingSummary = user.profile?.onboardingAnswers 
-          ? Object.entries(user.profile.onboardingAnswers)
-              .filter(([k]) => k !== 'dsaAnalysis')
-              .map(([key, val]) => `- ${key.replace(/_/g, ' ')}: ${Array.isArray(val) ? val.join(', ') : val}`)
-              .join('\n')
-          : 'None provided';
-
-        const systemInstructions = `You are Code Guru, a smart, humanized senior developer friend, supportive guide, and interactive coding mentor for engineering students.
+        const systemInstructions = `You are CodeWave AI Assistant, a smart, humanized senior developer friend, supportive guide, and interactive coaching mentor for CodeWave Solution students.
         
         CRITICAL CONVERSATION RULES:
         1. Keep responses extremely short: 2 to 6 lines maximum by default. Never dump giant explanations or write blog posts. Only provide deep explanations if specifically asked.
         2. Speak in a natural, casual, human conversational flow (like a real chat on Slack/Discord). Avoid robotic or over-structured markdown headers (no giant ### sections unless necessary).
         3. Make the user interact continuously: ALWAYS end your response with a short, natural follow-up or preference-based question (e.g. asking which option they prefer, what their goal is, or what is blocking them).
         4. Guide the user step-by-step using back-and-forth interaction instead of dumping all information at once.
-        5. Naturally reference their metrics when relevant (streaks, preferred language, progress, weak topics) to personalize the chat. Celebrate their streaks, react to progress, or tease them gently on inconsistency (e.g., if streak is 0, tease them or tell them to solve 1 challenge). Do NOT repeat metrics redundantly.
+        5. Naturally reference their metrics when relevant (streaks, preferred language, progress, weak topics) to personalize the chat. Celebrate their streaks, react to progress, or tease them gently on inconsistency.
         
         Student's context:
         - Domain: ${insights.domain} (Lvl ${insights.phase}, Progress ${insights.progress}%)
         - Streak: ${insights.streak} days (Consistency: ${insights.consistency})
         - Learning Language: ${insights.preferredLang}
         
+        CodeWave Solution Institute Context:
+        ${instituteContextStr}
+        
+        You are fully capable of answering student queries regarding their attendance percentage, remaining fees, batch schedule, study guidance, or institute FAQs based on the context above.
+        
         Current Editor Context (if applicable):
         - Code Language: ${language || 'None provided'}
         - User's Code: \n\`\`\`\n${codeContext || 'No code provided'}\n\`\`\`
         - Current Compiler Error: ${currentError || 'None'}
         
-        If the user asks for help with an error or code, reference specific line numbers from the provided code. Suggest approaches and hint at the solution without giving away the complete final code immediately.
-        
-        Examples of style:
-        - If they ask "what domain should I choose", reply with: "You already started with ${insights.preferredLang}. What interests you more: Web Dev, AI, placements, or app dev?"
-        - If their streak is 0: "Hey, streak is at 0 days! Let's write 5 lines of code today to start the fire. What's holding you back?"
-        - Keep formatting light: casual lists or brief bullet points. Avoid sounding like a textbook.`;
+        If the user asks for help with an error or code, reference specific line numbers from the provided code. Suggest approaches and hint at the solution without giving away the complete final code immediately.`;
 
         if (isGemini) {
           url = `${process.env.AI_API_URL}?key=${process.env.AI_API_KEY}`;
@@ -373,16 +465,16 @@ exports.chat = async (req, res) => {
         const data = await response.json();
         
         if (isGemini) {
-          aiResponse = data.candidates?.[0]?.content?.parts?.[0]?.text || generateMockResponse(message, insights);
+          aiResponse = data.candidates?.[0]?.content?.parts?.[0]?.text || generateMockResponse(message, insights, instContext);
         } else {
-          aiResponse = data.choices?.[0]?.message?.content || generateMockResponse(message, insights);
+          aiResponse = data.choices?.[0]?.message?.content || generateMockResponse(message, insights, instContext);
         }
       } catch (apiError) {
         console.log('AI API error, using mock:', apiError.message);
-        aiResponse = generateMockResponse(message, insights);
+        aiResponse = generateMockResponse(message, insights, instContext);
       }
     } else {
-      aiResponse = generateMockResponse(message, insights);
+      aiResponse = generateMockResponse(message, insights, instContext);
     }
 
     // Save AI response

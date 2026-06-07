@@ -129,7 +129,7 @@ const ZeroToCoding = () => {
     if (user?.profile?.zeroToCoding) {
       setUserState(user.profile.zeroToCoding);
     } else {
-      const local = localStorage.getItem('careerforge_zero_to_coding');
+      const local = localStorage.getItem('codewave_zero_to_coding');
       if (local) {
         try {
           setUserState(JSON.parse(local));
@@ -164,7 +164,7 @@ const ZeroToCoding = () => {
   // Sync to database and LocalStorage
   const saveUserState = async (updated) => {
     setUserState(updated);
-    localStorage.setItem('careerforge_zero_to_coding', JSON.stringify(updated));
+    localStorage.setItem('codewave_zero_to_coding', JSON.stringify(updated));
     
     try {
       await api.put('/auth/profile', {

@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: careerforge-backend
+    name: codewave-backend
     env: node
     rootDir: server
     buildCommand: npm install

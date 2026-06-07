@@ -28,9 +28,9 @@ exports.submitSuggestion = async (req, res) => {
     });
 
     const mailOptions = {
-      from: `"CareerForge Alerts" <${process.env.EMAIL_USER}>`,
+      from: `"CodeWave Solution Alerts" <${process.env.EMAIL_USER}>`,
       to: 'omshivhare666@gmail.com, ridamg636@gmail.com',
-      subject: `CareerForge Suggestion: ${suggestionType || 'General Feedback'}`,
+      subject: `CodeWave Solution Suggestion: ${suggestionType || 'General Feedback'}`,
       html: `
         <h2>New Suggestion Received</h2>
         <p><strong>From:</strong> ${user.fullName} (${user.email})</p>

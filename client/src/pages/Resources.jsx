@@ -43,7 +43,7 @@ const Resources = () => {
           Free Perks & Tools
         </h1>
         <p className="text-[#667085] text-lg font-medium max-w-2xl">
-          Exclusive credits, premium software, and developer tools curated for the CareerForge engineering community.
+          Exclusive credits, premium software, and developer tools curated for the CodeWave Solution engineering community.
         </p>
       </div>
 

@@ -10,7 +10,7 @@ import { analyzeDsaProfile, normalizeDsaLanguage } from '../utils/dsaPersonaliza
 const Onboarding = () => {
   const navigate = useNavigate();
   const { user, refreshUser } = useAuth();
-  const [theme, setTheme] = useState(() => localStorage.getItem('careerforge_theme') || 'light');
+  const [theme, setTheme] = useState(() => localStorage.getItem('codewave_theme') || 'light');
   const [currentStep, setCurrentStep] = useState(0);
   const [answers, setAnswers] = useState({});
   const [loading, setLoading] = useState(false);
@@ -129,7 +129,7 @@ const Onboarding = () => {
   const toggleTheme = () => {
     const nextTheme = theme === 'dark' ? 'light' : 'dark';
     setTheme(nextTheme);
-    localStorage.setItem('careerforge_theme', nextTheme);
+    localStorage.setItem('codewave_theme', nextTheme);
     window.dispatchEvent(new Event('themechange'));
   };
 

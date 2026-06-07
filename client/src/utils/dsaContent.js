@@ -1412,7 +1412,7 @@ export const getDsaLanguageContent = (topicTitle, languageKey = 'cpp', difficult
     recommendations: `Complete all 4 Progression Ladder steps to earn your Badge for this Level!`,
     resources: [
       { name: 'Striver A2Z DSA Sheet', url: 'https://takeuforward.org/strivers-a2z-dsa-course/strivers-a2z-dsa-course-sheet-2/' },
-      { name: 'CareerForge DSA Community Playground', url: 'https://leetcode.com' },
+      { name: 'CodeWave DSA Community Playground', url: 'https://leetcode.com' },
     ],
   };
 };

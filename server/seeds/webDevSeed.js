@@ -215,7 +215,7 @@ if (require.main === module) {
   const dotenv = require('dotenv');
   dotenv.config({ path: '.env' });
   
-  mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/careerforge')
+  mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/codewave')
     .then(() => {
       console.log('📡 Connected to MongoDB for seeding...');
       return seedAllDomains();

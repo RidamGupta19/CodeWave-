@@ -1,7 +1,7 @@
 {
-  "name": "careerforge-server",
+  "name": "codewave-server",
   "version": "1.0.0",
-  "description": "CareerForge Backend API Server",
+  "description": "CodeWave Solution Backend API Server",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
@@ -24,7 +24,7 @@
     "check:xp": "node scripts/checkXP.js"
   },
   "keywords": [
-    "careerforge",
+    "codewave",
     "career",
     "roadmap",
     "education"

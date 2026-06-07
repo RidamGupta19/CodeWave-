@@ -6,12 +6,13 @@ import {
   FiMap, FiList, FiCheckSquare, FiMessageSquare, FiGift, FiBookOpen, FiZap, FiUsers
 } from 'react-icons/fi';
 import { MdOutlineDashboard } from "react-icons/md";
+import Logo from './Logo';
 
 const Navbar = ({ isAdmin }) => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const notifRef = useRef(null);
-  const [theme, setTheme] = useState(() => localStorage.getItem('careerforge_theme') || 'light');
+  const [theme, setTheme] = useState(() => localStorage.getItem('codewave_theme') || 'light');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const [isNotifMenuOpen, setIsNotifMenuOpen] = useState(false);
@@ -33,7 +34,7 @@ const Navbar = ({ isAdmin }) => {
 
   useEffect(() => {
     const handleThemeChange = () => {
-      setTheme(localStorage.getItem('careerforge_theme') || 'light');
+      setTheme(localStorage.getItem('codewave_theme') || 'light');
     };
     window.addEventListener('themechange', handleThemeChange);
     return () => window.removeEventListener('themechange', handleThemeChange);
@@ -41,7 +42,7 @@ const Navbar = ({ isAdmin }) => {
 
   const toggleTheme = () => {
     const nextTheme = theme === 'dark' ? 'light' : 'dark';
-    localStorage.setItem('careerforge_theme', nextTheme);
+    localStorage.setItem('codewave_theme', nextTheme);
     window.dispatchEvent(new Event('themechange'));
   };
 
@@ -78,14 +79,8 @@ const Navbar = ({ isAdmin }) => {
             <FiMenu className="text-2xl" />
           </button>
           
-          <Link to="/" className="flex items-center gap-2 group outline-none">
-            <div className="w-9 h-9 rounded-xl bg-[var(--primary)] flex items-center justify-center text-white font-extrabold text-lg shadow-md group-hover:scale-105 transition-transform shrink-0">
-              CF
-            </div>
-            <div className="hidden sm:block">
-              <h1 className="text-xl font-black tracking-tight text-[var(--text-main)] leading-none">CareerForge</h1>
-              <div className="text-[8px] font-black text-[var(--secondary)] uppercase tracking-[0.2em] mt-0.5">Geek in Training</div>
-            </div>
+          <Link to="/" className="outline-none">
+            <Logo />
           </Link>
         </div>
 
@@ -210,9 +205,8 @@ const Navbar = ({ isAdmin }) => {
           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setIsMobileMenuOpen(false)}></div>
           <div className="relative w-72 max-w-full bg-[var(--bg-card)] h-full shadow-2xl flex flex-col transform transition-transform duration-300">
             <div className="p-4 border-b border-[var(--border)] flex items-center justify-between">
-              <Link to="/" className="flex items-center gap-2" onClick={() => setIsMobileMenuOpen(false)}>
-                <div className="w-8 h-8 rounded-lg bg-[var(--primary)] flex items-center justify-center text-white font-extrabold text-sm shadow-md">CF</div>
-                <h1 className="text-lg font-black tracking-tight text-[var(--text-main)]">CareerForge</h1>
+              <Link to="/" onClick={() => setIsMobileMenuOpen(false)}>
+                <Logo textClassName="text-lg" />
               </Link>
               <button onClick={() => setIsMobileMenuOpen(false)} className="p-2 text-[var(--text-muted)] hover:bg-[var(--bg-sub)] rounded-lg">
                 <FiX className="text-xl" />
