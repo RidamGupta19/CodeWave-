@@ -435,35 +435,63 @@ exports.deleteBatch = async (req, res) => {
 // ==========================================
 exports.markAttendance = async (req, res) => {
   try {
-    const { batchId, date, records } = req.body; // records: [{ studentId, status }]
-    
+    const { batchId, date, courseId, records } = req.body; // records: [{ studentId, status }]
+
+    // Input Validation
+    if (!batchId) {
+      return res.status(400).json({ success: false, message: 'Batch ID is required' });
+    }
+    if (!date) {
+      return res.status(400).json({ success: false, message: 'Date is required' });
+    }
+    if (!records || !Array.isArray(records) || records.length === 0) {
+      return res.status(400).json({ success: false, message: 'Records array is required and cannot be empty' });
+    }
+
     // Find teacher
     const teacher = await Teacher.findOne({ userId: req.user._id });
     if (!teacher && req.user.role !== 'admin') {
-      return res.status(403).json({ success: false, message: 'Only instructors can log attendance.' });
+      return res.status(403).json({ success: false, message: 'Only instructors or admins can log attendance.' });
     }
-    const teacherId = teacher ? teacher._id : null;
+    const teacherId = teacher ? teacher._id : req.user._id;
 
     const formattedDate = new Date(date);
     formattedDate.setHours(0,0,0,0);
 
     const logs = [];
     for (const record of records) {
-      const studentObj = await Student.findById(record.studentId);
-      const courseId = studentObj ? studentObj.course : null;
+      if (!record.studentId || !record.status) {
+        return res.status(400).json({ success: false, message: 'Each record must have a studentId and status' });
+      }
+      if (!['Present', 'Absent', 'Leave'].includes(record.status)) {
+        return res.status(400).json({ success: false, message: `Invalid status '${record.status}'. Must be Present, Absent, or Leave` });
+      }
 
-      const query = { studentId: record.studentId, batchId, date: formattedDate };
+      // Fetch student to get default course if not supplied
+      const studentObj = await Student.findById(record.studentId);
+      if (!studentObj) {
+        return res.status(404).json({ success: false, message: `Student not found with ID: ${record.studentId}` });
+      }
+      const finalCourseId = courseId || studentObj.course;
+
+      const query = { 
+        studentId: record.studentId, 
+        batchId, 
+        date: formattedDate,
+        courseId: finalCourseId
+      };
+      
       const update = { 
         status: record.status,
-        teacherId: teacherId || req.user._id, // Fallback to admin id
-        courseId
+        teacherId,
+        courseId: finalCourseId
       };
       
       const attendance = await Attendance.findOneAndUpdate(query, update, { upsert: true, new: true });
       logs.push(attendance);
     }
 
-    res.json({ success: true, data: logs });
+    res.json({ success: true, message: 'Attendance records saved successfully', data: logs });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }
@@ -471,20 +499,38 @@ exports.markAttendance = async (req, res) => {
 
 exports.getAttendance = async (req, res) => {
   try {
-    const { batchId, studentId, date } = req.query;
+    const { batchId, studentId, courseId, status, startDate, endDate, date } = req.query;
     let query = {};
+    
     if (batchId) query.batchId = batchId;
     if (studentId) query.studentId = studentId;
+    if (courseId) query.courseId = courseId;
+    if (status) query.status = status;
+    
     if (date) {
       const searchDate = new Date(date);
       searchDate.setHours(0,0,0,0);
       query.date = searchDate;
+    } else if (startDate || endDate) {
+      query.date = {};
+      if (startDate) {
+        const start = new Date(startDate);
+        start.setHours(0,0,0,0);
+        query.date.$gte = start;
+      }
+      if (endDate) {
+        const end = new Date(endDate);
+        end.setHours(23,59,59,999);
+        query.date.$lte = end;
+      }
     }
 
     const attendanceRecords = await Attendance.find(query)
       .populate('studentId')
       .populate('batchId')
-      .populate('teacherId');
+      .populate('teacherId')
+      .populate('courseId')
+      .sort({ date: -1 });
 
     res.json({ success: true, data: attendanceRecords });
   } catch (err) {

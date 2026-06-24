@@ -33,7 +33,11 @@ const attendanceSchema = new mongoose.Schema({
   }
 }, { timestamps: true });
 
-// Avoid duplicate attendance for a student on the same date and batch
-attendanceSchema.index({ studentId: 1, batchId: 1, date: 1 }, { unique: true });
+// Avoid duplicate attendance for a student on the same date, batch, and subject (course)
+attendanceSchema.index({ studentId: 1, batchId: 1, date: 1, courseId: 1 }, { unique: true });
+
+// Optimize query performance for batch roster loads, reports and date filtering
+attendanceSchema.index({ batchId: 1, date: 1 });
+attendanceSchema.index({ courseId: 1 });
 
 module.exports = mongoose.model('Attendance', attendanceSchema);
