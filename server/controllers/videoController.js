@@ -91,9 +91,23 @@ exports.deleteVideo = async (req, res) => {
 // @access  Private (Student only)
 exports.getVideoProgress = async (req, res) => {
   try {
-    const progress = await VideoProgress.find({ user: req.user._id })
-      .populate('video');
-    res.json({ success: true, data: progress });
+    let query = {};
+    
+    if (req.user.role === 'teacher' || req.user.role === 'admin') {
+      const { videoId } = req.query;
+      if (videoId) {
+        query.video = videoId;
+      }
+      const progress = await VideoProgress.find(query)
+        .populate('user', 'fullName email')
+        .populate('video');
+      return res.json({ success: true, data: progress });
+    } else {
+      query.user = req.user._id;
+      const progress = await VideoProgress.find(query)
+        .populate('video');
+      return res.json({ success: true, data: progress });
+    }
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }

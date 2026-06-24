@@ -75,4 +75,7 @@ router.get('/videos/progress', vc.getVideoProgress);
 router.post('/videos/:id/progress', vc.saveVideoProgress);
 router.post('/videos/:id/complete', vc.toggleVideoComplete);
 
+// 13. Teacher Results
+router.get('/results/teacher', authorize('teacher'), c.getTeacherStudentResults);
+
 module.exports = router;

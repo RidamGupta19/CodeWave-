@@ -57,6 +57,20 @@ import StudentResults from './pages/student/StudentResults';
 import StudentNotifications from './pages/student/StudentNotifications';
 import StudentProfile from './pages/student/StudentProfile';
 
+// Teacher Pages
+import TeacherDashboard from './pages/teacher/TeacherDashboard';
+import TeacherBatches from './pages/teacher/TeacherBatches';
+import TeacherStudents from './pages/teacher/TeacherStudents';
+import TeacherAttendance from './pages/teacher/TeacherAttendance';
+import TeacherLiveClasses from './pages/teacher/TeacherLiveClasses';
+import TeacherVideoLectures from './pages/teacher/TeacherVideoLectures';
+import TeacherNotes from './pages/teacher/TeacherNotes';
+import TeacherAssignments from './pages/teacher/TeacherAssignments';
+import TeacherAssessments from './pages/teacher/TeacherAssessments';
+import TeacherResults from './pages/teacher/TeacherResults';
+import TeacherNotifications from './pages/teacher/TeacherNotifications';
+import TeacherProfile from './pages/teacher/TeacherProfile';
+
 function App() {
   return (
     <AuthProvider>
@@ -99,6 +113,24 @@ function App() {
               <Route path="/student/results" element={<StudentResults />} />
               <Route path="/student/notifications" element={<StudentNotifications />} />
               <Route path="/student/profile" element={<StudentProfile />} />
+            </Route>
+          </Route>
+
+          {/* Teacher Only Routes */}
+          <Route element={<ProtectedRoute allowedRoles={['teacher']} />}>
+            <Route element={<Layout />}>
+              <Route path="/teacher/dashboard" element={<TeacherDashboard />} />
+              <Route path="/teacher/batches" element={<TeacherBatches />} />
+              <Route path="/teacher/students" element={<TeacherStudents />} />
+              <Route path="/teacher/attendance" element={<TeacherAttendance />} />
+              <Route path="/teacher/live-classes" element={<TeacherLiveClasses />} />
+              <Route path="/teacher/video-lectures" element={<TeacherVideoLectures />} />
+              <Route path="/teacher/notes" element={<TeacherNotes />} />
+              <Route path="/teacher/assignments" element={<TeacherAssignments />} />
+              <Route path="/teacher/assessments" element={<TeacherAssessments />} />
+              <Route path="/teacher/results" element={<TeacherResults />} />
+              <Route path="/teacher/notifications" element={<TeacherNotifications />} />
+              <Route path="/teacher/profile" element={<TeacherProfile />} />
             </Route>
           </Route>
 

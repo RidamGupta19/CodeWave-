@@ -323,3 +323,79 @@ exports.googleLogin = async (req, res) => {
     res.status(500).json({ success: false, message: error.message });
   }
 };
+
+// @desc    Get teacher profile details
+// @route   GET /api/auth/teacher-profile
+// @access  Private (teacher only)
+exports.getTeacherProfile = async (req, res) => {
+  try {
+    const Teacher = require('../models/Teacher');
+    const teacher = await Teacher.findOne({ userId: req.user._id });
+
+    if (!teacher) {
+      return res.status(404).json({ success: false, message: 'Teacher profile not found' });
+    }
+
+    const user = await User.findById(req.user._id).select('-password');
+
+    res.json({
+      success: true,
+      data: {
+        user,
+        teacher
+      }
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// @desc    Update teacher profile details
+// @route   PUT /api/auth/teacher-profile
+// @access  Private (teacher only)
+exports.updateTeacherProfile = async (req, res) => {
+  try {
+    const { fullName, phone, subject, qualification, experience, avatar } = req.body;
+    
+    const user = await User.findById(req.user._id);
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+
+    const Teacher = require('../models/Teacher');
+    const teacher = await Teacher.findOne({ userId: req.user._id });
+    if (!teacher) {
+      return res.status(404).json({ success: false, message: 'Teacher profile not found' });
+    }
+
+    if (fullName) user.fullName = fullName;
+    if (phone !== undefined) user.phone = phone;
+    if (avatar !== undefined) user.avatar = avatar;
+    await user.save();
+
+    if (fullName) teacher.name = fullName;
+    if (phone !== undefined) teacher.phone = phone;
+    if (subject !== undefined) teacher.subject = subject;
+    if (qualification !== undefined) teacher.qualification = qualification;
+    if (experience !== undefined) teacher.experience = experience;
+    await teacher.save();
+
+    res.json({
+      success: true,
+      data: {
+        user: {
+          _id: user._id,
+          fullName: user.fullName,
+          email: user.email,
+          phone: user.phone,
+          avatar: user.avatar,
+          role: user.role
+        },
+        teacher
+      }
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+

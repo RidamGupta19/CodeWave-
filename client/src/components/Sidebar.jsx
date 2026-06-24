@@ -35,6 +35,21 @@ export default function Sidebar() {
     { name: 'Profile', path: '/student/profile', icon: <FiUsers /> },
   ];
 
+  const teacherLinks = [
+    { name: 'Dashboard', path: '/teacher/dashboard', icon: <MdOutlineDashboard /> },
+    { name: 'My Batches', path: '/teacher/batches', icon: <FiUsers /> },
+    { name: 'Students', path: '/teacher/students', icon: <FiUsers /> },
+    { name: 'Attendance', path: '/teacher/attendance', icon: <FiClock /> },
+    { name: 'Live Classes', path: '/teacher/live-classes', icon: <FiVideo /> },
+    { name: 'Video Lectures', path: '/teacher/video-lectures', icon: <FiPlay /> },
+    { name: 'Notes', path: '/teacher/notes', icon: <FiFolder /> },
+    { name: 'Assignments', path: '/teacher/assignments', icon: <FiFileText /> },
+    { name: 'Assessments', path: '/teacher/assessments', icon: <FiCheckSquare /> },
+    { name: 'Results', path: '/teacher/results', icon: <FiAward /> },
+    { name: 'Notifications', path: '/teacher/notifications', icon: <FiBell /> },
+    { name: 'Profile', path: '/teacher/profile', icon: <FiSettings /> },
+  ];
+
   const careerLinks = [
     { name: 'Dashboard', path: '/dashboard', icon: <MdOutlineDashboard /> },
     { name: 'Domains', path: '/domains', icon: <FiList /> },
@@ -85,6 +100,30 @@ export default function Sidebar() {
             </div>
             <nav className="space-y-1">
               {studentLinks.map((link) => (
+                <NavLink
+                  key={link.name}
+                  to={link.path}
+                  className={({ isActive }) => 
+                    `flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-bold transition-all ${
+                      isActive 
+                        ? 'bg-[var(--primary)] text-white shadow-md shadow-[var(--primary)]/20' 
+                        : 'text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--bg-sub)]'
+                    }`
+                  }
+                >
+                  <span className="text-lg">{link.icon}</span>
+                  <span>{link.name}</span>
+                </NavLink>
+              ))}
+            </nav>
+          </div>
+        ) : user.role === 'teacher' ? (
+          <div>
+            <div className="text-[10px] font-black text-[var(--text-light)] uppercase tracking-wider pl-3 mb-2.5">
+              Teacher Portal
+            </div>
+            <nav className="space-y-1">
+              {teacherLinks.map((link) => (
                 <NavLink
                   key={link.name}
                   to={link.path}

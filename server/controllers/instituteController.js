@@ -37,6 +37,30 @@ exports.getStudents = async (req, res) => {
     const { search, course, batch, status } = req.query;
     let query = {};
 
+    if (req.user.role === 'teacher') {
+      const teacher = await Teacher.findOne({ userId: req.user._id });
+      if (teacher) {
+        const teacherBatches = await Batch.find({ assignedTeacher: teacher._id });
+        const batchIds = teacherBatches.map(tb => tb._id);
+        
+        if (batch) {
+          // If a specific batch is queried, make sure the teacher is assigned to it
+          if (batchIds.map(id => id.toString()).includes(batch.toString())) {
+            query.batch = batch;
+          } else {
+            return res.json({ success: true, data: [] });
+          }
+        } else {
+          // Otherwise, filter by any of the teacher's batches
+          query.batch = { $in: batchIds };
+        }
+      } else {
+        return res.json({ success: true, data: [] });
+      }
+    } else {
+      if (batch) query.batch = batch;
+    }
+
     if (search) {
       query.$or = [
         { fullName: { $regex: search, $options: 'i' } },
@@ -45,7 +69,6 @@ exports.getStudents = async (req, res) => {
       ];
     }
     if (course) query.course = course;
-    if (batch) query.batch = batch;
     if (status) query.status = status;
 
     const students = await Student.find(query)
@@ -319,7 +342,17 @@ exports.deleteCourse = async (req, res) => {
 // ==========================================
 exports.getBatches = async (req, res) => {
   try {
-    const batches = await Batch.find({})
+    let query = {};
+    if (req.user.role === 'teacher') {
+      const teacher = await Teacher.findOne({ userId: req.user._id });
+      if (teacher) {
+        query.assignedTeacher = teacher._id;
+      } else {
+        return res.json({ success: true, data: [] });
+      }
+    }
+
+    const batches = await Batch.find(query)
       .populate('assignedTeacher')
       .populate('students');
     res.json({ success: true, data: batches });
@@ -686,6 +719,24 @@ exports.getStudyMaterials = async (req, res) => {
         query.batch = student.batch;
         query.course = student.course;
       }
+    } else if (req.user.role === 'teacher') {
+      const teacher = await Teacher.findOne({ userId: req.user._id });
+      if (teacher) {
+        const teacherBatches = await Batch.find({ assignedTeacher: teacher._id });
+        const batchIds = teacherBatches.map(tb => tb._id);
+        
+        query.$or = [
+          { uploadedBy: req.user._id },
+          { batch: { $in: batchIds } }
+        ];
+
+        if (courseId) query.course = courseId;
+        if (batchId && batchIds.map(id => id.toString()).includes(batchId.toString())) {
+          query.batch = batchId;
+        }
+      } else {
+        return res.json({ success: true, data: [] });
+      }
     } else {
       if (courseId) query.course = courseId;
       if (batchId) query.batch = batchId;
@@ -854,6 +905,19 @@ exports.getAssignments = async (req, res) => {
       if (student) {
         query.batch = student.batch;
       }
+    } else if (req.user.role === 'teacher') {
+      const teacher = await Teacher.findOne({ userId: req.user._id });
+      if (teacher) {
+        const teacherBatches = await Batch.find({ assignedTeacher: teacher._id });
+        const batchIds = teacherBatches.map(tb => tb._id);
+        
+        query.$or = [
+          { uploadedBy: req.user._id },
+          { batch: { $in: batchIds } }
+        ];
+      } else {
+        return res.json({ success: true, data: [] });
+      }
     }
 
     const assignments = await Assignment.find(query)
@@ -986,20 +1050,57 @@ exports.getTeacherDashboard = async (req, res) => {
     const batches = await Batch.find({ assignedTeacher: teacher._id }).populate('students');
     const studentCount = batches.reduce((acc, b) => acc + b.students.length, 0);
 
-    const today = new Date();
-    today.setHours(0,0,0,0);
-    const schedules = await Schedule.find({ teacher: teacher._id, date: today }).populate('batch').populate('course');
+    const now = new Date();
+    // Get all schedules for this teacher today or in the future
+    const startOfToday = new Date();
+    startOfToday.setHours(0, 0, 0, 0);
+    const schedules = await Schedule.find({ 
+      teacher: teacher._id, 
+      date: { $gte: startOfToday } 
+    }).populate('batch').populate('course').sort({ date: 1 });
 
-    const assignments = await Assignment.find({ uploadedBy: req.user._id });
+    // Pending assignments count
+    const teacherAssignments = await Assignment.find({ uploadedBy: req.user._id });
+    let pendingAssignmentsCount = 0;
+    teacherAssignments.forEach(a => {
+      pendingAssignmentsCount += a.submissions.filter(s => s.status === 'Pending').length;
+    });
+
+    // Recent announcements/notices
+    const notices = await Notice.find({ 
+      targetRoles: { $in: ['all', 'teacher'] } 
+    }).sort({ createdAt: -1 }).limit(5);
+
+    // Attendance summary for teacher's batches
+    const batchIds = batches.map(b => b._id);
+    const Attendance = require('../models/Attendance');
+    const attendanceRecords = await Attendance.find({ batchId: { $in: batchIds } });
+    const totalAtt = attendanceRecords.length;
+    const presentAtt = attendanceRecords.filter(a => a.status === 'Present').length;
+    const leaveAtt = attendanceRecords.filter(a => a.status === 'Leave').length;
+    const attendancePercentage = totalAtt > 0 ? Math.round(((presentAtt + leaveAtt) / totalAtt) * 100) : 100;
 
     res.json({
       success: true,
       data: {
         teacher,
-        batches,
+        totalBatches: batches.length,
         studentCount,
-        todayClasses: schedules,
-        assignmentsCount: assignments.length
+        upcomingClasses: schedules,
+        pendingAssignmentsCount,
+        recentAnnouncements: notices,
+        attendanceSummary: {
+          totalRecords: totalAtt,
+          presentCount: presentAtt,
+          leaveCount: leaveAtt,
+          percentage: attendancePercentage
+        },
+        batches: batches.map(b => ({
+          _id: b._id,
+          batchName: b.batchName,
+          studentCount: b.students.length,
+          timing: b.timing
+        }))
       }
     });
   } catch (err) {
@@ -1069,6 +1170,31 @@ exports.getStudentDashboard = async (req, res) => {
         materialsCount: await StudyMaterial.countDocuments({ batch: student.batch })
       }
     });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+exports.getTeacherStudentResults = async (req, res) => {
+  try {
+    const teacher = await Teacher.findOne({ userId: req.user._id });
+    if (!teacher) return res.status(404).json({ success: false, message: 'Teacher profile not found' });
+
+    const teacherBatches = await Batch.find({ assignedTeacher: teacher._id });
+    const batchIds = teacherBatches.map(tb => tb._id);
+
+    const students = await Student.find({ batch: { $in: batchIds } })
+      .populate({
+        path: 'userId',
+        select: 'fullName email testResults',
+        populate: {
+          path: 'testResults.assessmentId',
+          select: 'title passingScore platform'
+        }
+      })
+      .populate('batch');
+
+    res.json({ success: true, data: students });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }

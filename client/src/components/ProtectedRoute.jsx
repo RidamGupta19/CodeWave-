@@ -16,13 +16,18 @@ const ProtectedRoute = ({ allowedRoles }) => {
   }
 
   if (allowedRoles && !allowedRoles.includes(user.role)) {
-    const redirectPath = user.role === 'student' ? '/student/dashboard' : '/dashboard';
+    const redirectPath = 
+      user.role === 'student' ? '/student/dashboard' : 
+      user.role === 'teacher' ? '/teacher/dashboard' : '/admin';
     return <Navigate to={redirectPath} replace />;
   }
 
-  // Redirect student from generic /dashboard to /student/dashboard
+  // Redirect to correct dashboard based on role
   if (user.role === 'student' && location.pathname === '/dashboard') {
     return <Navigate to="/student/dashboard" replace />;
+  }
+  if (user.role === 'teacher' && location.pathname === '/dashboard') {
+    return <Navigate to="/teacher/dashboard" replace />;
   }
 
   // If student hasn't selected a domain, redirect to /domains

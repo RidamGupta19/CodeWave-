@@ -8,7 +8,9 @@ const {
   googleLogin,
   getStudentProfile,
   updateStudentProfile,
-  changePassword
+  changePassword,
+  getTeacherProfile,
+  updateTeacherProfile
 } = require('../controllers/authController');
 const { protect } = require('../middleware/auth');
 
@@ -20,6 +22,9 @@ router.put('/profile', protect, updateProfile);
 
 router.get('/student-profile', protect, getStudentProfile);
 router.put('/student-profile', protect, updateStudentProfile);
+router.get('/teacher-profile', protect, getTeacherProfile);
+router.put('/teacher-profile', protect, updateTeacherProfile);
 router.put('/change-password', protect, changePassword);
+
 
 module.exports = router;
