@@ -189,17 +189,61 @@ async function seedDB() {
     });
     console.log('📢 Announcement notice seeded');
 
-    // Seed Class Schedule
+    // Helper to format time into AM/PM
+    const formatTime12h = (date) => {
+      let hours = date.getHours();
+      const minutes = date.getMinutes();
+      const ampm = hours >= 12 ? 'PM' : 'AM';
+      hours = hours % 12;
+      hours = hours ? hours : 12;
+      const strMinutes = minutes < 10 ? '0' + minutes : minutes;
+      const strHours = hours < 10 ? '0' + hours : hours;
+      return `${strHours}:${strMinutes} ${ampm}`;
+    };
+
+    // Seed 1: Live Class (Started 10 minutes ago)
+    const liveTime = new Date(Date.now() - 10 * 60 * 1000);
+    const liveDate = new Date(liveTime);
+    liveDate.setHours(0,0,0,0);
     await Schedule.create({
       course: course._id,
       teacher: teacher._id,
       batch: batch._id,
-      date: new Date(),
-      time: '10:00 AM',
+      date: liveDate,
+      time: formatTime12h(liveTime),
       meetingLink: 'https://meet.google.com/abc-defg-hij',
-      topic: 'Introduction to React State Management'
+      topic: 'Introduction to React State Management (Live Now)'
     });
-    console.log('🕒 Class schedule created');
+
+    // Seed 2: Upcoming Class (Starts in 15 minutes)
+    const upcomingTime = new Date(Date.now() + 15 * 60 * 1000);
+    const upcomingDate = new Date(upcomingTime);
+    upcomingDate.setHours(0,0,0,0);
+    await Schedule.create({
+      course: course._id,
+      teacher: teacher._id,
+      batch: batch._id,
+      date: upcomingDate,
+      time: formatTime12h(upcomingTime),
+      meetingLink: 'https://zoom.us/j/9876543210',
+      topic: 'React Hooks Deep Dive: useEffect and Custom Hooks'
+    });
+
+    // Seed 3: Completed Class (Started 2 hours ago)
+    const completedTime = new Date(Date.now() - 120 * 60 * 1000);
+    const completedDate = new Date(completedTime);
+    completedDate.setHours(0,0,0,0);
+    await Schedule.create({
+      course: course._id,
+      teacher: teacher._id,
+      batch: batch._id,
+      date: completedDate,
+      time: formatTime12h(completedTime),
+      meetingLink: 'https://meet.google.com/xyz-pdq-rst',
+      topic: 'HTML & CSS Fundamentals Recap'
+    });
+
+    console.log('🕒 Class schedules (Live, Upcoming, Completed) seeded');
 
     // Seed Study Material
     await StudyMaterial.create({

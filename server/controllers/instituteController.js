@@ -731,6 +731,38 @@ exports.deleteStudyMaterial = async (req, res) => {
 // ==========================================
 // 9. CLASS SCHEDULER
 // ==========================================
+// Helper to compute start datetime
+function getClassStartDateTime(dateObj, timeStr) {
+  try {
+    const start = new Date(dateObj);
+    let hours = 0;
+    let minutes = 0;
+    
+    const cleanTime = timeStr.trim().toUpperCase();
+    if (cleanTime.includes('AM') || cleanTime.includes('PM')) {
+      const parts = cleanTime.replace(/AM|PM/, '').trim().split(':');
+      hours = parseInt(parts[0], 10);
+      minutes = parts[1] ? parseInt(parts[1], 10) : 0;
+      
+      if (cleanTime.includes('PM') && hours < 12) {
+        hours += 12;
+      }
+      if (cleanTime.includes('AM') && hours === 12) {
+        hours = 0;
+      }
+    } else {
+      const parts = cleanTime.split(':');
+      hours = parseInt(parts[0], 10);
+      minutes = parts[1] ? parseInt(parts[1], 10) : 0;
+    }
+    
+    start.setHours(hours, minutes, 0, 0);
+    return start;
+  } catch (err) {
+    return new Date(dateObj);
+  }
+}
+
 exports.getSchedules = async (req, res) => {
   try {
     let query = {};
@@ -753,7 +785,32 @@ exports.getSchedules = async (req, res) => {
       .populate('teacher')
       .sort({ date: 1 });
 
-    res.json({ success: true, data: schedules });
+    const now = new Date();
+    const enriched = schedules.map(s => {
+      const startDateTime = getClassStartDateTime(s.date, s.time);
+      // Assume class lasts for 90 minutes
+      const endDateTime = new Date(startDateTime.getTime() + 90 * 60 * 1000);
+      
+      const isLive = now >= startDateTime && now <= endDateTime;
+      const minutesToStart = Math.round((startDateTime - now) / 60000);
+      
+      let status = 'UPCOMING';
+      if (isLive) {
+        status = 'LIVE';
+      } else if (now > endDateTime) {
+        status = 'COMPLETED';
+      }
+
+      return {
+        ...s.toObject(),
+        startDateTime,
+        isLive,
+        minutesToStart,
+        status
+      };
+    });
+
+    res.json({ success: true, data: enriched });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }
