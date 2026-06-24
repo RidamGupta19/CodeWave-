@@ -52,6 +52,18 @@ const studentSchema = new mongoose.Schema({
   profilePhoto: {
     type: String,
     default: ''
+  },
+  parentName: {
+    type: String,
+    default: ''
+  },
+  parentPhone: {
+    type: String,
+    default: ''
+  },
+  parentEmail: {
+    type: String,
+    default: ''
   }
 }, { timestamps: true });
 

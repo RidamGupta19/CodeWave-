@@ -100,20 +100,30 @@ exports.getMe = async (req, res) => {
   }
 };
 
-// @desc    Update profile
+// @desc    Update profile (consolidated)
 // @route   PUT /api/auth/profile
 exports.updateProfile = async (req, res) => {
   try {
-    const updates = req.body;
+    const { fullName, phone, avatar, profile } = req.body;
     const user = await User.findById(req.user._id);
 
-    if (updates.fullName) user.fullName = updates.fullName;
-    if (updates.profile) {
-      user.profile = { ...(user.profile?.toObject ? user.profile.toObject() : (user.profile || {})), ...updates.profile };
-      // Check if profile is complete
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+
+    if (fullName) user.fullName = fullName;
+    if (phone !== undefined) user.phone = phone;
+    if (avatar !== undefined) user.avatar = avatar;
+    
+    if (profile) {
+      user.profile = { 
+        ...(user.profile?.toObject ? user.profile.toObject() : (user.profile || {})), 
+        ...profile 
+      };
+      
       const p = user.profile;
-      if (updates.profile.isProfileComplete !== undefined) {
-        user.profile.isProfileComplete = updates.profile.isProfileComplete;
+      if (profile.isProfileComplete !== undefined) {
+        user.profile.isProfileComplete = profile.isProfileComplete;
       } else {
         user.profile.isProfileComplete = !!(p.currentSkillLevel && p.goal);
       }
@@ -121,7 +131,17 @@ exports.updateProfile = async (req, res) => {
 
     await user.save();
 
-    // AI roadmap generation has been fully migrated to aiController.js
+    // Sync student details if student document exists
+    if (user.role === 'student') {
+      const Student = require('../models/Student');
+      const student = await Student.findOne({ userId: user._id });
+      if (student) {
+        if (fullName) student.fullName = fullName;
+        if (phone !== undefined) student.phone = phone;
+        if (avatar !== undefined) student.profilePhoto = avatar;
+        await student.save();
+      }
+    }
 
     res.json({
       success: true,
@@ -129,6 +149,8 @@ exports.updateProfile = async (req, res) => {
         _id: user._id,
         fullName: user.fullName,
         email: user.email,
+        phone: user.phone,
+        avatar: user.avatar,
         role: user.role,
         profile: user.profile,
         currentPhase: user.currentPhase,
@@ -140,33 +162,117 @@ exports.updateProfile = async (req, res) => {
   }
 };
 
-// @desc    Update user profile
-// @route   PUT /api/auth/profile
-exports.updateProfile = async (req, res) => {
+// @desc    Get student profile details
+// @route   GET /api/auth/student-profile
+// @access  Private (student only)
+exports.getStudentProfile = async (req, res) => {
   try {
-    const { fullName, phone } = req.body;
+    const Student = require('../models/Student');
+    const student = await Student.findOne({ userId: req.user._id })
+      .populate('course')
+      .populate({
+        path: 'batch',
+        populate: { path: 'assignedTeacher' }
+      });
+
+    if (!student) {
+      return res.status(404).json({ success: false, message: 'Student profile not found' });
+    }
+
+    const user = await User.findById(req.user._id).select('-password');
+
+    res.json({
+      success: true,
+      data: {
+        user,
+        student
+      }
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// @desc    Update student profile details
+// @route   PUT /api/auth/student-profile
+// @access  Private (student only)
+exports.updateStudentProfile = async (req, res) => {
+  try {
+    const { fullName, phone, address, parentName, parentPhone, parentEmail, avatar } = req.body;
     
-    // Find and update user
     const user = await User.findById(req.user._id);
     if (!user) {
       return res.status(404).json({ success: false, message: 'User not found' });
     }
 
-    if (fullName) user.fullName = fullName;
-    if (phone !== undefined) user.phone = phone; // Allow empty string to clear phone
+    const Student = require('../models/Student');
+    const student = await Student.findOne({ userId: req.user._id });
+    if (!student) {
+      return res.status(404).json({ success: false, message: 'Student profile not found' });
+    }
 
+    if (fullName) user.fullName = fullName;
+    if (phone !== undefined) user.phone = phone;
+    if (avatar !== undefined) user.avatar = avatar;
     await user.save();
+
+    if (fullName) student.fullName = fullName;
+    if (phone !== undefined) student.phone = phone;
+    if (address !== undefined) student.address = address;
+    if (parentName !== undefined) student.parentName = parentName;
+    if (parentPhone !== undefined) student.parentPhone = parentPhone;
+    if (parentEmail !== undefined) student.parentEmail = parentEmail;
+    if (avatar !== undefined) student.profilePhoto = avatar;
+    await student.save();
 
     res.json({
       success: true,
-      user: {
-        _id: user._id,
-        fullName: user.fullName,
-        email: user.email,
-        phone: user.phone,
-        role: user.role
+      data: {
+        user: {
+          _id: user._id,
+          fullName: user.fullName,
+          email: user.email,
+          phone: user.phone,
+          avatar: user.avatar,
+          role: user.role
+        },
+        student
       }
     });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// @desc    Change password
+// @route   PUT /api/auth/change-password
+// @access  Private
+exports.changePassword = async (req, res) => {
+  try {
+    const { oldPassword, newPassword } = req.body;
+    
+    if (!oldPassword || !newPassword) {
+      return res.status(400).json({ success: false, message: 'Please provide old and new passwords' });
+    }
+
+    if (newPassword.length < 6) {
+      return res.status(400).json({ success: false, message: 'New password must be at least 6 characters long' });
+    }
+
+    const user = await User.findById(req.user._id);
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+
+    const isMatch = await user.matchPassword(oldPassword);
+    if (!isMatch) {
+      return res.status(400).json({ success: false, message: 'Incorrect old password' });
+    }
+
+    user.password = newPassword;
+    await user.save();
+
+    res.json({ success: true, message: 'Password updated successfully' });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
