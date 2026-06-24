@@ -26,6 +26,8 @@ const Notice = require('../models/Notice');
 const StudyMaterial = require('../models/StudyMaterial');
 const Schedule = require('../models/Schedule');
 const Assignment = require('../models/Assignment');
+const Video = require('../models/Video');
+const VideoProgress = require('../models/VideoProgress');
 
 const domainData = require('./domainData');
 const phaseData = require('./phaseData');
@@ -75,9 +77,11 @@ async function seedDB() {
       Notice.deleteMany({}),
       StudyMaterial.deleteMany({}),
       Schedule.deleteMany({}),
-      Assignment.deleteMany({})
+      Assignment.deleteMany({}),
+      Video.deleteMany({}),
+      VideoProgress.deleteMany({})
     ]);
-    console.log('🗑️  Cleared existing data');
+    console.log('🗑️  Cleared existing data (including videos)');
 
     // Seed cloud credits
     await CloudCredit.insertMany(cloudCredits);
@@ -268,6 +272,84 @@ async function seedDB() {
       uploadedBy: teacherUser._id
     });
     console.log('📝 Assignment created');
+
+    // Seed Video Lectures
+    const v1 = await Video.create({
+      title: 'React State Management (Redux vs Context API)',
+      description: 'An in-depth look at state propagation, props drilling, and when to use Redux Toolkit versus the native React Context API.',
+      videoType: 'embedded',
+      url: 'https://www.youtube.com/watch?v=5yEG6GhoJBs',
+      thumbnailUrl: 'https://images.unsplash.com/photo-1633356122544-f134324a6cee?q=80&w=300&auto=format&fit=crop',
+      duration: 1800, // 30 minutes
+      course: course._id,
+      batch: batch._id,
+      instructor: 'John Doe',
+      isActive: true
+    });
+
+    const v2 = await Video.create({
+      title: 'Direct Upload: Node.js & Express Architecture',
+      description: 'Understanding Express routing layers, custom middlewares, global error handling, and security wrappers like helmet and cors.',
+      videoType: 'uploaded',
+      url: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
+      thumbnailUrl: 'https://images.unsplash.com/photo-1510915228340-29c85a43dcfe?q=80&w=300&auto=format&fit=crop',
+      duration: 596, // ~10 minutes
+      course: course._id,
+      batch: batch._id,
+      instructor: 'John Doe',
+      isActive: true
+    });
+
+    const v3 = await Video.create({
+      title: 'Mongoose Database Modeling Patterns',
+      description: 'How to structure MongoDB schemas inside Mongoose, create virtual fields, write pre-save hooks, and optimize queries using indexing.',
+      videoType: 'embedded',
+      url: 'https://www.youtube.com/watch?v=WDRtDhyG-B0',
+      thumbnailUrl: 'https://images.unsplash.com/photo-1544383835-bda2bc66a55d?q=80&w=300&auto=format&fit=crop',
+      duration: 2400, // 40 minutes
+      course: course._id,
+      batch: batch._id,
+      instructor: 'John Doe',
+      isActive: true
+    });
+
+    const v4 = await Video.create({
+      title: 'Direct Upload: Sintel CGI Movie Intro',
+      description: 'A benchmark test video showing full playback controls, fullscreen mode, custom playback speed selections, and progress resume.',
+      videoType: 'uploaded',
+      url: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/Sintel.mp4',
+      thumbnailUrl: 'https://images.unsplash.com/photo-1536440136628-849c177e76a1?q=80&w=300&auto=format&fit=crop',
+      duration: 888, // ~15 minutes
+      course: course._id,
+      batch: batch._id,
+      instructor: 'John Doe',
+      isActive: true
+    });
+
+    console.log('🎥 Video lectures seeded');
+
+    // Seed Video Progress for the student
+    await VideoProgress.create({
+      user: studentUser._id,
+      video: v2._id,
+      watchTime: 120, // 2 minutes watched
+      duration: 596,
+      progressPercentage: 20,
+      isCompleted: false,
+      lastWatched: new Date(Date.now() - 24 * 60 * 60 * 1000) // yesterday
+    });
+
+    await VideoProgress.create({
+      user: studentUser._id,
+      video: v3._id,
+      watchTime: 2280, // 38 mins watched (completed)
+      duration: 2400,
+      progressPercentage: 95,
+      isCompleted: true,
+      lastWatched: new Date(Date.now() - 2 * 60 * 60 * 1000) // 2 hours ago
+    });
+
+    console.log('📈 Video watch progress records seeded');
 
     // Seed domains and their phases/topics
     for (const domainInfo of domainData) {
