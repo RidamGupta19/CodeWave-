@@ -416,10 +416,14 @@ exports.markAttendance = async (req, res) => {
 
     const logs = [];
     for (const record of records) {
+      const studentObj = await Student.findById(record.studentId);
+      const courseId = studentObj ? studentObj.course : null;
+
       const query = { studentId: record.studentId, batchId, date: formattedDate };
       const update = { 
         status: record.status,
-        teacherId: teacherId || req.user._id // Fallback to admin id
+        teacherId: teacherId || req.user._id, // Fallback to admin id
+        courseId
       };
       
       const attendance = await Attendance.findOneAndUpdate(query, update, { upsert: true, new: true });
@@ -475,6 +479,106 @@ exports.getStudentAttendanceStats = async (req, res) => {
         leave,
         percentage,
         records: attendance
+      }
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+// @desc    Get complete student attendance report (statistics, subject-wise, monthly, calendar, and paginated logs)
+// @route   GET /api/institute/attendance/report
+// @access  Private (student only)
+exports.getStudentAttendanceReport = async (req, res) => {
+  try {
+    const student = await Student.findOne({ userId: req.user._id });
+    if (!student) return res.status(404).json({ success: false, message: 'Student profile not found' });
+
+    const { courseId, month, year, page = 1, limit = 10 } = req.query;
+
+    // 1. Overall stats query
+    let statsQuery = { studentId: student._id };
+    const allAttendance = await Attendance.find(statsQuery).populate('courseId');
+
+    const total = allAttendance.length;
+    const present = allAttendance.filter(a => a.status === 'Present').length;
+    const leave = allAttendance.filter(a => a.status === 'Leave').length;
+    const percentage = total > 0 ? Math.round(((present + leave) / total) * 100) : 100;
+
+    // 2. Subject-wise (course-wise) grouping
+    const subjectWiseMap = {};
+    allAttendance.forEach(a => {
+      const courseName = a.courseId?.courseName || 'General';
+      const key = a.courseId?._id?.toString() || 'general';
+
+      if (!subjectWiseMap[key]) {
+        subjectWiseMap[key] = {
+          courseId: a.courseId?._id || null,
+          courseName,
+          total: 0,
+          present: 0,
+          leave: 0
+        };
+      }
+      subjectWiseMap[key].total += 1;
+      if (a.status === 'Present') subjectWiseMap[key].present += 1;
+      if (a.status === 'Leave') subjectWiseMap[key].leave += 1;
+    });
+
+    const subjectWise = Object.values(subjectWiseMap).map(sub => ({
+      ...sub,
+      percentage: sub.total > 0 ? Math.round(((sub.present + sub.leave) / sub.total) * 100) : 100
+    }));
+
+    // 3. Filtered calendar logs & history list
+    let filterQuery = { studentId: student._id };
+    if (courseId) {
+      filterQuery.courseId = courseId;
+    }
+
+    // Handle calendar month/year filter
+    const filterMonth = parseInt(month);
+    const filterYear = parseInt(year);
+    if (!isNaN(filterMonth) && !isNaN(filterYear)) {
+      const start = new Date(filterYear, filterMonth - 1, 1);
+      const end = new Date(filterYear, filterMonth, 0, 23, 59, 59);
+      filterQuery.date = { $gte: start, $lte: end };
+    }
+
+    const calendarRecords = await Attendance.find(filterQuery)
+      .populate('courseId')
+      .populate('batchId')
+      .populate('teacherId');
+
+    // Paginated history list
+    const skip = (parseInt(page) - 1) * parseInt(limit);
+    const totalRecords = calendarRecords.length;
+    const paginatedRecords = calendarRecords
+      .sort((a, b) => new Date(b.date) - new Date(a.date))
+      .slice(skip, skip + parseInt(limit));
+
+    res.json({
+      success: true,
+      data: {
+        statistics: {
+          total,
+          present,
+          absent: total - present - leave,
+          leave,
+          percentage
+        },
+        subjectWise,
+        calendarData: calendarRecords.map(r => ({
+          date: r.date.toISOString().split('T')[0],
+          status: r.status,
+          topic: r.topic || 'Classroom session'
+        })),
+        history: {
+          records: paginatedRecords,
+          totalPages: Math.ceil(totalRecords / parseInt(limit)),
+          currentPage: parseInt(page),
+          totalRecords
+        }
       }
     });
   } catch (err) {

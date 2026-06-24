@@ -16,6 +16,10 @@ const attendanceSchema = new mongoose.Schema({
     ref: 'Teacher',
     required: true
   },
+  courseId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Course'
+  },
   date: {
     type: Date,
     required: true,

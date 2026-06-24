@@ -39,6 +39,7 @@ router.delete('/batches/:id', authorize('admin'), c.deleteBatch);
 router.get('/attendance', c.getAttendance);
 router.post('/attendance', authorize('admin', 'teacher'), c.markAttendance);
 router.get('/attendance/my', authorize('student'), c.getStudentAttendanceStats);
+router.get('/attendance/report', authorize('student'), c.getStudentAttendanceReport);
 
 // 7. Fees API
 router.get('/fees', c.getFees);
