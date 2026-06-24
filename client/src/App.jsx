@@ -44,6 +44,19 @@ import StudyMaterials from './pages/institute/StudyMaterials';
 import ClassScheduler from './pages/institute/ClassScheduler';
 import AssignmentManagement from './pages/institute/AssignmentManagement';
 
+// Student Pages
+import StudentDashboard from './pages/student/StudentDashboard';
+import StudentCourses from './pages/student/StudentCourses';
+import StudentLiveClasses from './pages/student/StudentLiveClasses';
+import StudentVideoLectures from './pages/student/StudentVideoLectures';
+import StudentNotes from './pages/student/StudentNotes';
+import StudentAssignments from './pages/student/StudentAssignments';
+import StudentAssessments from './pages/student/StudentAssessments';
+import StudentAttendance from './pages/student/StudentAttendance';
+import StudentResults from './pages/student/StudentResults';
+import StudentNotifications from './pages/student/StudentNotifications';
+import StudentProfile from './pages/student/StudentProfile';
+
 function App() {
   return (
     <AuthProvider>
@@ -55,7 +68,7 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
 
-          {/* Protected Student / Teacher / Admin Routes */}
+          {/* Protected Student / Teacher / Admin General Routes */}
           <Route element={<ProtectedRoute allowedRoles={['student', 'admin', 'teacher']} />}>
             <Route element={<Layout />}>
               <Route path="/setup-profile" element={<Onboarding />} />
@@ -69,8 +82,29 @@ function App() {
               <Route path="/career-guide" element={<CareerGuide />} />
               <Route path="/zero-to-coding" element={<ZeroToCoding />} />
               <Route path="/profile" element={<Profile />} />
-              
-              {/* Institute Management Routes */}
+            </Route>
+          </Route>
+
+          {/* Student Only Routes */}
+          <Route element={<ProtectedRoute allowedRoles={['student']} />}>
+            <Route element={<Layout />}>
+              <Route path="/student/dashboard" element={<StudentDashboard />} />
+              <Route path="/student/courses" element={<StudentCourses />} />
+              <Route path="/student/live-classes" element={<StudentLiveClasses />} />
+              <Route path="/student/video-lectures" element={<StudentVideoLectures />} />
+              <Route path="/student/notes" element={<StudentNotes />} />
+              <Route path="/student/assignments" element={<StudentAssignments />} />
+              <Route path="/student/assessments" element={<StudentAssessments />} />
+              <Route path="/student/attendance" element={<StudentAttendance />} />
+              <Route path="/student/results" element={<StudentResults />} />
+              <Route path="/student/notifications" element={<StudentNotifications />} />
+              <Route path="/student/profile" element={<StudentProfile />} />
+            </Route>
+          </Route>
+
+          {/* Teacher and Admin Only Institute Management Routes */}
+          <Route element={<ProtectedRoute allowedRoles={['admin', 'teacher']} />}>
+            <Route element={<Layout />}>
               <Route path="/institute/students" element={<StudentManagement />} />
               <Route path="/institute/teachers" element={<TeacherManagement />} />
               <Route path="/institute/courses" element={<CourseManagement />} />

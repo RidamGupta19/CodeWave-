@@ -12,7 +12,7 @@ const studyMaterialSchema = new mongoose.Schema({
   },
   materialType: {
     type: String,
-    enum: ['PDF', 'Assignment', 'Notes', 'Practice Sheet'],
+    enum: ['PDF', 'Assignment', 'Notes', 'Practice Sheet', 'Video'],
     required: true
   },
   fileUrl: {

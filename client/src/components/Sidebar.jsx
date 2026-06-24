@@ -5,7 +5,7 @@ import Logo from './Logo';
 import { 
   FiMap, FiList, FiCheckSquare, FiAward, FiMessageSquare, FiTrendingUp,
   FiUsers, FiBookOpen, FiClock, FiFileText, FiDollarSign, FiFolder, FiBell, FiZap,
-  FiMenu, FiX, FiLogOut, FiSettings, FiBriefcase
+  FiMenu, FiX, FiLogOut, FiSettings, FiBriefcase, FiPlay, FiVideo
 } from 'react-icons/fi';
 import { MdOutlineDashboard, MdOutlineManageAccounts } from "react-icons/md";
 
@@ -20,6 +20,20 @@ export default function Sidebar() {
   };
 
   if (!user) return null;
+
+  const studentLinks = [
+    { name: 'Dashboard', path: '/student/dashboard', icon: <MdOutlineDashboard /> },
+    { name: 'My Courses', path: '/student/courses', icon: <FiBookOpen /> },
+    { name: 'Live Classes', path: '/student/live-classes', icon: <FiVideo /> },
+    { name: 'Video Lectures', path: '/student/video-lectures', icon: <FiPlay /> },
+    { name: 'Notes & Materials', path: '/student/notes', icon: <FiFolder /> },
+    { name: 'Assignments', path: '/student/assignments', icon: <FiFileText /> },
+    { name: 'Assessments', path: '/student/assessments', icon: <FiCheckSquare /> },
+    { name: 'Attendance', path: '/student/attendance', icon: <FiClock /> },
+    { name: 'Results', path: '/student/results', icon: <FiAward /> },
+    { name: 'Notifications', path: '/student/notifications', icon: <FiBell /> },
+    { name: 'Profile', path: '/student/profile', icon: <FiUsers /> },
+  ];
 
   const careerLinks = [
     { name: 'Dashboard', path: '/dashboard', icon: <MdOutlineDashboard /> },
@@ -64,64 +78,13 @@ export default function Sidebar() {
       {/* Navigation Groups */}
       <div className="flex-1 space-y-7">
         
-        {/* Section 1: Career Development Hub */}
-        <div>
-          <div className="text-[10px] font-black text-[var(--text-light)] uppercase tracking-wider pl-3 mb-2.5">
-            Career Development Hub
-          </div>
-          <nav className="space-y-1">
-            {careerLinks.map((link) => (
-              <NavLink
-                key={link.name}
-                to={link.path}
-                className={({ isActive }) => 
-                  `flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-bold transition-all ${
-                    isActive 
-                      ? 'bg-[var(--primary)] text-white shadow-md shadow-[var(--primary)]/20' 
-                      : 'text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--bg-sub)]'
-                  }`
-                }
-              >
-                <span className="text-lg">{link.icon}</span>
-                <span>{link.name}</span>
-              </NavLink>
-            ))}
-          </nav>
-        </div>
-
-        {/* Section 2: Institute Management */}
-        <div>
-          <div className="text-[10px] font-black text-[var(--text-light)] uppercase tracking-wider pl-3 mb-2.5">
-            Institute Management
-          </div>
-          <nav className="space-y-1">
-            {filteredInstLinks.map((link) => (
-              <NavLink
-                key={link.name}
-                to={link.path}
-                className={({ isActive }) => 
-                  `flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-bold transition-all ${
-                    isActive 
-                      ? 'bg-[var(--primary)] text-white shadow-md shadow-[var(--primary)]/20' 
-                      : 'text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--bg-sub)]'
-                  }`
-                }
-              >
-                <span className="text-lg">{link.icon}</span>
-                <span>{link.name}</span>
-              </NavLink>
-            ))}
-          </nav>
-        </div>
-
-        {/* Section 3: Admin Panel */}
-        {user.role === 'admin' && (
+        {user.role === 'student' ? (
           <div>
             <div className="text-[10px] font-black text-[var(--text-light)] uppercase tracking-wider pl-3 mb-2.5">
-              Admin Panel
+              Student Portal
             </div>
             <nav className="space-y-1">
-              {adminLinks.map((link) => (
+              {studentLinks.map((link) => (
                 <NavLink
                   key={link.name}
                   to={link.path}
@@ -139,8 +102,86 @@ export default function Sidebar() {
               ))}
             </nav>
           </div>
-        )}
+        ) : (
+          <>
+            {/* Section 1: Career Development Hub */}
+            <div>
+              <div className="text-[10px] font-black text-[var(--text-light)] uppercase tracking-wider pl-3 mb-2.5">
+                Career Development Hub
+              </div>
+              <nav className="space-y-1">
+                {careerLinks.map((link) => (
+                  <NavLink
+                    key={link.name}
+                    to={link.path}
+                    className={({ isActive }) => 
+                      `flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-bold transition-all ${
+                        isActive 
+                          ? 'bg-[var(--primary)] text-white shadow-md shadow-[var(--primary)]/20' 
+                          : 'text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--bg-sub)]'
+                      }`
+                    }
+                  >
+                    <span className="text-lg">{link.icon}</span>
+                    <span>{link.name}</span>
+                  </NavLink>
+                ))}
+              </nav>
+            </div>
 
+            {/* Section 2: Institute Management */}
+            <div>
+              <div className="text-[10px] font-black text-[var(--text-light)] uppercase tracking-wider pl-3 mb-2.5">
+                Institute Management
+              </div>
+              <nav className="space-y-1">
+                {filteredInstLinks.map((link) => (
+                  <NavLink
+                    key={link.name}
+                    to={link.path}
+                    className={({ isActive }) => 
+                      `flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-bold transition-all ${
+                        isActive 
+                          ? 'bg-[var(--primary)] text-white shadow-md shadow-[var(--primary)]/20' 
+                          : 'text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--bg-sub)]'
+                      }`
+                    }
+                  >
+                    <span className="text-lg">{link.icon}</span>
+                    <span>{link.name}</span>
+                  </NavLink>
+                ))}
+              </nav>
+            </div>
+
+            {/* Section 3: Admin Panel */}
+            {user.role === 'admin' && (
+              <div>
+                <div className="text-[10px] font-black text-[var(--text-light)] uppercase tracking-wider pl-3 mb-2.5">
+                  Admin Panel
+                </div>
+                <nav className="space-y-1">
+                  {adminLinks.map((link) => (
+                    <NavLink
+                      key={link.name}
+                      to={link.path}
+                      className={({ isActive }) => 
+                        `flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-bold transition-all ${
+                          isActive 
+                            ? 'bg-[var(--primary)] text-white shadow-md shadow-[var(--primary)]/20' 
+                            : 'text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--bg-sub)]'
+                        }`
+                      }
+                    >
+                      <span className="text-lg">{link.icon}</span>
+                      <span>{link.name}</span>
+                    </NavLink>
+                  ))}
+                </nav>
+              </div>
+            )}
+          </>
+        )}
       </div>
 
       {/* Footer User Info & Logout */}

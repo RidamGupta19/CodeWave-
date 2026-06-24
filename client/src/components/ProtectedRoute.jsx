@@ -16,7 +16,13 @@ const ProtectedRoute = ({ allowedRoles }) => {
   }
 
   if (allowedRoles && !allowedRoles.includes(user.role)) {
-    return <Navigate to="/dashboard" replace />;
+    const redirectPath = user.role === 'student' ? '/student/dashboard' : '/dashboard';
+    return <Navigate to={redirectPath} replace />;
+  }
+
+  // Redirect student from generic /dashboard to /student/dashboard
+  if (user.role === 'student' && location.pathname === '/dashboard') {
+    return <Navigate to="/student/dashboard" replace />;
   }
 
   // If student hasn't selected a domain, redirect to /domains

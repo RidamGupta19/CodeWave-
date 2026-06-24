@@ -856,10 +856,13 @@ exports.getStudentDashboard = async (req, res) => {
       return res.status(404).json({ success: false, message: 'Student profile not found. Please ask admin to register your profile.' });
     }
 
+    const user = await User.findById(req.user._id).populate('activeDomain');
+
     const attendance = await Attendance.find({ studentId: student._id });
     const totalAtt = attendance.length;
     const presentAtt = attendance.filter(a => a.status === 'Present').length;
-    const attPercentage = totalAtt > 0 ? Math.round((presentAtt / totalAtt) * 100) : 100;
+    const leaveAtt = attendance.filter(a => a.status === 'Leave').length;
+    const attPercentage = totalAtt > 0 ? Math.round(((presentAtt + leaveAtt) / totalAtt) * 100) : 100;
 
     const fees = await Fee.findOne({ student: student._id });
 
@@ -868,19 +871,41 @@ exports.getStudentDashboard = async (req, res) => {
     const classes = await Schedule.find({ batch: student.batch, date: { $gte: today } }).populate('teacher').populate('course');
 
     const assignments = await Assignment.find({ batch: student.batch });
-    const notices = await Notice.find({ targetRoles: { $in: ['all', 'student'] } }).sort({ createdAt: -1 }).limit(5);
-    const materials = await StudyMaterial.find({ batch: student.batch });
+    const pendingAssignments = assignments.filter(a => 
+      !a.submissions.some(s => s.student.toString() === student._id.toString())
+    );
+
+    const recentNotes = await StudyMaterial.find({ batch: student.batch, materialType: { $in: ['Notes', 'PDF'] } })
+      .sort({ createdAt: -1 })
+      .limit(5);
+
+    const notices = await Notice.find({ targetRoles: { $in: ['all', 'student'] } })
+      .sort({ createdAt: -1 })
+      .limit(5);
+
+    let upcomingAssessments = [];
+    if (user && user.activeDomain) {
+      const Assessment = require('../models/Assessment');
+      upcomingAssessments = await Assessment.find({ domainId: user.activeDomain._id, isActive: true })
+        .sort('order')
+        .limit(5);
+    }
 
     res.json({
       success: true,
       data: {
-        student,
+        student: {
+          ...student.toObject(),
+          activeDomain: user?.activeDomain
+        },
         attPercentage,
         fees,
         upcomingClasses: classes,
-        assignments,
+        pendingAssignments,
+        recentNotes,
         notices,
-        materialsCount: materials.length
+        upcomingAssessments,
+        materialsCount: await StudyMaterial.countDocuments({ batch: student.batch })
       }
     });
   } catch (err) {
