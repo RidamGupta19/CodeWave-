@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const c = require('../controllers/adminController');
 const um = require('../controllers/userManagementController');
+const cm = require('../controllers/courseManagementController');
 const { protect, authorize, checkPermission } = require('../middleware/auth');
 
 router.get('/stats', protect, authorize('admin'), c.getAdminStats);
@@ -36,6 +37,25 @@ router.delete('/users/sub-admins/:id', protect, authorize('admin'), checkPermiss
 // Bulk actions & Export routes
 router.post('/users/bulk-action', protect, authorize('admin'), um.bulkAction);
 router.get('/users/export', protect, authorize('admin'), um.exportData);
+
+// Course management routes
+router.get('/courses', protect, authorize('admin'), cm.getCourses);
+router.post('/courses', protect, authorize('admin'), checkPermission('manage_courses'), cm.createCourse);
+router.put('/courses/:id', protect, authorize('admin'), checkPermission('manage_courses'), cm.updateCourse);
+router.delete('/courses/:id', protect, authorize('admin'), checkPermission('manage_courses'), cm.deleteCourse);
+
+// Subject management routes
+router.get('/subjects', protect, authorize('admin'), cm.getSubjects);
+router.post('/subjects', protect, authorize('admin'), checkPermission('manage_courses'), cm.createSubject);
+router.put('/subjects/:id', protect, authorize('admin'), checkPermission('manage_courses'), cm.updateSubject);
+router.delete('/subjects/:id', protect, authorize('admin'), checkPermission('manage_courses'), cm.deleteSubject);
+
+// Batch management routes
+router.get('/batches', protect, authorize('admin'), cm.getBatches);
+router.post('/batches', protect, authorize('admin'), checkPermission('manage_courses'), cm.createBatch);
+router.put('/batches/:id', protect, authorize('admin'), checkPermission('manage_courses'), cm.updateBatch);
+router.delete('/batches/:id', protect, authorize('admin'), checkPermission('manage_courses'), cm.deleteBatch);
+router.put('/batches/:id/assign', protect, authorize('admin'), checkPermission('manage_courses'), cm.assignBatchMembers);
 
 // Mentor routes
 router.get('/mentor/students', protect, authorize('mentor'), c.getAssignedStudents);

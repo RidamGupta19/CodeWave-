@@ -25,6 +25,10 @@ const courseSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Teacher'
   },
+  subjects: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Subject'
+  }],
   batches: [{
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Batch'

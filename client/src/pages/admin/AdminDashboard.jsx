@@ -31,8 +31,10 @@ import {
   LineChart, Line, BarChart, Bar, Legend, PieChart, Pie, Cell, ComposedChart
 } from 'recharts';
 import toast from 'react-hot-toast';
+import { useAuth } from '../../context/AuthContext';
 
 const AdminDashboard = () => {
+  const { user } = useAuth();
   const [stats, setStats] = useState(null);
   const [users, setUsers] = useState([]);
   const [domains, setDomains] = useState([]);
@@ -159,6 +161,54 @@ const AdminDashboard = () => {
 
   const [coursesList, setCoursesList] = useState([]);
   const [batchesList, setBatchesList] = useState([]);
+  const [subjectsList, setSubjectsList] = useState([]);
+  const [allTeachers, setAllTeachers] = useState([]);
+
+  // Course, Subject, Batch tabs
+  const [courseSubTab, setCourseSubTab] = useState('courses'); // 'courses' | 'subjects' | 'batches'
+
+  // Modals for Courses/Subjects/Batches
+  const [showCourseModal, setShowCourseModal] = useState(false);
+  const [editingCourse, setEditingCourse] = useState(null);
+  const [courseForm, setCourseForm] = useState({
+    courseName: '',
+    description: '',
+    duration: '',
+    fees: 0,
+    subjects: []
+  });
+
+  const [showSubjectModal, setShowSubjectModal] = useState(false);
+  const [editingSubject, setEditingSubject] = useState(null);
+  const [subjectForm, setSubjectForm] = useState({
+    subjectName: '',
+    subjectCode: '',
+    description: ''
+  });
+
+  const [showBatchModal, setShowBatchModal] = useState(false);
+  const [editingBatch, setEditingBatch] = useState(null);
+  const [batchForm, setBatchForm] = useState({
+    batchName: '',
+    startDate: '',
+    endDate: '',
+    timing: '',
+    capacity: 30,
+    academicSession: '2026-2027',
+    status: 'active',
+    course: '',
+    teachers: [],
+    subjects: []
+  });
+
+  // Allocation Modals
+  const [showAllocateStudentsModal, setShowAllocateStudentsModal] = useState(false);
+  const [showAllocateSubjectsModal, setShowAllocateSubjectsModal] = useState(false);
+  const [allocatingBatch, setAllocatingBatch] = useState(null);
+  const [allocateStudentsSearch, setAllocateStudentsSearch] = useState('');
+  const [tempSelectedStudentIds, setTempSelectedStudentIds] = useState([]);
+  const [tempSelectedSubjectIds, setTempSelectedSubjectIds] = useState([]);
+  const [allStudentsForAllocation, setAllStudentsForAllocation] = useState([]);
 
   useEffect(() => {
     fetchInitialData();
@@ -167,18 +217,22 @@ const AdminDashboard = () => {
   const fetchInitialData = async () => {
     setLoading(true);
     try {
-      const [statsRes, usersRes, domainsRes, coursesRes, batchesRes] = await Promise.all([
+      const [statsRes, usersRes, domainsRes, coursesRes, batchesRes, subjectsRes, teachersAllRes] = await Promise.all([
         api.get('/admin/stats'),
         api.get('/admin/users'),
         api.get('/domains'),
-        api.get('/institute/courses'),
-        api.get('/institute/batches')
+        api.get('/admin/courses'),
+        api.get('/admin/batches'),
+        api.get('/admin/subjects'),
+        api.get('/admin/users/teachers', { params: { limit: 100 } })
       ]);
       setStats(statsRes.data.data);
       setUsers(usersRes.data.data || []);
       setDomains(domainsRes.data.data || []);
       setCoursesList(coursesRes.data.data || []);
       setBatchesList(batchesRes.data.data || []);
+      setSubjectsList(subjectsRes.data.data || []);
+      setAllTeachers(teachersAllRes.data.data || []);
     } catch (err) {
       console.error(err);
       toast.error('Failed to load administration workspace data');
@@ -243,6 +297,233 @@ const AdminDashboard = () => {
       console.error(err);
       toast.error('Failed to load sub-admins list');
     }
+  };
+
+  const fetchCourses = async () => {
+    try {
+      const res = await api.get('/admin/courses');
+      if (res.data.success) {
+        setCoursesList(res.data.data || []);
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error('Failed to load courses');
+    }
+  };
+
+  const fetchSubjects = async () => {
+    try {
+      const res = await api.get('/admin/subjects');
+      if (res.data.success) {
+        setSubjectsList(res.data.data || []);
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error('Failed to load subjects');
+    }
+  };
+
+  const fetchBatches = async () => {
+    try {
+      const res = await api.get('/admin/batches');
+      if (res.data.success) {
+        setBatchesList(res.data.data || []);
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error('Failed to load batches');
+    }
+  };
+
+  const fetchAllStudentsForAllocation = async () => {
+    try {
+      const res = await api.get('/admin/users/students', { params: { limit: 1000 } });
+      if (res.data.success) {
+        setAllStudentsForAllocation(res.data.data || []);
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error('Failed to load students for allocation');
+    }
+  };
+
+  const handleCourseSubmit = async (e) => {
+    e.preventDefault();
+    const loadingToast = toast.loading(editingCourse ? "Updating course..." : "Creating course...");
+    try {
+      if (editingCourse) {
+        await api.put(`/admin/courses/${editingCourse._id}`, courseForm);
+        toast.success("Course updated successfully!", { id: loadingToast });
+      } else {
+        await api.post('/admin/courses', courseForm);
+        toast.success("Course created successfully!", { id: loadingToast });
+      }
+      setShowCourseModal(false);
+      setEditingCourse(null);
+      setCourseForm({ courseName: '', description: '', duration: '', fees: 0, subjects: [] });
+      fetchCourses();
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Operation failed", { id: loadingToast });
+    }
+  };
+
+  const handleDeleteCourse = async (id) => {
+    if (!window.confirm("Are you sure you want to delete this course? This will unlink it from batches and students.")) return;
+    const loadingToast = toast.loading("Deleting course...");
+    try {
+      await api.delete(`/admin/courses/${id}`);
+      toast.success("Course deleted successfully!", { id: loadingToast });
+      fetchCourses();
+      fetchBatches();
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Failed to delete course", { id: loadingToast });
+    }
+  };
+
+  const handleSubjectSubmit = async (e) => {
+    e.preventDefault();
+    const loadingToast = toast.loading(editingSubject ? "Updating subject..." : "Creating subject...");
+    try {
+      if (editingSubject) {
+        await api.put(`/admin/subjects/${editingSubject._id}`, subjectForm);
+        toast.success("Subject updated successfully!", { id: loadingToast });
+      } else {
+        await api.post('/admin/subjects', subjectForm);
+        toast.success("Subject created successfully!", { id: loadingToast });
+      }
+      setShowSubjectModal(false);
+      setEditingSubject(null);
+      setSubjectForm({ subjectName: '', subjectCode: '', description: '' });
+      fetchSubjects();
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Operation failed", { id: loadingToast });
+    }
+  };
+
+  const handleDeleteSubject = async (id) => {
+    if (!window.confirm("Are you sure you want to delete this subject? This will remove it from courses and batches.")) return;
+    const loadingToast = toast.loading("Deleting subject...");
+    try {
+      await api.delete(`/admin/subjects/${id}`);
+      toast.success("Subject deleted successfully!", { id: loadingToast });
+      fetchSubjects();
+      fetchCourses();
+      fetchBatches();
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Failed to delete subject", { id: loadingToast });
+    }
+  };
+
+  const handleBatchSubmit = async (e) => {
+    e.preventDefault();
+    const loadingToast = toast.loading(editingBatch ? "Updating batch..." : "Creating batch...");
+    try {
+      if (editingBatch) {
+        await api.put(`/admin/batches/${editingBatch._id}`, batchForm);
+        toast.success("Batch updated successfully!", { id: loadingToast });
+      } else {
+        await api.post('/admin/batches', batchForm);
+        toast.success("Batch created successfully!", { id: loadingToast });
+      }
+      setShowBatchModal(false);
+      setEditingBatch(null);
+      setBatchForm({
+        batchName: '',
+        startDate: '',
+        endDate: '',
+        timing: '',
+        capacity: 30,
+        academicSession: '2026-2027',
+        status: 'active',
+        course: '',
+        teachers: [],
+        subjects: []
+      });
+      fetchBatches();
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Operation failed", { id: loadingToast });
+    }
+  };
+
+  const handleDeleteBatch = async (id) => {
+    if (!window.confirm("Are you sure you want to delete this batch? This will unlink teachers and students.")) return;
+    const loadingToast = toast.loading("Deleting batch...");
+    try {
+      await api.delete(`/admin/batches/${id}`);
+      toast.success("Batch deleted successfully!", { id: loadingToast });
+      fetchBatches();
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Failed to delete batch", { id: loadingToast });
+    }
+  };
+
+  const handleAllocateStudentsSubmit = async (e) => {
+    e.preventDefault();
+    if (tempSelectedStudentIds.length > allocatingBatch.capacity) {
+      toast.error(`Cannot allocate students. Count (${tempSelectedStudentIds.length}) exceeds capacity (${allocatingBatch.capacity}).`);
+      return;
+    }
+    const loadingToast = toast.loading("Allocating students to batch...");
+    try {
+      const res = await api.put(`/admin/batches/${allocatingBatch._id}/assign`, {
+        studentIds: tempSelectedStudentIds
+      });
+      if (res.data.success) {
+        toast.success("Students allocated successfully!", { id: loadingToast });
+        setShowAllocateStudentsModal(false);
+        setAllocatingBatch(null);
+        fetchBatches();
+      }
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Failed to allocate students", { id: loadingToast });
+    }
+  };
+
+  const handleAllocateSubjectsSubmit = async (e) => {
+    e.preventDefault();
+    const loadingToast = toast.loading("Allocating subjects to batch...");
+    try {
+      const res = await api.put(`/admin/batches/${allocatingBatch._id}/assign`, {
+        subjectIds: tempSelectedSubjectIds
+      });
+      if (res.data.success) {
+        toast.success("Subjects allocated successfully!", { id: loadingToast });
+        setShowAllocateSubjectsModal(false);
+        setAllocatingBatch(null);
+        fetchBatches();
+      }
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Failed to allocate subjects", { id: loadingToast });
+    }
+  };
+
+  const formatDateForInput = (dateString) => {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    const year = date.getFullYear();
+    let month = (1 + date.getMonth()).toString().padStart(2, '0');
+    let day = date.getDate().toString().padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
+  const hasPermission = (permission) => {
+    if (!user) return false;
+    if (user.isSuperAdmin || user.email === 'omshivhare666@gmail.com') return true;
+    return user.permissions && user.permissions.includes(permission);
+  };
+
+  const openAllocateStudentsModal = (batch) => {
+    setAllocatingBatch(batch);
+    setTempSelectedStudentIds(batch.students ? batch.students.map(s => s._id || s) : []);
+    setAllocateStudentsSearch('');
+    fetchAllStudentsForAllocation();
+    setShowAllocateStudentsModal(true);
+  };
+
+  const openAllocateSubjectsModal = (batch) => {
+    setAllocatingBatch(batch);
+    setTempSelectedSubjectIds(batch.subjects ? batch.subjects.map(s => s._id || s) : []);
+    setShowAllocateSubjectsModal(true);
   };
 
   useEffect(() => {
@@ -891,6 +1172,17 @@ const AdminDashboard = () => {
               className={`px-4 py-2 rounded-lg text-xs font-black transition-all ${activeTab === 'users' ? 'bg-emerald-600 dark:bg-indigo-600 text-white shadow-sm' : 'text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white'}`}
             >
               👥 Manage Users
+            </button>
+            <button
+              onClick={() => {
+                setActiveTab('courses_batches');
+                fetchCourses();
+                fetchSubjects();
+                fetchBatches();
+              }}
+              className={`px-4 py-2 rounded-lg text-xs font-black transition-all ${activeTab === 'courses_batches' ? 'bg-emerald-600 dark:bg-indigo-600 text-white shadow-sm' : 'text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white'}`}
+            >
+              🏫 Courses & Batches
             </button>
             <button
               onClick={() => setActiveTab('domains')}
@@ -2270,6 +2562,408 @@ const AdminDashboard = () => {
         </div>
       )}
 
+      {/* Course, Subject, and Batch Management Panel */}
+      {activeTab === 'courses_batches' && (
+        <div className="admin-panel bg-white dark:bg-slate-900/40 border border-slate-150 dark:border-white/5 rounded-3xl p-6 shadow-md dark:shadow-xl space-y-6 animate-in fade-in duration-300">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+            <div>
+              <h3 className="text-lg font-black text-slate-800 dark:text-white">Curriculums & Batches</h3>
+              <p className="text-slate-550 dark:text-slate-400 text-xs mt-0.5">Manage courses, batches, academic sessions, and member allocations</p>
+            </div>
+            
+            <div className="flex gap-2 bg-slate-100/80 dark:bg-slate-950/40 p-1 rounded-xl border border-slate-200/60 dark:border-white/5">
+              <button
+                onClick={() => setCourseSubTab('courses')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${courseSubTab === 'courses' ? 'bg-emerald-600 dark:bg-indigo-600 text-white shadow-sm' : 'text-slate-550 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white'}`}
+              >
+                🏫 Courses
+              </button>
+              <button
+                onClick={() => setCourseSubTab('subjects')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${courseSubTab === 'subjects' ? 'bg-emerald-600 dark:bg-indigo-600 text-white shadow-sm' : 'text-slate-550 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white'}`}
+              >
+                📚 Academic Subjects
+              </button>
+              <button
+                onClick={() => setCourseSubTab('batches')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${courseSubTab === 'batches' ? 'bg-emerald-600 dark:bg-indigo-600 text-white shadow-sm' : 'text-slate-550 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white'}`}
+              >
+                👥 Batches
+              </button>
+            </div>
+          </div>
+
+          {courseSubTab === 'courses' && (
+            <div className="space-y-6">
+              <div className="flex justify-between items-center">
+                <h4 className="text-xs font-black uppercase text-slate-505 dark:text-slate-400 tracking-wider">Courses Catalog</h4>
+                {hasPermission('manage_courses') && (
+                  <button
+                    onClick={() => {
+                      setEditingCourse(null);
+                      setCourseForm({ courseName: '', description: '', duration: '', fees: 0, subjects: [] });
+                      setShowCourseModal(true);
+                    }}
+                    className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 dark:bg-indigo-600 dark:hover:bg-indigo-500 text-white rounded-xl text-xs font-black transition-all flex items-center gap-1.5"
+                  >
+                    <FiPlus /> Add Course
+                  </button>
+                )}
+              </div>
+
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {coursesList.map((course) => (
+                  <div key={course._id} className="bg-white dark:bg-slate-950/20 border border-slate-200 dark:border-white/5 rounded-2xl p-5 hover:border-emerald-500/30 dark:hover:border-indigo-500/30 shadow-sm hover:shadow-md transition-all flex flex-col justify-between space-y-4">
+                    <div>
+                      <div className="flex justify-between items-start gap-2">
+                        <h5 className="font-black text-slate-800 dark:text-white text-sm flex items-center gap-2">
+                          <FiBookOpen className="text-emerald-650 dark:text-indigo-400" /> {course.courseName}
+                        </h5>
+                        <span className="text-[10px] font-black text-slate-650 dark:text-slate-350 bg-slate-100 dark:bg-slate-900 border border-slate-200/50 dark:border-white/5 px-2.5 py-0.5 rounded-full shrink-0">
+                          {course.duration}
+                        </span>
+                      </div>
+                      <p className="text-slate-650 dark:text-slate-450 text-xs leading-relaxed mt-2 line-clamp-3">
+                        {course.description || "No description provided."}
+                      </p>
+                      
+                      {/* Linked Subjects list */}
+                      <div className="mt-4">
+                        <span className="text-[10px] font-black text-slate-550 dark:text-slate-400 block mb-1.5 uppercase">Linked Subjects:</span>
+                        <div className="flex flex-wrap gap-1.5">
+                          {course.subjects && course.subjects.length > 0 ? (
+                            course.subjects.map(s => (
+                              <span key={s._id} className="text-[9px] bg-slate-100 dark:bg-slate-900 border border-slate-200/50 dark:border-white/5 px-2 py-0.5 rounded text-slate-750 dark:text-slate-300 font-bold">
+                                {s.subjectName} ({s.subjectCode})
+                              </span>
+                            ))
+                          ) : (
+                            <span className="text-[10px] text-slate-405 italic">No subjects linked.</span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="border-t border-slate-100 dark:border-white/5 pt-4 flex justify-between items-center text-xs">
+                      <span className="font-black text-emerald-650 dark:text-indigo-400 text-sm">
+                        ₹{course.fees?.toLocaleString()}
+                      </span>
+                      {hasPermission('manage_courses') && (
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => {
+                              setEditingCourse(course);
+                              setCourseForm({
+                                courseName: course.courseName,
+                                description: course.description || '',
+                                duration: course.duration,
+                                fees: course.fees,
+                                subjects: course.subjects ? course.subjects.map(s => s._id || s) : []
+                              });
+                              setShowCourseModal(true);
+                            }}
+                            className="px-2.5 py-1 bg-emerald-50 dark:bg-indigo-650/20 text-emerald-700 dark:text-indigo-400 border border-emerald-100 dark:border-indigo-500/10 rounded-lg hover:bg-emerald-600 dark:hover:bg-indigo-600 hover:text-white transition-all text-[11px] font-bold"
+                          >
+                            Edit
+                          </button>
+                          <button
+                            onClick={() => handleDeleteCourse(course._id)}
+                            className="px-2.5 py-1 bg-rose-500/10 text-rose-600 dark:text-rose-450 border border-rose-550/10 dark:border-rose-500/10 rounded-lg hover:bg-rose-500 hover:text-white transition-all text-[11px] font-bold"
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
+                {coursesList.length === 0 && (
+                  <div className="col-span-3 p-12 text-center text-slate-500 dark:text-slate-550 text-xs font-black bg-slate-50/50 dark:bg-slate-950/20 rounded-2xl border border-dashed border-slate-200 dark:border-white/5">
+                    No courses available yet. Click "Add Course" to create one.
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {courseSubTab === 'subjects' && (
+            <div className="space-y-6">
+              <div className="flex justify-between items-center">
+                <h4 className="text-xs font-black uppercase text-slate-550 dark:text-slate-400 tracking-wider">Academic Subjects Catalog</h4>
+                {hasPermission('manage_courses') && (
+                  <button
+                    onClick={() => {
+                      setEditingSubject(null);
+                      setSubjectForm({ subjectName: '', subjectCode: '', description: '' });
+                      setShowSubjectModal(true);
+                    }}
+                    className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 dark:bg-indigo-600 dark:hover:bg-indigo-500 text-white rounded-xl text-xs font-black transition-all flex items-center gap-1.5"
+                  >
+                    <FiPlus /> Add Subject
+                  </button>
+                )}
+              </div>
+
+              {/* Subjects Table */}
+              <div className="overflow-x-auto rounded-2xl border border-slate-200 dark:border-white/5 bg-slate-50/50 dark:bg-slate-950/20">
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="border-b border-slate-200 dark:border-white/5 bg-slate-100/70 dark:bg-slate-950/40 text-[10px] font-black text-slate-550 dark:text-slate-400 uppercase tracking-widest">
+                      <th className="p-4">Subject Code</th>
+                      <th className="p-4">Subject Name</th>
+                      <th className="p-4">Description</th>
+                      {hasPermission('manage_courses') && <th className="p-4 text-right">Actions</th>}
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100 dark:divide-white/5 text-xs">
+                    {subjectsList.length > 0 ? (
+                      subjectsList.map((sub) => (
+                        <tr key={sub._id} className="hover:bg-slate-100/50 dark:hover:bg-slate-900/30 transition-colors">
+                          <td className="p-4 font-bold text-slate-800 dark:text-white uppercase tracking-wider">{sub.subjectCode}</td>
+                          <td className="p-4 font-bold text-slate-700 dark:text-slate-300">{sub.subjectName}</td>
+                          <td className="p-4 text-slate-650 dark:text-slate-400 font-medium">{sub.description || "N/A"}</td>
+                          {hasPermission('manage_courses') && (
+                            <td className="p-4 text-right">
+                              <div className="flex items-center justify-end gap-2">
+                                <button
+                                  onClick={() => {
+                                    setEditingSubject(sub);
+                                    setSubjectForm({
+                                      subjectName: sub.subjectName,
+                                      subjectCode: sub.subjectCode,
+                                      description: sub.description || ''
+                                    });
+                                    setShowSubjectModal(true);
+                                  }}
+                                  className="w-8 h-8 rounded-lg bg-emerald-50 dark:bg-indigo-650/20 text-emerald-700 dark:text-indigo-400 border border-emerald-100 dark:border-indigo-500/10 flex items-center justify-center hover:bg-emerald-650 dark:hover:bg-indigo-600 hover:text-white transition-all"
+                                  title="Edit Subject"
+                                >
+                                  <FiEdit size={14} />
+                                </button>
+                                <button
+                                  onClick={() => handleDeleteSubject(sub._id)}
+                                  className="w-8 h-8 rounded-lg bg-rose-500/10 text-rose-600 dark:text-rose-450 border border-rose-500/10 dark:border-rose-500/10 flex items-center justify-center hover:bg-rose-500 hover:text-white transition-all"
+                                  title="Delete Subject"
+                                >
+                                  <FiTrash2 size={14} />
+                                </button>
+                              </div>
+                            </td>
+                          )}
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td colSpan={hasPermission('manage_courses') ? 4 : 3} className="p-8 text-center text-slate-500 text-xs font-semibold">
+                          No subjects available.
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
+          {courseSubTab === 'batches' && (
+            <div className="space-y-6">
+              <div className="flex justify-between items-center">
+                <h4 className="text-xs font-black uppercase text-slate-550 dark:text-slate-400 tracking-wider">Academic Batches</h4>
+                {hasPermission('manage_courses') && (
+                  <button
+                    onClick={() => {
+                      setEditingBatch(null);
+                      setBatchForm({
+                        batchName: '',
+                        startDate: '',
+                        endDate: '',
+                        timing: '',
+                        capacity: 30,
+                        academicSession: '2026-2027',
+                        status: 'active',
+                        course: coursesList.length > 0 ? coursesList[0]._id : '',
+                        teachers: [],
+                        subjects: []
+                      });
+                      setShowBatchModal(true);
+                    }}
+                    className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 dark:bg-indigo-600 dark:hover:bg-indigo-500 text-white rounded-xl text-xs font-black transition-all flex items-center gap-1.5"
+                  >
+                    <FiPlus /> Add Batch
+                  </button>
+                )}
+              </div>
+
+              <div className="grid md:grid-cols-2 gap-6">
+                {batchesList.map((batch) => {
+                  const studentCount = batch.students ? batch.students.length : 0;
+                  const capacity = batch.capacity || 30;
+                  const occupancyPercent = Math.min(100, Math.round((studentCount / capacity) * 100));
+                  
+                  // progress bar color
+                  let progressColor = "bg-emerald-500";
+                  if (occupancyPercent >= 90) progressColor = "bg-rose-500 animate-pulse";
+                  else if (occupancyPercent >= 70) progressColor = "bg-amber-500";
+
+                  // status pill color
+                  let statusPillClass = "bg-emerald-50 text-emerald-700 border-emerald-100 dark:bg-emerald-950/20 dark:text-emerald-450 dark:border-emerald-900/30";
+                  if (batch.status === 'upcoming') statusPillClass = "bg-blue-50 text-blue-700 border-blue-100 dark:bg-blue-950/20 dark:text-blue-450 dark:border-blue-900/30";
+                  else if (batch.status === 'completed') statusPillClass = "bg-slate-50 text-slate-650 border-slate-100 dark:bg-slate-900 dark:text-slate-450 dark:border-white/5";
+                  else if (batch.status === 'cancelled') statusPillClass = "bg-rose-50 text-rose-700 border-rose-100 dark:bg-rose-950/20 dark:text-rose-455 dark:border-rose-900/30";
+
+                  return (
+                    <div key={batch._id} className="bg-white dark:bg-slate-950/20 border border-slate-200 dark:border-white/5 rounded-2xl p-6 hover:border-emerald-500/30 dark:hover:border-indigo-500/30 shadow-sm hover:shadow-md transition-all flex flex-col justify-between space-y-4">
+                      <div>
+                        <div className="flex justify-between items-start gap-2">
+                          <div>
+                            <h5 className="font-black text-slate-800 dark:text-white text-sm flex items-center gap-2">
+                              <FiLayers className="text-indigo-650 dark:text-indigo-400" /> {batch.batchName}
+                            </h5>
+                            <span className="text-[10px] text-slate-550 font-bold block mt-1">
+                              Course: {batch.course ? batch.course.courseName : <span className="italic text-slate-405">None</span>}
+                            </span>
+                          </div>
+                          <span className={`text-[8px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full border ${statusPillClass}`}>
+                            {batch.status}
+                          </span>
+                        </div>
+
+                        {/* Batch Details */}
+                        <div className="grid grid-cols-2 gap-4 mt-4 text-[11px] font-bold text-slate-650 dark:text-slate-450">
+                          <div className="flex items-center gap-1.5">
+                            <FiClock className="text-slate-400 shrink-0" /> {batch.timing}
+                          </div>
+                          <div>
+                            📅 Session: {batch.academicSession}
+                          </div>
+                          <div>
+                            🏁 Starts: {batch.startDate ? new Date(batch.startDate).toLocaleDateString() : 'N/A'}
+                          </div>
+                          <div>
+                            {batch.endDate && `🏁 Ends: ${new Date(batch.endDate).toLocaleDateString()}`}
+                          </div>
+                        </div>
+
+                        {/* Capacity Progress Bar */}
+                        <div className="mt-4 space-y-1.5">
+                          <div className="flex justify-between text-[10px] font-black uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                            <span>Occupancy ({studentCount} / {capacity})</span>
+                            <span>{occupancyPercent}%</span>
+                          </div>
+                          <div className="w-full bg-slate-100 dark:bg-slate-900 rounded-full h-2 overflow-hidden border border-slate-200/50 dark:border-white/5">
+                            <div className={`h-full rounded-full transition-all duration-500 ${progressColor}`} style={{ width: `${occupancyPercent}%` }}></div>
+                          </div>
+                          {studentCount >= capacity && (
+                            <span className="text-[9px] font-black text-rose-550 uppercase tracking-widest block bg-rose-500/5 border border-rose-500/10 p-1.5 rounded-lg text-center">
+                              ⚠️ Warning: Batch is at maximum capacity
+                            </span>
+                          )}
+                        </div>
+
+                        {/* Teachers Roster */}
+                        <div className="mt-4 border-t border-slate-100 dark:border-white/5 pt-3">
+                          <span className="text-[10px] font-black text-slate-550 dark:text-slate-400 block mb-1.5 uppercase">Instructors Roster:</span>
+                          <div className="flex flex-wrap gap-1.5">
+                            {batch.teachers && batch.teachers.length > 0 ? (
+                              batch.teachers.map(t => (
+                                <span key={t._id} className="text-[9px] bg-indigo-50 dark:bg-indigo-950/20 text-indigo-700 dark:text-indigo-400 border border-indigo-100 dark:border-indigo-900/20 px-2 py-0.5 rounded font-bold">
+                                  {t.name}
+                                </span>
+                              ))
+                            ) : batch.assignedTeacher ? (
+                              <span className="text-[9px] bg-indigo-50 dark:bg-indigo-950/20 text-indigo-700 dark:text-indigo-400 border border-indigo-100 dark:border-indigo-900/20 px-2 py-0.5 rounded font-bold">
+                                {batch.assignedTeacher.name || batch.assignedTeacher}
+                              </span>
+                            ) : (
+                              <span className="text-[10px] text-slate-405 italic">No instructors assigned.</span>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Batch Subjects */}
+                        <div className="mt-3 border-t border-slate-100 dark:border-white/5 pt-3">
+                          <span className="text-[10px] font-black text-slate-550 dark:text-slate-400 block mb-1.5 uppercase">Batch Subjects:</span>
+                          <div className="flex flex-wrap gap-1.5">
+                            {batch.subjects && batch.subjects.length > 0 ? (
+                              batch.subjects.map(s => (
+                                <span key={s._id} className="text-[9px] bg-emerald-50 dark:bg-emerald-950/20 text-emerald-700 dark:text-emerald-400 border border-emerald-100 dark:border-indigo-900/20 px-2 py-0.5 rounded font-bold">
+                                  {s.subjectName}
+                                </span>
+                              ))
+                            ) : (
+                              <span className="text-[10px] text-slate-405 italic">No subjects assigned.</span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="border-t border-slate-100 dark:border-white/5 pt-4 flex flex-wrap justify-between items-center gap-2">
+                        {hasPermission('manage_courses') ? (
+                          <>
+                            <div className="flex gap-2">
+                              <button
+                                onClick={() => openAllocateStudentsModal(batch)}
+                                className="px-2.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-[10px] font-black transition-all flex items-center gap-1"
+                              >
+                                👥 Students
+                              </button>
+                              <button
+                                onClick={() => openAllocateSubjectsModal(batch)}
+                                className="px-2.5 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-[10px] font-black transition-all flex items-center gap-1"
+                              >
+                                📚 Subjects
+                              </button>
+                            </div>
+                            <div className="flex gap-2">
+                              <button
+                                onClick={() => {
+                                  setEditingBatch(batch);
+                                  setBatchForm({
+                                    batchName: batch.batchName,
+                                    startDate: formatDateForInput(batch.startDate),
+                                    endDate: formatDateForInput(batch.endDate),
+                                    timing: batch.timing,
+                                    capacity: batch.capacity,
+                                    academicSession: batch.academicSession,
+                                    status: batch.status,
+                                    course: batch.course?._id || batch.course || '',
+                                    teachers: batch.teachers ? batch.teachers.map(t => t._id || t) : [],
+                                    subjects: batch.subjects ? batch.subjects.map(s => s._id || s) : []
+                                  });
+                                  setShowBatchModal(true);
+                                }}
+                                className="w-8 h-8 rounded-lg bg-emerald-50 dark:bg-indigo-650/20 text-emerald-700 dark:text-indigo-400 border border-emerald-100 dark:border-indigo-500/10 flex items-center justify-center hover:bg-emerald-655 dark:hover:bg-indigo-600 hover:text-white transition-all text-xs"
+                                title="Edit Batch"
+                              >
+                                <FiEdit size={14} />
+                              </button>
+                              <button
+                                onClick={() => handleDeleteBatch(batch._id)}
+                                className="w-8 h-8 rounded-lg bg-rose-500/10 text-rose-600 dark:text-rose-455 border border-rose-500/10 dark:border-rose-500/10 flex items-center justify-center hover:bg-rose-500 hover:text-white transition-all text-xs"
+                                title="Delete Batch"
+                              >
+                                <FiTrash2 size={14} />
+                              </button>
+                            </div>
+                          </>
+                        ) : (
+                          <span className="text-[10px] text-slate-405 italic">Viewing only. No administrative permissions.</span>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+                {batchesList.length === 0 && (
+                  <div className="col-span-2 p-12 text-center text-slate-500 dark:text-slate-550 text-xs font-black bg-slate-50/50 dark:bg-slate-950/20 rounded-2xl border border-dashed border-slate-200 dark:border-white/5">
+                    No batches defined yet. Click "Add Batch" to create one.
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
       {/* User Personalization Modal (Drawer style) */}
       {selectedUser && (
         <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex justify-end">
@@ -3469,6 +4163,542 @@ const AdminDashboard = () => {
                 Import Selected Rows
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Add/Edit Course Modal */}
+      {showCourseModal && (
+        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-slate-950 border border-slate-200 dark:border-white/5 rounded-3xl p-6 max-w-md w-full shadow-2xl space-y-6 max-h-[90vh] overflow-y-auto animate-in fade-in zoom-in-95 duration-200">
+            <div className="flex justify-between items-center">
+              <h3 className="font-black text-slate-800 dark:text-white text-base">
+                {editingCourse ? "Edit Course Settings" : "Create New Course"}
+              </h3>
+              <button
+                onClick={() => setShowCourseModal(false)}
+                className="text-slate-500 hover:text-slate-850 dark:text-slate-400 dark:hover:text-white transition-colors"
+              >
+                <FiX />
+              </button>
+            </div>
+
+            <form onSubmit={handleCourseSubmit} className="space-y-4">
+              <div>
+                <label className="text-[10px] font-bold text-slate-550 dark:text-slate-400 block mb-1">Course Name:</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. Full Stack Engineering"
+                  value={courseForm.courseName}
+                  onChange={(e) => setCourseForm({ ...courseForm, courseName: e.target.value })}
+                  className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-white/5 rounded-xl px-4 py-2.5 text-xs text-slate-800 dark:text-white focus:outline-none focus:border-emerald-650 dark:focus:border-indigo-500 transition-colors font-semibold"
+                />
+              </div>
+
+              <div>
+                <label className="text-[10px] font-bold text-slate-550 dark:text-slate-400 block mb-1">Duration (Months/Weeks):</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. 6 Months"
+                  value={courseForm.duration}
+                  onChange={(e) => setCourseForm({ ...courseForm, duration: e.target.value })}
+                  className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-white/5 rounded-xl px-4 py-2.5 text-xs text-slate-800 dark:text-white focus:outline-none focus:border-emerald-650 dark:focus:border-indigo-500 transition-colors font-semibold"
+                />
+              </div>
+
+              <div>
+                <label className="text-[10px] font-bold text-slate-555 dark:text-slate-400 block mb-1">Course Fee (₹):</label>
+                <input
+                  type="number"
+                  required
+                  min="0"
+                  value={courseForm.fees}
+                  onChange={(e) => setCourseForm({ ...courseForm, fees: Number(e.target.value) })}
+                  className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-white/5 rounded-xl px-4 py-2.5 text-xs text-slate-800 dark:text-white focus:outline-none focus:border-emerald-650 dark:focus:border-indigo-500 transition-colors font-semibold"
+                />
+              </div>
+
+              <div>
+                <label className="text-[10px] font-bold text-slate-550 dark:text-slate-400 block mb-1">Description:</label>
+                <textarea
+                  rows="3"
+                  placeholder="Detailed course description..."
+                  value={courseForm.description}
+                  onChange={(e) => setCourseForm({ ...courseForm, description: e.target.value })}
+                  className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-white/5 rounded-xl p-4 text-xs text-slate-800 dark:text-white focus:outline-none focus:border-emerald-650 dark:focus:border-indigo-500 transition-colors font-medium"
+                ></textarea>
+              </div>
+
+              <div>
+                <label className="text-[10px] font-bold text-slate-550 dark:text-slate-400 block mb-2.5">Associate Subjects:</label>
+                <div className="grid grid-cols-2 gap-2.5 p-3.5 bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-white/5 rounded-2xl max-h-40 overflow-y-auto">
+                  {subjectsList.map((sub) => {
+                    const isChecked = courseForm.subjects.includes(sub._id);
+                    return (
+                      <label key={sub._id} className="flex items-center gap-2 text-xs font-bold text-slate-700 dark:text-slate-350 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={isChecked}
+                          onChange={() => {
+                            const newSubjects = isChecked
+                              ? courseForm.subjects.filter(id => id !== sub._id)
+                              : [...courseForm.subjects, sub._id];
+                            setCourseForm({ ...courseForm, subjects: newSubjects });
+                          }}
+                          className="rounded accent-emerald-650 dark:accent-indigo-500"
+                        />
+                        <span>{sub.subjectName}</span>
+                      </label>
+                    );
+                  })}
+                  {subjectsList.length === 0 && (
+                    <span className="text-[10px] text-slate-400 italic col-span-2">No subjects available. Add subjects first.</span>
+                  )}
+                </div>
+              </div>
+
+              <div className="flex gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowCourseModal(false)}
+                  className="w-1/2 py-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-900 dark:hover:bg-slate-800 border border-slate-200 dark:border-white/5 text-slate-605 dark:text-slate-400 rounded-xl text-xs font-black hover:text-slate-900 dark:hover:text-white transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="w-1/2 py-2.5 bg-emerald-600 hover:bg-emerald-500 dark:bg-indigo-600 dark:hover:bg-indigo-500 text-white rounded-xl text-xs font-black transition-colors"
+                >
+                  {editingCourse ? "Save Changes" : "Create Course"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Add/Edit Subject Modal */}
+      {showSubjectModal && (
+        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-slate-950 border border-slate-200 dark:border-white/5 rounded-3xl p-6 max-w-md w-full shadow-2xl space-y-6 animate-in fade-in zoom-in-95 duration-200">
+            <div className="flex justify-between items-center">
+              <h3 className="font-black text-slate-800 dark:text-white text-base">
+                {editingSubject ? "Edit Subject Details" : "Create New Subject"}
+              </h3>
+              <button
+                onClick={() => setShowSubjectModal(false)}
+                className="text-slate-500 hover:text-slate-850 dark:text-slate-400 dark:hover:text-white transition-colors"
+              >
+                <FiX />
+              </button>
+            </div>
+
+            <form onSubmit={handleSubjectSubmit} className="space-y-4">
+              <div>
+                <label className="text-[10px] font-bold text-slate-550 dark:text-slate-400 block mb-1">Subject Name:</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. Advanced Data Structures"
+                  value={subjectForm.subjectName}
+                  onChange={(e) => setSubjectForm({ ...subjectForm, subjectName: e.target.value })}
+                  className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-white/5 rounded-xl px-4 py-2.5 text-xs text-slate-800 dark:text-white focus:outline-none focus:border-emerald-650 dark:focus:border-indigo-500 transition-colors font-semibold"
+                />
+              </div>
+
+              <div>
+                <label className="text-[10px] font-bold text-slate-550 dark:text-slate-400 block mb-1">Subject Code:</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. CS-301"
+                  value={subjectForm.subjectCode}
+                  onChange={(e) => setSubjectForm({ ...subjectForm, subjectCode: e.target.value })}
+                  className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-white/5 rounded-xl px-4 py-2.5 text-xs text-slate-800 dark:text-white focus:outline-none focus:border-emerald-650 dark:focus:border-indigo-500 transition-colors font-semibold"
+                />
+              </div>
+
+              <div>
+                <label className="text-[10px] font-bold text-slate-550 dark:text-slate-400 block mb-1">Description:</label>
+                <textarea
+                  rows="3"
+                  placeholder="Short description of topics covered..."
+                  value={subjectForm.description}
+                  onChange={(e) => setSubjectForm({ ...subjectForm, description: e.target.value })}
+                  className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-white/5 rounded-xl p-4 text-xs text-slate-800 dark:text-white focus:outline-none focus:border-emerald-650 dark:focus:border-indigo-500 transition-colors font-medium"
+                ></textarea>
+              </div>
+
+              <div className="flex gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowSubjectModal(false)}
+                  className="w-1/2 py-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-900 dark:hover:bg-slate-800 border border-slate-200 dark:border-white/5 text-slate-605 dark:text-slate-400 rounded-xl text-xs font-black hover:text-slate-900 dark:hover:text-white transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="w-1/2 py-2.5 bg-emerald-600 hover:bg-emerald-500 dark:bg-indigo-600 dark:hover:bg-indigo-500 text-white rounded-xl text-xs font-black transition-colors"
+                >
+                  {editingSubject ? "Save Changes" : "Create Subject"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Add/Edit Batch Modal */}
+      {showBatchModal && (
+        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-slate-950 border border-slate-200 dark:border-white/5 rounded-3xl p-6 max-w-md w-full shadow-2xl space-y-6 max-h-[90vh] overflow-y-auto animate-in fade-in zoom-in-95 duration-200">
+            <div className="flex justify-between items-center">
+              <h3 className="font-black text-slate-800 dark:text-white text-base">
+                {editingBatch ? "Edit Batch Settings" : "Create New Batch"}
+              </h3>
+              <button
+                onClick={() => setShowBatchModal(false)}
+                className="text-slate-500 hover:text-slate-850 dark:text-slate-400 dark:hover:text-white transition-colors"
+              >
+                <FiX />
+              </button>
+            </div>
+
+            <form onSubmit={handleBatchSubmit} className="space-y-4">
+              <div>
+                <label className="text-[10px] font-bold text-slate-550 dark:text-slate-400 block mb-1">Batch Name (Unique):</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. FSE-2026-A"
+                  value={batchForm.batchName}
+                  onChange={(e) => setBatchForm({ ...batchForm, batchName: e.target.value })}
+                  className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-white/5 rounded-xl px-4 py-2.5 text-xs text-slate-800 dark:text-white focus:outline-none focus:border-emerald-650 dark:focus:border-indigo-500 transition-colors font-semibold"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-[10px] font-bold text-slate-550 dark:text-slate-400 block mb-1">Course:</label>
+                  <select
+                    required
+                    value={batchForm.course}
+                    onChange={(e) => setBatchForm({ ...batchForm, course: e.target.value })}
+                    className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-white/5 rounded-xl px-3 py-2.5 text-xs text-slate-855 dark:text-white focus:outline-none focus:border-emerald-650 dark:focus:border-indigo-500 font-semibold"
+                  >
+                    <option value="" disabled>Select Course</option>
+                    {coursesList.map(c => (
+                      <option key={c._id} value={c._id}>{c.courseName}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="text-[10px] font-bold text-slate-550 dark:text-slate-400 block mb-1">Capacity Limit:</label>
+                  <input
+                    type="number"
+                    required
+                    min="1"
+                    value={batchForm.capacity}
+                    onChange={(e) => setBatchForm({ ...batchForm, capacity: Number(e.target.value) })}
+                    className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-white/5 rounded-xl px-4 py-2.5 text-xs text-slate-800 dark:text-white focus:outline-none focus:border-emerald-650 dark:focus:border-indigo-500 transition-colors font-semibold"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-[10px] font-bold text-slate-550 dark:text-slate-400 block mb-1">Start Date:</label>
+                  <input
+                    type="date"
+                    required
+                    value={batchForm.startDate}
+                    onChange={(e) => setBatchForm({ ...batchForm, startDate: e.target.value })}
+                    className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-white/5 rounded-xl px-4 py-2.5 text-xs text-slate-800 dark:text-white focus:outline-none focus:border-emerald-650 dark:focus:border-indigo-500 font-semibold"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-[10px] font-bold text-slate-550 dark:text-slate-400 block mb-1">End Date (Optional):</label>
+                  <input
+                    type="date"
+                    value={batchForm.endDate}
+                    onChange={(e) => setBatchForm({ ...batchForm, endDate: e.target.value })}
+                    className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-white/5 rounded-xl px-4 py-2.5 text-xs text-slate-800 dark:text-white focus:outline-none focus:border-emerald-650 dark:focus:border-indigo-500 font-semibold"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-[10px] font-bold text-slate-550 dark:text-slate-400 block mb-1">Timings (e.g. 9-11 AM):</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. 06:00 PM - 08:00 PM"
+                    value={batchForm.timing}
+                    onChange={(e) => setBatchForm({ ...batchForm, timing: e.target.value })}
+                    className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-white/5 rounded-xl px-4 py-2.5 text-xs text-slate-800 dark:text-white focus:outline-none focus:border-emerald-650 dark:focus:border-indigo-500 transition-colors font-semibold"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-[10px] font-bold text-slate-550 dark:text-slate-400 block mb-1">Academic Session:</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. 2026-2027"
+                    value={batchForm.academicSession}
+                    onChange={(e) => setBatchForm({ ...batchForm, academicSession: e.target.value })}
+                    className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-white/5 rounded-xl px-4 py-2.5 text-xs text-slate-800 dark:text-white focus:outline-none focus:border-emerald-650 dark:focus:border-indigo-500 transition-colors font-semibold"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-[10px] font-bold text-slate-555 dark:text-slate-400 block mb-1">Batch Status:</label>
+                  <select
+                    value={batchForm.status}
+                    onChange={(e) => setBatchForm({ ...batchForm, status: e.target.value })}
+                    className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-white/5 rounded-xl px-3 py-2.5 text-xs text-slate-850 dark:text-white focus:outline-none focus:border-emerald-650 dark:focus:border-indigo-500 font-semibold"
+                  >
+                    <option value="upcoming">Upcoming</option>
+                    <option value="active">Active</option>
+                    <option value="completed">Completed</option>
+                    <option value="cancelled">Cancelled</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label className="text-[10px] font-bold text-slate-550 dark:text-slate-400 block mb-2.5">Assign Instructors (Teachers):</label>
+                <div className="grid grid-cols-2 gap-2.5 p-3.5 bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-white/5 rounded-2xl max-h-40 overflow-y-auto">
+                  {allTeachers.map((tea) => {
+                    const isChecked = batchForm.teachers.includes(tea._id);
+                    return (
+                      <label key={tea._id} className="flex items-center gap-2 text-xs font-bold text-slate-700 dark:text-slate-355 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={isChecked}
+                          onChange={() => {
+                            const newTeachers = isChecked
+                              ? batchForm.teachers.filter(id => id !== tea._id)
+                              : [...batchForm.teachers, tea._id];
+                            setBatchForm({ ...batchForm, teachers: newTeachers });
+                          }}
+                          className="rounded accent-emerald-655 dark:accent-indigo-500"
+                        />
+                        <span>{tea.name}</span>
+                      </label>
+                    );
+                  })}
+                  {allTeachers.length === 0 && (
+                    <span className="text-[10px] text-slate-405 italic col-span-2">No teachers available.</span>
+                  )}
+                </div>
+              </div>
+
+              <div className="flex gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowBatchModal(false)}
+                  className="w-1/2 py-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-900 dark:hover:bg-slate-800 border border-slate-200 dark:border-white/5 text-slate-605 dark:text-slate-400 rounded-xl text-xs font-black hover:text-slate-900 dark:hover:text-white transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="w-1/2 py-2.5 bg-emerald-600 hover:bg-emerald-500 dark:bg-indigo-600 dark:hover:bg-indigo-500 text-white rounded-xl text-xs font-black transition-colors"
+                >
+                  {editingBatch ? "Save Changes" : "Create Batch"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Allocate Students Modal */}
+      {showAllocateStudentsModal && allocatingBatch && (
+        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-slate-950 border border-slate-200 dark:border-white/5 rounded-3xl p-6 max-w-lg w-full shadow-2xl space-y-6 max-h-[90vh] overflow-y-auto animate-in fade-in zoom-in-95 duration-200">
+            <div className="flex justify-between items-center">
+              <div>
+                <h3 className="font-black text-slate-800 dark:text-white text-base">
+                  Allocate Students to {allocatingBatch.batchName}
+                </h3>
+                <span className="text-[10px] text-slate-500 dark:text-slate-400 block mt-1">
+                  Capacity: {allocatingBatch.capacity} Students | Selected: {tempSelectedStudentIds.length}
+                </span>
+              </div>
+              <button
+                onClick={() => {
+                  setShowAllocateStudentsModal(false);
+                  setAllocatingBatch(null);
+                }}
+                className="text-slate-500 hover:text-slate-855 dark:text-slate-400 dark:hover:text-white transition-colors"
+              >
+                <FiX />
+              </button>
+            </div>
+
+            <div className="relative">
+              <FiSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+              <input
+                type="text"
+                placeholder="Search students by roll number or name..."
+                value={allocateStudentsSearch}
+                onChange={(e) => setAllocateStudentsSearch(e.target.value)}
+                className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-white/5 rounded-xl pl-10 pr-4 py-2 text-xs text-slate-800 dark:text-white focus:outline-none focus:border-emerald-650 dark:focus:border-indigo-500 transition-colors font-semibold"
+              />
+            </div>
+
+            {tempSelectedStudentIds.length > allocatingBatch.capacity && (
+              <div className="p-3.5 bg-rose-500/10 border border-rose-500/20 text-rose-600 dark:text-rose-450 rounded-xl text-xs font-bold text-center">
+                ⚠️ Warning: Selected students count ({tempSelectedStudentIds.length}) exceeds batch capacity ({allocatingBatch.capacity}). Allocation will fail.
+              </div>
+            )}
+
+            <form onSubmit={handleAllocateStudentsSubmit} className="space-y-4">
+              <div className="p-3 bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-white/5 rounded-2xl max-h-60 overflow-y-auto space-y-2">
+                {allStudentsForAllocation
+                  .filter(std => {
+                    const searchLower = allocateStudentsSearch.toLowerCase();
+                    return std.fullName.toLowerCase().includes(searchLower) ||
+                           std.rollNumber.toLowerCase().includes(searchLower) ||
+                           std.email.toLowerCase().includes(searchLower);
+                  })
+                  .map((std) => {
+                    const isChecked = tempSelectedStudentIds.includes(std._id);
+                    return (
+                      <label key={std._id} className="flex items-center justify-between p-2.5 rounded-xl bg-white dark:bg-slate-950 border border-slate-150 dark:border-white/5 hover:border-emerald-500/30 dark:hover:border-indigo-500/30 cursor-pointer transition-all">
+                        <div className="flex items-center gap-3">
+                          <input
+                            type="checkbox"
+                            checked={isChecked}
+                            onChange={() => {
+                              const newSelected = isChecked
+                                ? tempSelectedStudentIds.filter(id => id !== std._id)
+                                : [...tempSelectedStudentIds, std._id];
+                              setTempSelectedStudentIds(newSelected);
+                            }}
+                            className="rounded accent-emerald-650 dark:accent-indigo-500"
+                          />
+                          <div className="text-xs">
+                            <span className="font-bold text-slate-800 dark:text-white block">{std.fullName}</span>
+                            <span className="text-[10px] text-slate-500 block mt-0.5">{std.rollNumber} &bull; {std.email}</span>
+                          </div>
+                        </div>
+                        {std.batch && std.batch._id !== allocatingBatch._id && (
+                          <span className="text-[9px] font-bold text-amber-600 bg-amber-50 dark:bg-amber-950/20 border border-amber-100 dark:border-amber-900/20 px-2 py-0.5 rounded">
+                            In batch: {std.batch.batchName}
+                          </span>
+                        )}
+                      </label>
+                    );
+                  })}
+                {allStudentsForAllocation.length === 0 && (
+                  <span className="text-[10px] text-slate-405 italic block text-center py-4">No students available.</span>
+                )}
+              </div>
+
+              <div className="flex gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowAllocateStudentsModal(false);
+                    setAllocatingBatch(null);
+                  }}
+                  className="w-1/2 py-2.5 bg-slate-105 hover:bg-slate-200 dark:bg-slate-900 dark:hover:bg-slate-800 border border-slate-200 dark:border-white/5 text-slate-605 dark:text-slate-400 rounded-xl text-xs font-black hover:text-slate-900 dark:hover:text-white transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={tempSelectedStudentIds.length > allocatingBatch.capacity}
+                  className="w-1/2 py-2.5 bg-emerald-600 hover:bg-emerald-500 dark:bg-indigo-600 dark:hover:bg-indigo-500 text-white rounded-xl text-xs font-black disabled:opacity-55 transition-colors"
+                >
+                  Save Allocation
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Allocate Subjects Modal */}
+      {showAllocateSubjectsModal && allocatingBatch && (
+        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-slate-950 border border-slate-200 dark:border-white/5 rounded-3xl p-6 max-w-md w-full shadow-2xl space-y-6 animate-in fade-in zoom-in-95 duration-200">
+            <div className="flex justify-between items-center">
+              <div>
+                <h3 className="font-black text-slate-800 dark:text-white text-base">
+                  Assign Subjects to {allocatingBatch.batchName}
+                </h3>
+                <span className="text-[10px] text-slate-550 dark:text-slate-400 block mt-1">
+                  Select which curriculum subjects are active in this batch
+                </span>
+              </div>
+              <button
+                onClick={() => {
+                  setShowAllocateSubjectsModal(false);
+                  setAllocatingBatch(null);
+                }}
+                className="text-slate-500 hover:text-slate-855 dark:text-slate-400 dark:hover:text-white transition-colors"
+              >
+                <FiX />
+              </button>
+            </div>
+
+            <form onSubmit={handleAllocateSubjectsSubmit} className="space-y-4">
+              <div className="grid grid-cols-2 gap-2.5 p-3.5 bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-white/5 rounded-2xl max-h-60 overflow-y-auto">
+                {subjectsList.map((sub) => {
+                  const isChecked = tempSelectedSubjectIds.includes(sub._id);
+                  return (
+                    <label key={sub._id} className="flex items-center gap-2 text-xs font-bold text-slate-700 dark:text-slate-350 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={isChecked}
+                        onChange={() => {
+                          const newSelected = isChecked
+                            ? tempSelectedSubjectIds.filter(id => id !== sub._id)
+                            : [...tempSelectedSubjectIds, sub._id];
+                          setTempSelectedSubjectIds(newSelected);
+                        }}
+                        className="rounded accent-emerald-650 dark:accent-indigo-500"
+                      />
+                      <span>{sub.subjectName}</span>
+                    </label>
+                  );
+                })}
+                {subjectsList.length === 0 && (
+                  <span className="text-[10px] text-slate-400 italic col-span-2 text-center py-4">No subjects defined.</span>
+                )}
+              </div>
+
+              <div className="flex gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowAllocateSubjectsModal(false);
+                    setAllocatingBatch(null);
+                  }}
+                  className="w-1/2 py-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-900 dark:hover:bg-slate-800 border border-slate-200 dark:border-white/5 text-slate-605 dark:text-slate-400 rounded-xl text-xs font-black hover:text-slate-900 dark:hover:text-white transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="w-1/2 py-2.5 bg-emerald-600 hover:bg-emerald-500 dark:bg-indigo-600 dark:hover:bg-indigo-500 text-white rounded-xl text-xs font-black transition-colors"
+                >
+                  Save Allocation
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}
