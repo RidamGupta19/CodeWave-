@@ -790,7 +790,10 @@ exports.getStudyMaterials = async (req, res) => {
 
     const materials = await StudyMaterial.find(query)
       .populate('course')
-      .populate('batch');
+      .populate('batch')
+      .populate('uploadedBy', 'fullName role')
+      .populate('versions.updatedBy', 'fullName role')
+      .populate('downloads.user', 'fullName email role');
 
     res.json({ success: true, data: materials });
   } catch (err) {
@@ -808,9 +811,71 @@ exports.uploadStudyMaterial = async (req, res) => {
       fileUrl,
       course: course || null,
       batch: batch || null,
-      uploadedBy: req.user._id
+      uploadedBy: req.user._id,
+      version: 1,
+      versions: [],
+      downloads: [],
+      downloadCount: 0
     });
-    res.status(201).json({ success: true, data: material });
+    
+    const populated = await StudyMaterial.findById(material._id)
+      .populate('course')
+      .populate('batch')
+      .populate('uploadedBy', 'fullName role');
+
+    res.status(201).json({ success: true, data: populated });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+exports.updateStudyMaterial = async (req, res) => {
+  try {
+    const { title, description, materialType, fileUrl, course, batch } = req.body;
+    const material = await StudyMaterial.findById(req.params.id);
+    
+    if (!material) {
+      return res.status(404).json({ success: false, message: 'Study material not found' });
+    }
+
+    // Version management logic:
+    // If the fileUrl, title, or description has changed, save the previous state to the versions history list
+    const fileChanged = fileUrl && fileUrl !== material.fileUrl;
+    const infoChanged = title !== material.title || description !== material.description || materialType !== material.materialType;
+    
+    if (fileChanged || infoChanged) {
+      material.versions.push({
+        versionNumber: material.version,
+        title: material.title,
+        description: material.description,
+        fileUrl: material.fileUrl,
+        updatedAt: material.updatedAt || new Date(),
+        updatedBy: material.uploadedBy || req.user._id
+      });
+      material.version += 1;
+    }
+
+    material.title = title || material.title;
+    material.description = description !== undefined ? description : material.description;
+    material.materialType = materialType || material.materialType;
+    material.fileUrl = fileUrl || material.fileUrl;
+    material.course = course || null;
+    material.batch = batch || null;
+    
+    // Track who did the last update
+    material.uploadedBy = req.user._id;
+
+    await material.save();
+    
+    // Return populated document
+    const updated = await StudyMaterial.findById(material._id)
+      .populate('course')
+      .populate('batch')
+      .populate('uploadedBy', 'fullName role')
+      .populate('versions.updatedBy', 'fullName role')
+      .populate('downloads.user', 'fullName email role');
+
+    res.json({ success: true, data: updated });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }
@@ -820,6 +885,38 @@ exports.deleteStudyMaterial = async (req, res) => {
   try {
     await StudyMaterial.findByIdAndDelete(req.params.id);
     res.json({ success: true, message: 'Study material deleted' });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+exports.uploadFile = async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ success: false, message: 'Please upload a file' });
+    }
+    const fileUrl = `/uploads/${req.file.filename}`;
+    res.status(200).json({ success: true, fileUrl });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+exports.trackDownload = async (req, res) => {
+  try {
+    const material = await StudyMaterial.findById(req.params.id);
+    if (!material) {
+      return res.status(404).json({ success: false, message: 'Study material not found' });
+    }
+    
+    material.downloadCount += 1;
+    material.downloads.push({
+      user: req.user._id,
+      downloadedAt: new Date()
+    });
+    
+    await material.save();
+    res.json({ success: true, message: 'Download tracked successfully', downloadCount: material.downloadCount });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }

@@ -28,6 +28,22 @@ export default function StudentNotes() {
     }
   };
 
+  const handleDownload = async (materialId, fileUrl) => {
+    try {
+      await api.post(`/institute/materials/${materialId}/download`);
+    } catch (err) {
+      console.error('Download tracking failed:', err);
+    }
+
+    let fullUrl = fileUrl;
+    if (fileUrl && fileUrl.startsWith('/uploads')) {
+      const apiBase = api.defaults.baseURL || '';
+      const serverBase = apiBase.replace(/\/api$/, '');
+      fullUrl = `${serverBase}${fileUrl}`;
+    }
+    window.open(fullUrl, '_blank');
+  };
+
   const tabs = ['All', 'Notes', 'PDF', 'Practice Sheet', 'Assignment'];
   const filtered = materials.filter(m => {
     const matchesTab = activeTab === 'All' || m.materialType === activeTab;
@@ -97,9 +113,14 @@ export default function StudentNotes() {
                   <div className="w-10 h-10 rounded-xl bg-indigo-50 border border-indigo-100 flex items-center justify-center text-lg text-indigo-500 shrink-0">
                     📄
                   </div>
-                  <span className="px-2.5 py-0.5 bg-[var(--bg-sub)] border border-[var(--border-light)] text-[var(--text-muted)] text-[8px] font-black uppercase rounded-md tracking-wider">
-                    {material.materialType}
-                  </span>
+                  <div className="flex flex-col items-end gap-1">
+                    <span className="px-2.5 py-0.5 bg-[var(--bg-sub)] border border-[var(--border-light)] text-[var(--text-muted)] text-[8px] font-black uppercase rounded-md tracking-wider">
+                      {material.materialType}
+                    </span>
+                    <span className="px-1.5 py-0.5 bg-blue-50 border border-blue-100 text-blue-600 text-[8px] font-extrabold rounded-md">
+                      v{material.version || 1}
+                    </span>
+                  </div>
                 </div>
 
                 <h3 className="font-extrabold text-[var(--text-main)] text-sm mt-4 line-clamp-2 leading-snug">{material.title}</h3>
@@ -108,14 +129,12 @@ export default function StudentNotes() {
 
               <div className="pt-4 border-t border-[var(--border-light)] flex justify-between items-center text-[10px] font-black uppercase tracking-wider text-[var(--text-light)]">
                 <span>Course: {material.course?.courseName || 'General'}</span>
-                <a
-                  href={material.fileUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="flex items-center gap-1.5 py-2 px-3.5 bg-[var(--primary)] text-white hover:bg-[var(--primary-hover)] rounded-xl transition-colors"
+                <button
+                  onClick={() => handleDownload(material._id, material.fileUrl)}
+                  className="flex items-center gap-1.5 py-2 px-3.5 bg-[var(--primary)] text-white hover:bg-[var(--primary-hover)] rounded-xl transition-colors cursor-pointer"
                 >
                   <FiDownload /> Get Document
-                </a>
+                </button>
               </div>
             </div>
           ))

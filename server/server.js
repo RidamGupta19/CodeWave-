@@ -17,6 +17,15 @@ const app = express();
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 
+// Serve static uploads
+const path = require('path');
+const fs = require('fs');
+const uploadDir = path.join(__dirname, 'uploads');
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir, { recursive: true });
+}
+app.use('/uploads', express.static(uploadDir));
+
 // Security
 app.use(helmet({
   contentSecurityPolicy: process.env.NODE_ENV === 'development' ? false : undefined,

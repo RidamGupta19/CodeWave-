@@ -3,6 +3,7 @@ const router = express.Router();
 const c = require('../controllers/instituteController');
 const vc = require('../controllers/videoController');
 const { protect, authorize } = require('../middleware/auth');
+const { uploadSingle } = require('../middleware/uploadMiddleware');
 
 // Unified endpoints protected by JWT authentication
 router.use(protect);
@@ -54,7 +55,10 @@ router.delete('/notices/:id', authorize('admin'), c.deleteNotice);
 // 9. Study Material
 router.get('/materials', c.getStudyMaterials);
 router.post('/materials', authorize('admin', 'teacher'), c.uploadStudyMaterial);
+router.put('/materials/:id', authorize('admin', 'teacher'), c.updateStudyMaterial);
 router.delete('/materials/:id', authorize('admin', 'teacher'), c.deleteStudyMaterial);
+router.post('/materials/upload', authorize('admin', 'teacher'), uploadSingle('file'), c.uploadFile);
+router.post('/materials/:id/download', c.trackDownload);
 
 // 10. Class Scheduler
 router.get('/schedules', c.getSchedules);
