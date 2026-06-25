@@ -210,6 +210,30 @@ const AdminDashboard = () => {
   const [tempSelectedSubjectIds, setTempSelectedSubjectIds] = useState([]);
   const [allStudentsForAllocation, setAllStudentsForAllocation] = useState([]);
 
+  // Settings Tab State
+  const [settingsSubTab, setSettingsSubTab] = useState('profile'); // 'profile' | 'academic' | 'security' | 'storage' | 'notifications'
+  const [settingsForm, setSettingsForm] = useState({
+    name: 'CodeWave Coaching Institute',
+    logo: '',
+    address: '123 Technology Park, Silicon Valley',
+    contactDetails: { phone: '9876543210', email: 'contact@codewave.com', website: 'https://codewave.com' },
+    sessions: ['2025-2026', '2026-2027'],
+    holidays: [],
+    workingDays: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'],
+    timetable: { startHour: '09:00 AM', endHour: '06:00 PM' },
+    passwordPolicies: { minLength: 6, requireSpecialChar: false, requireUppercase: false },
+    sessionTimeout: 60,
+    loginSecurity: { maxLoginAttempts: 5, lockoutTime: 15 },
+    uploadLimits: 50,
+    allowedFileTypes: ['.pdf', '.csv', '.xlsx', '.png', '.jpg', '.mp4'],
+    videoLimits: 500,
+    smtp: { host: 'smtp.mailtrap.io', port: 2525, user: '', pass: '', fromEmail: 'noreply@codewave.com' },
+    pushNotifications: { enabled: false, provider: 'OneSignal' },
+    announcementSettings: { defaultChannel: 'general', allowStudentReply: false }
+  });
+  const [newHoliday, setNewHoliday] = useState({ name: '', date: '' });
+  const [newSession, setNewSession] = useState('');
+
   useEffect(() => {
     fetchInitialData();
   }, []);
@@ -497,6 +521,93 @@ const AdminDashboard = () => {
     }
   };
 
+  const fetchSettings = async () => {
+    try {
+      const res = await api.get('/admin/settings');
+      if (res.data.success) {
+        setSettingsForm(res.data.data);
+      }
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Failed to fetch settings");
+    }
+  };
+
+  const handleSaveSettings = async (e) => {
+    if (e) e.preventDefault();
+    if (!hasPermission('manage_settings')) {
+      toast.error("You do not have permission to manage settings.");
+      return;
+    }
+    const loadingToast = toast.loading("Saving settings...");
+    try {
+      const res = await api.put('/admin/settings', settingsForm);
+      if (res.data.success) {
+        toast.success("Settings updated successfully!", { id: loadingToast });
+        setSettingsForm(res.data.data);
+      }
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Failed to update settings", { id: loadingToast });
+    }
+  };
+
+  const addHoliday = () => {
+    if (!newHoliday.name || !newHoliday.date) {
+      toast.error("Please enter holiday name and date");
+      return;
+    }
+    setSettingsForm({
+      ...settingsForm,
+      holidays: [...(settingsForm.holidays || []), { name: newHoliday.name, date: newHoliday.date }]
+    });
+    setNewHoliday({ name: '', date: '' });
+  };
+
+  const removeHoliday = (index) => {
+    const updated = (settingsForm.holidays || []).filter((_, i) => i !== index);
+    setSettingsForm({ ...settingsForm, holidays: updated });
+  };
+
+  const addSession = () => {
+    if (!newSession.trim()) {
+      toast.error("Please enter academic session");
+      return;
+    }
+    if ((settingsForm.sessions || []).includes(newSession.trim())) {
+      toast.error("Session already exists");
+      return;
+    }
+    setSettingsForm({
+      ...settingsForm,
+      sessions: [...(settingsForm.sessions || []), newSession.trim()]
+    });
+    setNewSession('');
+  };
+
+  const removeSession = (session) => {
+    const updated = (settingsForm.sessions || []).filter(s => s !== session);
+    setSettingsForm({ ...settingsForm, sessions: updated });
+  };
+
+  const toggleWorkingDay = (day) => {
+    let updated = [...(settingsForm.workingDays || [])];
+    if (updated.includes(day)) {
+      updated = updated.filter(d => d !== day);
+    } else {
+      updated.push(day);
+    }
+    setSettingsForm({ ...settingsForm, workingDays: updated });
+  };
+
+  const toggleAllowedFileType = (ext) => {
+    let updated = [...(settingsForm.allowedFileTypes || [])];
+    if (updated.includes(ext)) {
+      updated = updated.filter(e => e !== ext);
+    } else {
+      updated.push(ext);
+    }
+    setSettingsForm({ ...settingsForm, allowedFileTypes: updated });
+  };
+
   const formatDateForInput = (dateString) => {
     if (!dateString) return '';
     const date = new Date(dateString);
@@ -535,6 +646,8 @@ const AdminDashboard = () => {
       } else if (userSubTab === 'subadmins') {
         fetchSubAdmins();
       }
+    } else if (activeTab === 'settings') {
+      fetchSettings();
     }
   }, [activeTab, userSubTab]);
 
@@ -1208,12 +1321,20 @@ const AdminDashboard = () => {
             >
               📝 Assign Assessments
             </button>
+            <button
+              onClick={() => {
+                setActiveTab('settings');
+              }}
+              className={`px-4 py-2 rounded-lg text-xs font-black transition-all ${activeTab === 'settings' ? 'bg-emerald-600 dark:bg-indigo-600 text-white shadow-sm' : 'text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white'}`}
+            >
+              ⚙️ Settings
+            </button>
           </div>
         </div>
       </div>
 
       {/* Statistics Overview row (only show on other management tabs) */}
-      {activeTab !== 'overview' && (
+      {activeTab !== 'overview' && activeTab !== 'settings' && (
         <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-10">
           <div className="admin-stat-card bg-white border border-slate-100 dark:bg-slate-900/55 dark:border-white/5 p-5 rounded-2xl shadow-sm hover:shadow-md transition-all duration-300">
             <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest block mb-1">Total Registered</span>
@@ -2964,6 +3085,624 @@ const AdminDashboard = () => {
         </div>
       )}
 
+      {/* Institute Settings Panel */}
+      {activeTab === 'settings' && (
+        <div className="admin-panel bg-white dark:bg-slate-900/40 border border-slate-150 dark:border-white/5 rounded-3xl p-6 shadow-md dark:shadow-xl space-y-6 animate-in fade-in duration-300">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+            <div>
+              <h3 className="text-lg font-black text-slate-800 dark:text-white">Institute Settings</h3>
+              <p className="text-xs text-slate-550 mt-1">Configure global application options, profile details, safety lockouts, and SMTP notification systems.</p>
+            </div>
+            {hasPermission('manage_settings') ? (
+              <button
+                type="button"
+                onClick={() => handleSaveSettings()}
+                className="px-5 py-2.5 bg-emerald-605 hover:bg-emerald-700 dark:bg-indigo-600 dark:hover:bg-indigo-700 text-white rounded-xl text-xs font-black shadow-lg shadow-emerald-600/20 dark:shadow-indigo-650/20 transition-all flex items-center gap-2"
+              >
+                💾 Save Settings
+              </button>
+            ) : (
+              <span className="text-[10px] text-slate-405 italic bg-slate-105 dark:bg-slate-950 p-2 rounded-xl border border-slate-200 dark:border-white/5">Viewing only. No permission to edit.</span>
+            )}
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+            {/* Sidebar Sub-tabs */}
+            <div className="flex lg:flex-col flex-row flex-wrap gap-1.5">
+              {[
+                { id: 'profile', label: '🏢 Profile Details', desc: 'Contact details & address' },
+                { id: 'academic', label: '🏫 Academic Config', desc: 'Holidays, working days & sessions' },
+                { id: 'security', label: '🔒 Auth & Lockout', desc: 'Passwords & session timeout' },
+                { id: 'storage', label: '💾 Storage Allocations', desc: 'Size caps & allowed file types' },
+                { id: 'notifications', label: '✉️ SMTP & Alerts', desc: 'Mail servers & announcements' }
+              ].map((tab) => (
+                <button
+                  key={tab.id}
+                  type="button"
+                  onClick={() => setSettingsSubTab(tab.id)}
+                  className={`w-full text-left p-3.5 rounded-xl transition-all border ${
+                    settingsSubTab === tab.id
+                      ? 'bg-slate-100 dark:bg-slate-800/80 border-slate-200 dark:border-white/10 text-slate-900 dark:text-white shadow-sm'
+                      : 'border-transparent text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-900/50 hover:text-slate-800 dark:hover:text-white'
+                  }`}
+                >
+                  <div className="text-xs font-black">{tab.label}</div>
+                  <div className="text-[9px] font-medium opacity-70 mt-0.5 hidden lg:block">{tab.desc}</div>
+                </button>
+              ))}
+            </div>
+
+            {/* Sub-tab Content Area */}
+            <div className="lg:col-span-3 bg-slate-50/50 dark:bg-slate-950/20 border border-slate-150 dark:border-white/5 rounded-2xl p-6">
+              <form onSubmit={handleSaveSettings} className="space-y-6">
+                
+                {/* Profile Tab */}
+                {settingsSubTab === 'profile' && (
+                  <div className="space-y-4">
+                    <h4 className="text-sm font-black text-slate-800 dark:text-white">Institute Profile</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="text-[10px] font-bold text-slate-500 block mb-1">Institute Name</label>
+                        <input
+                          type="text"
+                          value={settingsForm.name || ''}
+                          onChange={(e) => setSettingsForm({ ...settingsForm, name: e.target.value })}
+                          disabled={!hasPermission('manage_settings')}
+                          className="w-full px-3.5 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/5 rounded-xl text-xs font-medium text-slate-800 dark:text-white outline-none focus:border-indigo-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[10px] font-bold text-slate-500 block mb-1">Logo URL</label>
+                        <input
+                          type="text"
+                          value={settingsForm.logo || ''}
+                          onChange={(e) => setSettingsForm({ ...settingsForm, logo: e.target.value })}
+                          disabled={!hasPermission('manage_settings')}
+                          placeholder="https://example.com/logo.png"
+                          className="w-full px-3.5 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/5 rounded-xl text-xs font-medium text-slate-800 dark:text-white outline-none focus:border-indigo-500"
+                        />
+                      </div>
+                      <div className="md:col-span-2">
+                        <label className="text-[10px] font-bold text-slate-500 block mb-1">Physical Address</label>
+                        <input
+                          type="text"
+                          value={settingsForm.address || ''}
+                          onChange={(e) => setSettingsForm({ ...settingsForm, address: e.target.value })}
+                          disabled={!hasPermission('manage_settings')}
+                          className="w-full px-3.5 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/5 rounded-xl text-xs font-medium text-slate-800 dark:text-white outline-none focus:border-indigo-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[10px] font-bold text-slate-500 block mb-1">Contact Phone</label>
+                        <input
+                          type="text"
+                          value={settingsForm.contactDetails?.phone || ''}
+                          onChange={(e) => setSettingsForm({
+                            ...settingsForm,
+                            contactDetails: { ...settingsForm.contactDetails, phone: e.target.value }
+                          })}
+                          disabled={!hasPermission('manage_settings')}
+                          className="w-full px-3.5 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/5 rounded-xl text-xs font-medium text-slate-800 dark:text-white outline-none focus:border-indigo-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[10px] font-bold text-slate-500 block mb-1">Contact Email</label>
+                        <input
+                          type="email"
+                          value={settingsForm.contactDetails?.email || ''}
+                          onChange={(e) => setSettingsForm({
+                            ...settingsForm,
+                            contactDetails: { ...settingsForm.contactDetails, email: e.target.value }
+                          })}
+                          disabled={!hasPermission('manage_settings')}
+                          className="w-full px-3.5 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/5 rounded-xl text-xs font-medium text-slate-800 dark:text-white outline-none focus:border-indigo-500"
+                        />
+                      </div>
+                      <div className="md:col-span-2">
+                        <label className="text-[10px] font-bold text-slate-500 block mb-1">Website URL</label>
+                        <input
+                          type="url"
+                          value={settingsForm.contactDetails?.website || ''}
+                          onChange={(e) => setSettingsForm({
+                            ...settingsForm,
+                            contactDetails: { ...settingsForm.contactDetails, website: e.target.value }
+                          })}
+                          disabled={!hasPermission('manage_settings')}
+                          className="w-full px-3.5 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/5 rounded-xl text-xs font-medium text-slate-800 dark:text-white outline-none focus:border-indigo-500"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Academics Tab */}
+                {settingsSubTab === 'academic' && (
+                  <div className="space-y-6">
+                    <div>
+                      <h4 className="text-sm font-black text-slate-800 dark:text-white mb-4">Academic Sessions</h4>
+                      {hasPermission('manage_settings') && (
+                        <div className="flex gap-2 mb-3">
+                          <input
+                            type="text"
+                            placeholder="e.g. 2027-2028"
+                            value={newSession}
+                            onChange={(e) => setNewSession(e.target.value)}
+                            className="w-1/2 px-3.5 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/5 rounded-xl text-xs font-medium text-slate-800 dark:text-white outline-none focus:border-indigo-500"
+                          />
+                          <button
+                            type="button"
+                            onClick={addSession}
+                            className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-black shadow-md transition-colors"
+                          >
+                            Add Session
+                          </button>
+                        </div>
+                      )}
+                      <div className="flex flex-wrap gap-2">
+                        {(settingsForm.sessions || []).map((session, index) => (
+                          <div key={index} className="flex items-center gap-2 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-white/5 px-3 py-1.5 rounded-xl text-xs font-bold text-slate-800 dark:text-slate-200">
+                            <span>{session}</span>
+                            {hasPermission('manage_settings') && (
+                              <button
+                                type="button"
+                                onClick={() => removeSession(session)}
+                                className="text-red-500 hover:text-red-700 transition-colors"
+                              >
+                                <FiX className="text-xs" />
+                              </button>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div>
+                      <h4 className="text-sm font-black text-slate-800 dark:text-white mb-4">Working Days</h4>
+                      <div className="flex flex-wrap gap-2">
+                        {['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'].map((day) => {
+                          const isWorking = (settingsForm.workingDays || []).includes(day);
+                          return (
+                            <button
+                              type="button"
+                              key={day}
+                              disabled={!hasPermission('manage_settings')}
+                              onClick={() => toggleWorkingDay(day)}
+                              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all border ${
+                                isWorking
+                                  ? 'bg-emerald-605 dark:bg-indigo-600 border-transparent text-white shadow-sm'
+                                  : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-white/5 text-slate-500 dark:text-slate-400'
+                              }`}
+                            >
+                              {day}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <h4 className="text-sm font-black text-slate-800 dark:text-white mb-2">Operating Hours</h4>
+                        <div className="flex items-center gap-2">
+                          <div className="w-1/2">
+                            <label className="text-[9px] font-bold text-slate-500 block mb-1">Start Hour</label>
+                            <input
+                              type="text"
+                              value={settingsForm.timetable?.startHour || '09:00 AM'}
+                              onChange={(e) => setSettingsForm({
+                                ...settingsForm,
+                                timetable: { ...settingsForm.timetable, startHour: e.target.value }
+                              })}
+                              disabled={!hasPermission('manage_settings')}
+                              placeholder="09:00 AM"
+                              className="w-full px-3.5 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/5 rounded-xl text-xs font-medium text-slate-800 dark:text-white outline-none focus:border-indigo-500"
+                            />
+                          </div>
+                          <div className="w-1/2">
+                            <label className="text-[9px] font-bold text-slate-500 block mb-1">End Hour</label>
+                            <input
+                              type="text"
+                              value={settingsForm.timetable?.endHour || '06:00 PM'}
+                              onChange={(e) => setSettingsForm({
+                                ...settingsForm,
+                                timetable: { ...settingsForm.timetable, endHour: e.target.value }
+                              })}
+                              disabled={!hasPermission('manage_settings')}
+                              placeholder="06:00 PM"
+                              className="w-full px-3.5 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/5 rounded-xl text-xs font-medium text-slate-800 dark:text-white outline-none focus:border-indigo-500"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div>
+                      <h4 className="text-sm font-black text-slate-800 dark:text-white mb-4">Holiday Calendar</h4>
+                      {hasPermission('manage_settings') && (
+                        <div className="flex flex-col md:flex-row gap-2.5 mb-4">
+                          <input
+                            type="text"
+                            placeholder="Holiday Name"
+                            value={newHoliday.name}
+                            onChange={(e) => setNewHoliday({ ...newHoliday, name: e.target.value })}
+                            className="w-full md:w-1/2 px-3.5 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/5 rounded-xl text-xs font-medium text-slate-800 dark:text-white outline-none focus:border-indigo-500"
+                          />
+                          <input
+                            type="date"
+                            value={newHoliday.date}
+                            onChange={(e) => setNewHoliday({ ...newHoliday, date: e.target.value })}
+                            className="w-full md:w-1/3 px-3.5 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/5 rounded-xl text-xs font-medium text-slate-800 dark:text-white outline-none focus:border-indigo-500"
+                          />
+                          <button
+                            type="button"
+                            onClick={addHoliday}
+                            className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-black shadow-md transition-colors whitespace-nowrap"
+                          >
+                            Add Holiday
+                          </button>
+                        </div>
+                      )}
+                      
+                      <div className="max-h-48 overflow-y-auto border border-slate-200 dark:border-white/5 rounded-2xl bg-white dark:bg-slate-900/20">
+                        <table className="w-full text-left text-xs">
+                          <thead className="bg-slate-105 dark:bg-slate-900 text-slate-500 uppercase tracking-widest text-[9px] font-bold">
+                            <tr>
+                              <th className="px-4 py-3">Holiday</th>
+                              <th className="px-4 py-3">Date</th>
+                              {hasPermission('manage_settings') && <th className="px-4 py-3 text-right">Actions</th>}
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-slate-205 dark:divide-white/5">
+                            {(settingsForm.holidays || []).map((holiday, idx) => (
+                              <tr key={idx} className="hover:bg-slate-50 dark:hover:bg-slate-900/50">
+                                <td className="px-4 py-3 font-bold text-slate-800 dark:text-slate-100">{holiday.name}</td>
+                                <td className="px-4 py-3 text-slate-500">{new Date(holiday.date).toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</td>
+                                {hasPermission('manage_settings') && (
+                                  <td className="px-4 py-3 text-right">
+                                    <button
+                                      type="button"
+                                      onClick={() => removeHoliday(idx)}
+                                      className="text-red-500 hover:text-red-700 transition-colors font-bold text-[10px]"
+                                    >
+                                      Remove
+                                    </button>
+                                  </td>
+                                )}
+                              </tr>
+                            ))}
+                            {(settingsForm.holidays || []).length === 0 && (
+                              <tr>
+                                <td colSpan="3" className="px-4 py-6 text-center text-slate-400 italic">No holidays configured.</td>
+                              </tr>
+                            )}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Security Tab */}
+                {settingsSubTab === 'security' && (
+                  <div className="space-y-6">
+                    <div>
+                      <h4 className="text-sm font-black text-slate-800 dark:text-white mb-4">Password Policies</h4>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                          <label className="text-[10px] font-bold text-slate-500 block mb-1">Min Length Required</label>
+                          <input
+                            type="number"
+                            min="4"
+                            max="20"
+                            value={settingsForm.passwordPolicies?.minLength || 6}
+                            onChange={(e) => setSettingsForm({
+                              ...settingsForm,
+                              passwordPolicies: { ...settingsForm.passwordPolicies, minLength: parseInt(e.target.value) || 6 }
+                            })}
+                            disabled={!hasPermission('manage_settings')}
+                            className="w-full px-3.5 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/5 rounded-xl text-xs font-medium text-slate-800 dark:text-white outline-none focus:border-indigo-500"
+                          />
+                        </div>
+                        <div className="flex items-center pt-5">
+                          <label className="flex items-center gap-2 text-xs font-bold text-slate-700 dark:text-slate-350 cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={settingsForm.passwordPolicies?.requireSpecialChar || false}
+                              onChange={(e) => setSettingsForm({
+                                ...settingsForm,
+                                passwordPolicies: { ...settingsForm.passwordPolicies, requireSpecialChar: e.target.checked }
+                              })}
+                              disabled={!hasPermission('manage_settings')}
+                              className="rounded accent-emerald-600 dark:accent-indigo-500"
+                            />
+                            <span>Require Special Character</span>
+                          </label>
+                        </div>
+                        <div className="flex items-center pt-5">
+                          <label className="flex items-center gap-2 text-xs font-bold text-slate-700 dark:text-slate-350 cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={settingsForm.passwordPolicies?.requireUppercase || false}
+                              onChange={(e) => setSettingsForm({
+                                ...settingsForm,
+                                passwordPolicies: { ...settingsForm.passwordPolicies, requireUppercase: e.target.checked }
+                              })}
+                              disabled={!hasPermission('manage_settings')}
+                              className="rounded accent-emerald-600 dark:accent-indigo-500"
+                            />
+                            <span>Require Uppercase Character</span>
+                          </label>
+                        </div>
+                      </div>
+                    </div>
+
+                    <hr className="border-slate-200 dark:border-white/5" />
+
+                    <div>
+                      <h4 className="text-sm font-black text-slate-800 dark:text-white mb-4">Session Timeout & Locked Out Safety Policies</h4>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                          <label className="text-[10px] font-bold text-slate-500 block mb-1">Session Inactivity Timeout (mins)</label>
+                          <input
+                            type="number"
+                            min="5"
+                            value={settingsForm.sessionTimeout || 60}
+                            onChange={(e) => setSettingsForm({ ...settingsForm, sessionTimeout: parseInt(e.target.value) || 60 })}
+                            disabled={!hasPermission('manage_settings')}
+                            className="w-full px-3.5 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/5 rounded-xl text-xs font-medium text-slate-800 dark:text-white outline-none focus:border-indigo-500"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-[10px] font-bold text-slate-500 block mb-1">Max Login Attempts (Before lockout)</label>
+                          <input
+                            type="number"
+                            min="3"
+                            max="10"
+                            value={settingsForm.loginSecurity?.maxLoginAttempts || 5}
+                            onChange={(e) => setSettingsForm({
+                              ...settingsForm,
+                              loginSecurity: { ...settingsForm.loginSecurity, maxLoginAttempts: parseInt(e.target.value) || 5 }
+                            })}
+                            disabled={!hasPermission('manage_settings')}
+                            className="w-full px-3.5 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/5 rounded-xl text-xs font-medium text-slate-800 dark:text-white outline-none focus:border-indigo-500"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-[10px] font-bold text-slate-500 block mb-1">Lockout Duration Period (mins)</label>
+                          <input
+                            type="number"
+                            min="1"
+                            value={settingsForm.loginSecurity?.lockoutTime || 15}
+                            onChange={(e) => setSettingsForm({
+                              ...settingsForm,
+                              loginSecurity: { ...settingsForm.loginSecurity, lockoutTime: parseInt(e.target.value) || 15 }
+                            })}
+                            disabled={!hasPermission('manage_settings')}
+                            className="w-full px-3.5 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/5 rounded-xl text-xs font-medium text-slate-800 dark:text-white outline-none focus:border-indigo-500"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Storage Tab */}
+                {settingsSubTab === 'storage' && (
+                  <div className="space-y-6">
+                    <div>
+                      <h4 className="text-sm font-black text-slate-800 dark:text-white mb-4">File Storage Threshold Limits</h4>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <label className="text-[10px] font-bold text-slate-500 block mb-1">Study Material Max File Size (MB)</label>
+                          <input
+                            type="number"
+                            min="1"
+                            value={settingsForm.uploadLimits || 50}
+                            onChange={(e) => setSettingsForm({ ...settingsForm, uploadLimits: parseInt(e.target.value) || 50 })}
+                            disabled={!hasPermission('manage_settings')}
+                            className="w-full px-3.5 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/5 rounded-xl text-xs font-medium text-slate-800 dark:text-white outline-none focus:border-indigo-500"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-[10px] font-bold text-slate-500 block mb-1">Video Lecture Max File Size (MB)</label>
+                          <input
+                            type="number"
+                            min="1"
+                            value={settingsForm.videoLimits || 500}
+                            onChange={(e) => setSettingsForm({ ...settingsForm, videoLimits: parseInt(e.target.value) || 500 })}
+                            disabled={!hasPermission('manage_settings')}
+                            className="w-full px-3.5 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/5 rounded-xl text-xs font-medium text-slate-800 dark:text-white outline-none focus:border-indigo-500"
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    <hr className="border-slate-200 dark:border-white/5" />
+
+                    <div>
+                      <h4 className="text-sm font-black text-slate-800 dark:text-white mb-4">Allowed File Extensions</h4>
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                        {['.pdf', '.csv', '.xlsx', '.png', '.jpg', '.mp4', '.zip', '.txt', '.doc', '.docx'].map((ext) => {
+                          const isAllowed = (settingsForm.allowedFileTypes || []).includes(ext);
+                          return (
+                            <label key={ext} className="flex items-center gap-2 text-xs font-bold text-slate-700 dark:text-slate-350 cursor-pointer">
+                              <input
+                                type="checkbox"
+                                checked={isAllowed}
+                                onChange={() => toggleAllowedFileType(ext)}
+                                disabled={!hasPermission('manage_settings')}
+                                className="rounded accent-emerald-600 dark:accent-indigo-500"
+                              />
+                              <span>{ext}</span>
+                            </label>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* SMTP & Notifications Tab */}
+                {settingsSubTab === 'notifications' && (
+                  <div className="space-y-6">
+                    <div>
+                      <h4 className="text-sm font-black text-slate-800 dark:text-white mb-4">SMTP Credentials</h4>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div className="md:col-span-2">
+                          <label className="text-[10px] font-bold text-slate-500 block mb-1">SMTP Host Server Address</label>
+                          <input
+                            type="text"
+                            value={settingsForm.smtp?.host || ''}
+                            onChange={(e) => setSettingsForm({
+                              ...settingsForm,
+                              smtp: { ...settingsForm.smtp, host: e.target.value }
+                            })}
+                            disabled={!hasPermission('manage_settings')}
+                            placeholder="smtp.mailtrap.io"
+                            className="w-full px-3.5 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/5 rounded-xl text-xs font-medium text-slate-800 dark:text-white outline-none focus:border-indigo-500"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-[10px] font-bold text-slate-500 block mb-1">SMTP Port Number</label>
+                          <input
+                            type="number"
+                            value={settingsForm.smtp?.port || 2525}
+                            onChange={(e) => setSettingsForm({
+                              ...settingsForm,
+                              smtp: { ...settingsForm.smtp, port: parseInt(e.target.value) || 2525 }
+                            })}
+                            disabled={!hasPermission('manage_settings')}
+                            placeholder="2525"
+                            className="w-full px-3.5 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/5 rounded-xl text-xs font-medium text-slate-800 dark:text-white outline-none focus:border-indigo-500"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-[10px] font-bold text-slate-500 block mb-1">SMTP Username</label>
+                          <input
+                            type="text"
+                            value={settingsForm.smtp?.user || ''}
+                            onChange={(e) => setSettingsForm({
+                              ...settingsForm,
+                              smtp: { ...settingsForm.smtp, user: e.target.value }
+                            })}
+                            disabled={!hasPermission('manage_settings')}
+                            className="w-full px-3.5 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/5 rounded-xl text-xs font-medium text-slate-800 dark:text-white outline-none focus:border-indigo-500"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-[10px] font-bold text-slate-500 block mb-1">SMTP Password</label>
+                          <input
+                            type="password"
+                            value={settingsForm.smtp?.pass || ''}
+                            onChange={(e) => setSettingsForm({
+                              ...settingsForm,
+                              smtp: { ...settingsForm.smtp, pass: e.target.value }
+                            })}
+                            disabled={!hasPermission('manage_settings')}
+                            className="w-full px-3.5 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/5 rounded-xl text-xs font-medium text-slate-800 dark:text-white outline-none focus:border-indigo-500"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-[10px] font-bold text-slate-500 block mb-1">From Sender Address</label>
+                          <input
+                            type="email"
+                            value={settingsForm.smtp?.fromEmail || ''}
+                            onChange={(e) => setSettingsForm({
+                              ...settingsForm,
+                              smtp: { ...settingsForm.smtp, fromEmail: e.target.value }
+                            })}
+                            disabled={!hasPermission('manage_settings')}
+                            placeholder="noreply@codewave.com"
+                            className="w-full px-3.5 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/5 rounded-xl text-xs font-medium text-slate-800 dark:text-white outline-none focus:border-indigo-500"
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    <hr className="border-slate-200 dark:border-white/5" />
+
+                    <div>
+                      <h4 className="text-sm font-black text-slate-800 dark:text-white mb-4">Push Notifications Integrations</h4>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="flex items-center pt-5">
+                          <label className="flex items-center gap-2 text-xs font-bold text-slate-700 dark:text-slate-350 cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={settingsForm.pushNotifications?.enabled || false}
+                              onChange={(e) => setSettingsForm({
+                                ...settingsForm,
+                                pushNotifications: { ...settingsForm.pushNotifications, enabled: e.target.checked }
+                              })}
+                              disabled={!hasPermission('manage_settings')}
+                              className="rounded accent-emerald-600 dark:accent-indigo-500"
+                            />
+                            <span>Enable Global Push Notifications System</span>
+                          </label>
+                        </div>
+                        <div>
+                          <label className="text-[10px] font-bold text-slate-500 block mb-1">Notification Service Provider Name</label>
+                          <select
+                            value={settingsForm.pushNotifications?.provider || 'OneSignal'}
+                            onChange={(e) => setSettingsForm({
+                              ...settingsForm,
+                              pushNotifications: { ...settingsForm.pushNotifications, provider: e.target.value }
+                            })}
+                            disabled={!hasPermission('manage_settings')}
+                            className="w-full px-3.5 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/5 rounded-xl text-xs font-medium text-slate-800 dark:text-white outline-none focus:border-indigo-500"
+                          >
+                            <option value="OneSignal">OneSignal Gateway</option>
+                            <option value="Firebase">Firebase Cloud Messaging (FCM)</option>
+                            <option value="Pusher">Pusher Beams</option>
+                          </select>
+                        </div>
+                      </div>
+                    </div>
+
+                    <hr className="border-slate-200 dark:border-white/5" />
+
+                    <div>
+                      <h4 className="text-sm font-black text-slate-800 dark:text-white mb-4">Announcement Settings</h4>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <label className="text-[10px] font-bold text-slate-500 block mb-1">Default Communication Channel</label>
+                          <input
+                            type="text"
+                            value={settingsForm.announcementSettings?.defaultChannel || 'general'}
+                            onChange={(e) => setSettingsForm({
+                              ...settingsForm,
+                              announcementSettings: { ...settingsForm.announcementSettings, defaultChannel: e.target.value }
+                            })}
+                            disabled={!hasPermission('manage_settings')}
+                            placeholder="general"
+                            className="w-full px-3.5 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/5 rounded-xl text-xs font-medium text-slate-800 dark:text-white outline-none focus:border-indigo-500"
+                          />
+                        </div>
+                        <div className="flex items-center pt-5">
+                          <label className="flex items-center gap-2 text-xs font-bold text-slate-700 dark:text-slate-350 cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={settingsForm.announcementSettings?.allowStudentReply || false}
+                              onChange={(e) => setSettingsForm({
+                                ...settingsForm,
+                                announcementSettings: { ...settingsForm.announcementSettings, allowStudentReply: e.target.checked }
+                              })}
+                              disabled={!hasPermission('manage_settings')}
+                              className="rounded accent-emerald-600 dark:accent-indigo-500"
+                            />
+                            <span>Allow Students to reply on Announcement cards</span>
+                          </label>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+                
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* User Personalization Modal (Drawer style) */}
       {selectedUser && (
         <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex justify-end">
@@ -3954,7 +4693,8 @@ const AdminDashboard = () => {
                     { label: "Domain Specializations", key: "manage_courses" },
                     { label: "Curriculum DSL Topics", key: "manage_topics" },
                     { label: "Milestone Assessments", key: "manage_assessments" },
-                    { label: "Sub-Admins Controls", key: "manage_subadmins" }
+                    { label: "Sub-Admins Controls", key: "manage_subadmins" },
+                    { label: "Institute Settings", key: "manage_settings" }
                   ].map((perm) => (
                     <label key={perm.key} className="flex items-center gap-2 text-xs font-bold text-slate-700 dark:text-slate-350 cursor-pointer">
                       <input

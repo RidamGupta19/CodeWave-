@@ -3,6 +3,7 @@ const router = express.Router();
 const c = require('../controllers/adminController');
 const um = require('../controllers/userManagementController');
 const cm = require('../controllers/courseManagementController');
+const isc = require('../controllers/instituteSettingsController');
 const { protect, authorize, checkPermission } = require('../middleware/auth');
 
 router.get('/stats', protect, authorize('admin'), c.getAdminStats);
@@ -56,6 +57,10 @@ router.post('/batches', protect, authorize('admin'), checkPermission('manage_cou
 router.put('/batches/:id', protect, authorize('admin'), checkPermission('manage_courses'), cm.updateBatch);
 router.delete('/batches/:id', protect, authorize('admin'), checkPermission('manage_courses'), cm.deleteBatch);
 router.put('/batches/:id/assign', protect, authorize('admin'), checkPermission('manage_courses'), cm.assignBatchMembers);
+
+// Institute settings routes
+router.get('/settings', protect, authorize('admin'), isc.getSettings);
+router.put('/settings', protect, authorize('admin'), checkPermission('manage_settings'), isc.updateSettings);
 
 // Mentor routes
 router.get('/mentor/students', protect, authorize('mentor'), c.getAssignedStudents);
