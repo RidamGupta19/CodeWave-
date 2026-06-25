@@ -16,6 +16,9 @@ const protect = async (req, res, next) => {
     if (!req.user) {
       return res.status(401).json({ success: false, message: 'User not found' });
     }
+    if (req.user.status && req.user.status !== 'active') {
+      return res.status(403).json({ success: false, message: `Your account is ${req.user.status}.` });
+    }
     next();
   } catch (error) {
     return res.status(401).json({ success: false, message: 'Not authorized, token failed' });
@@ -35,4 +38,25 @@ const authorize = (...roles) => {
   };
 };
 
-module.exports = { protect, authorize };
+// Check granular sub-admin permission
+const checkPermission = (permission) => {
+  return (req, res, next) => {
+    if (!req.user) {
+      return res.status(401).json({ success: false, message: 'Not authorized' });
+    }
+    // Super-admins and specific seed email bypass permission checks
+    if (req.user.isSuperAdmin || req.user.email === 'omshivhare666@gmail.com') {
+      return next();
+    }
+    // Sub-admins must have the specific permission string
+    if (req.user.permissions && req.user.permissions.includes(permission)) {
+      return next();
+    }
+    return res.status(403).json({
+      success: false,
+      message: `You do not have permission to perform this action (${permission})`
+    });
+  };
+};
+
+module.exports = { protect, authorize, checkPermission };

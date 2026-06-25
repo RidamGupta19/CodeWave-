@@ -1,15 +1,34 @@
 const Video = require('../models/Video');
 const VideoProgress = require('../models/VideoProgress');
 const Student = require('../models/Student');
+const fs = require('fs');
+const path = require('path');
+
+const deleteLocalFile = (fileUrl) => {
+  if (fileUrl && fileUrl.startsWith('/uploads/')) {
+    const fileName = fileUrl.replace('/uploads/', '');
+    const filePath = path.join(__dirname, '../uploads', fileName);
+    if (fs.existsSync(filePath)) {
+      fs.unlink(filePath, (err) => {
+        if (err) {
+          console.error(`Failed to delete local file: ${filePath}`, err);
+        } else {
+          console.log(`Deleted local file: ${filePath}`);
+        }
+      });
+    }
+  }
+};
 
 // @desc    Get all videos (filtered by course/batch for students)
 // @route   GET /api/institute/videos
 // @access  Private
 exports.getVideos = async (req, res) => {
   try {
-    let query = { isActive: true };
+    let query = {};
 
     if (req.user.role === 'student') {
+      query.isActive = true;
       const student = await Student.findOne({ userId: req.user._id });
       if (student) {
         // Students only see videos for their course
@@ -41,7 +60,7 @@ exports.getVideos = async (req, res) => {
 // @access  Private (Admin/Teacher only)
 exports.createVideo = async (req, res) => {
   try {
-    const { title, description, videoType, url, thumbnailUrl, duration, course, batch, instructor } = req.body;
+    const { title, description, videoType, url, thumbnailUrl, duration, course, batch, instructor, subject, isActive } = req.body;
 
     if (!title || !videoType || !url || !course) {
       return res.status(400).json({ success: false, message: 'Please provide title, videoType, url, and course.' });
@@ -52,15 +71,64 @@ exports.createVideo = async (req, res) => {
       description,
       videoType,
       url,
-      thumbnailUrl,
+      thumbnailUrl: thumbnailUrl || '',
       duration: duration || 0,
       course,
       batch: batch || null,
       instructor: instructor || '',
-      isActive: true
+      subject: subject || '',
+      isActive: isActive !== undefined ? isActive : true
     });
 
-    res.status(201).json({ success: true, data: video });
+    const populatedVideo = await Video.findById(video._id)
+      .populate('course', 'courseName')
+      .populate('batch', 'batchName');
+
+    res.status(201).json({ success: true, data: populatedVideo });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+// @desc    Update a video lecture
+// @route   PUT /api/institute/videos/:id
+// @access  Private (Admin/Teacher only)
+exports.updateVideo = async (req, res) => {
+  try {
+    const video = await Video.findById(req.params.id);
+    if (!video) {
+      return res.status(404).json({ success: false, message: 'Video not found' });
+    }
+
+    const { title, description, videoType, url, thumbnailUrl, duration, course, batch, instructor, subject, isActive } = req.body;
+
+    // Clean up local files if they are replaced
+    if (url && video.url && video.url !== url) {
+      deleteLocalFile(video.url);
+    }
+    if (thumbnailUrl && video.thumbnailUrl && video.thumbnailUrl !== thumbnailUrl) {
+      deleteLocalFile(video.thumbnailUrl);
+    }
+
+    video.title = title || video.title;
+    video.description = description !== undefined ? description : video.description;
+    video.videoType = videoType || video.videoType;
+    video.url = url || video.url;
+    video.thumbnailUrl = thumbnailUrl !== undefined ? thumbnailUrl : video.thumbnailUrl;
+    video.duration = duration !== undefined ? (Number(duration) || 0) : video.duration;
+    video.course = course || video.course;
+    video.batch = batch !== undefined ? (batch || null) : video.batch;
+    video.instructor = instructor !== undefined ? instructor : video.instructor;
+    video.subject = subject !== undefined ? subject : video.subject;
+    video.isActive = isActive !== undefined ? isActive : video.isActive;
+
+    await video.save();
+
+    const updatedVideo = await Video.findById(video._id)
+      .populate('course', 'courseName')
+      .populate('batch', 'batchName');
+
+    res.json({ success: true, data: updatedVideo });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }
@@ -76,11 +144,45 @@ exports.deleteVideo = async (req, res) => {
       return res.status(404).json({ success: false, message: 'Video not found' });
     }
 
+    // Clean up local media files
+    deleteLocalFile(video.url);
+    deleteLocalFile(video.thumbnailUrl);
+
     await Video.findByIdAndDelete(req.params.id);
     // Also delete associated progress logs
     await VideoProgress.deleteMany({ video: req.params.id });
 
     res.json({ success: true, message: 'Video lecture deleted successfully' });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+// @desc    Upload direct video file
+// @route   POST /api/institute/videos/upload-video
+// @access  Private (Admin/Teacher only)
+exports.uploadVideoFile = async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ success: false, message: 'Please upload a video file' });
+    }
+    const fileUrl = `/uploads/${req.file.filename}`;
+    res.status(200).json({ success: true, fileUrl });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+// @desc    Upload thumbnail image file
+// @route   POST /api/institute/videos/upload-thumbnail
+// @access  Private (Admin/Teacher only)
+exports.uploadThumbnailFile = async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ success: false, message: 'Please upload a thumbnail image' });
+    }
+    const fileUrl = `/uploads/${req.file.filename}`;
+    res.status(200).json({ success: true, fileUrl });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }

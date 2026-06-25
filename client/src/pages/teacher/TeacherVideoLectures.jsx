@@ -3,7 +3,8 @@ import api from '../../api/axios';
 import toast from 'react-hot-toast';
 import { 
   FiFilm, FiPlus, FiTrash2, FiSearch, FiX, 
-  FiClock, FiUser, FiBarChart2, FiCheckCircle, FiPlayCircle 
+  FiClock, FiUser, FiBarChart2, FiCheckCircle, FiPlayCircle,
+  FiEdit, FiEye, FiEyeOff, FiUploadCloud
 } from 'react-icons/fi';
 
 export default function TeacherVideoLectures() {
@@ -19,8 +20,15 @@ export default function TeacherVideoLectures() {
   const [studentProgress, setStudentProgress] = useState([]);
   const [loadingProgress, setLoadingProgress] = useState(false);
 
+  // File upload states
+  const [uploadingVideo, setUploadingVideo] = useState(false);
+  const [uploadingThumbnail, setUploadingThumbnail] = useState(false);
+
   // Modals
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalType, setModalType] = useState('add'); // 'add' or 'edit'
+  const [editingId, setEditingId] = useState(null);
+  
   const [form, setForm] = useState({
     title: '',
     description: '',
@@ -30,7 +38,9 @@ export default function TeacherVideoLectures() {
     duration: '',
     course: '',
     batch: '',
-    instructor: ''
+    instructor: '',
+    subject: '',
+    isActive: true
   });
 
   useEffect(() => {
@@ -86,36 +96,145 @@ export default function TeacherVideoLectures() {
     }
   };
 
+  const getFullUrl = (path) => {
+    if (!path) return '';
+    if (path.startsWith('http://') || path.startsWith('https://') || path.startsWith('data:')) {
+      return path;
+    }
+    const rawApiUrl = import.meta.env.VITE_API_URL || 'https://codewave-solution.onrender.com/api';
+    const serverHost = rawApiUrl.replace(/\/api$/, '').replace(/\/$/, '');
+    return `${serverHost}${path}`;
+  };
+
+  const handleVideoFileChange = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const ext = file.name.substring(file.name.lastIndexOf('.')).toLowerCase();
+    const allowed = ['.mp4', '.mov', '.webm', '.mkv', '.ogg', '.avi'];
+    if (!allowed.includes(ext)) {
+      toast.error('Invalid video format. Allowed: ' + allowed.join(', '));
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append('video', file);
+
+    try {
+      setUploadingVideo(true);
+      const res = await api.post('/institute/videos/upload-video', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      setForm(prev => ({ ...prev, url: res.data.fileUrl }));
+      toast.success('Video file uploaded successfully! 🎬');
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to upload video file');
+    } finally {
+      setUploadingVideo(false);
+    }
+  };
+
+  const handleThumbnailFileChange = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const ext = file.name.substring(file.name.lastIndexOf('.')).toLowerCase();
+    const allowed = ['.png', '.jpg', '.jpeg', '.webp', '.gif'];
+    if (!allowed.includes(ext)) {
+      toast.error('Invalid image format. Allowed: ' + allowed.join(', '));
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append('thumbnail', file);
+
+    try {
+      setUploadingThumbnail(true);
+      const res = await api.post('/institute/videos/upload-thumbnail', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      setForm(prev => ({ ...prev, thumbnailUrl: res.data.fileUrl }));
+      toast.success('Thumbnail uploaded successfully! 🖼️');
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to upload thumbnail');
+    } finally {
+      setUploadingThumbnail(false);
+    }
+  };
+
+  const handleEditClick = (video, e) => {
+    e.stopPropagation();
+    setModalType('edit');
+    setEditingId(video._id);
+    setForm({
+      title: video.title || '',
+      description: video.description || '',
+      videoType: video.videoType || 'embedded',
+      url: video.url || '',
+      thumbnailUrl: video.thumbnailUrl || '',
+      duration: video.duration || '',
+      course: video.course?._id || video.course || '',
+      batch: video.batch?._id || video.batch || '',
+      instructor: video.instructor || '',
+      subject: video.subject || '',
+      isActive: video.isActive !== undefined ? video.isActive : true
+    });
+    setIsModalOpen(true);
+  };
+
+  const handleAddClick = () => {
+    setModalType('add');
+    setEditingId(null);
+    setForm({
+      title: '',
+      description: '',
+      videoType: 'embedded',
+      url: '',
+      thumbnailUrl: '',
+      duration: '',
+      course: '',
+      batch: '',
+      instructor: '',
+      subject: '',
+      isActive: true
+    });
+    setIsModalOpen(true);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (uploadingVideo || uploadingThumbnail) {
+      toast.error('Please wait for file uploads to complete');
+      return;
+    }
+
     try {
       const payload = {
         ...form,
         duration: Number(form.duration) || 0
       };
-      await api.post('/institute/videos', payload);
-      toast.success('Video lecture uploaded successfully! 🎥');
-      setIsAddModalOpen(false);
-      setForm({
-        title: '',
-        description: '',
-        videoType: 'embedded',
-        url: '',
-        thumbnailUrl: '',
-        duration: '',
-        course: '',
-        batch: '',
-        instructor: ''
-      });
+
+      if (modalType === 'edit') {
+        const res = await api.put(`/institute/videos/${editingId}`, payload);
+        toast.success('Video lecture updated successfully! 📝');
+        if (selectedVideo?._id === editingId) {
+          setSelectedVideo(res.data.data);
+        }
+      } else {
+        await api.post('/institute/videos', payload);
+        toast.success('Video lecture published successfully! 🎥');
+      }
+
+      setIsModalOpen(false);
       fetchVideos();
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to upload video');
+      toast.error(err.response?.data?.message || 'Failed to publish video');
     }
   };
 
   const handleDelete = async (id, e) => {
     e.stopPropagation();
-    if (!window.confirm('Delete this video lecture permanently?')) return;
+    if (!window.confirm('Delete this video lecture permanently? (This deletes stored video/thumbnail files on the server too)')) return;
     try {
       await api.delete(`/institute/videos/${id}`);
       toast.success('Video deleted successfully');
@@ -141,7 +260,8 @@ export default function TeacherVideoLectures() {
 
   const filtered = videos.filter(v => {
     const matchesSearch = v.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                          (v.description || '').toLowerCase().includes(searchQuery.toLowerCase());
+                          (v.description || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+                          (v.subject || '').toLowerCase().includes(searchQuery.toLowerCase());
     const matchesCourse = courseFilter === 'all' || (v.course?._id === courseFilter);
     return matchesSearch && matchesCourse;
   });
@@ -166,11 +286,11 @@ export default function TeacherVideoLectures() {
         <div>
           <h1 className="text-2xl font-black text-[var(--text-main)]">Recorded Video Library</h1>
           <p className="text-xs text-[var(--text-muted)] font-extrabold uppercase tracking-widest mt-1">
-            Upload recorded session playbacks and review student watch progress metrics
+            Upload playbacks, manage thumbnails, restrict batches, and track watch progress.
           </p>
         </div>
         <button
-          onClick={() => setIsAddModalOpen(true)}
+          onClick={handleAddClick}
           className="btn-primary py-2.5 px-5 bg-[var(--primary)] text-white text-xs font-black uppercase rounded-xl shadow-md shadow-[var(--primary)]/10 flex items-center gap-1.5"
         >
           <FiPlus /> Upload Video Lecture
@@ -197,7 +317,7 @@ export default function TeacherVideoLectures() {
                 </span>
                 <input
                   type="text"
-                  placeholder="Search video topic..."
+                  placeholder="Search topic or tag..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="w-full pl-9 pr-4 py-2 bg-[var(--bg-sub)]/40 border border-[var(--border)] text-xs text-[var(--text-main)] rounded-xl outline-none focus:border-[var(--primary)] font-semibold transition-all"
@@ -217,7 +337,7 @@ export default function TeacherVideoLectures() {
             </div>
 
             {/* List */}
-            <div className="bg-[var(--bg-card)] border border-[var(--border)] rounded-2xl p-4 shadow-sm space-y-2 h-[350px] overflow-y-auto no-scrollbar">
+            <div className="bg-[var(--bg-card)] border border-[var(--border)] rounded-2xl p-4 shadow-sm space-y-2 h-[450px] overflow-y-auto no-scrollbar">
               <h3 className="text-[10px] font-black uppercase text-[var(--text-light)] tracking-wider px-1 mb-2">Lectures Directory</h3>
               {filtered.length === 0 ? (
                 <p className="text-xs text-[var(--text-muted)] font-bold text-center py-6">No matching lectures.</p>
@@ -235,15 +355,33 @@ export default function TeacherVideoLectures() {
                       }`}
                     >
                       <div className="overflow-hidden">
-                        <h4 className="text-xs font-black truncate max-w-[150px]">{v.title}</h4>
-                        <span className="text-[9px] font-bold text-[var(--text-light)] block mt-1">⏰ {formatDuration(v.duration)} &bull; {v.videoType}</span>
+                        <h4 className="text-xs font-black truncate max-w-[150px] flex items-center gap-1">
+                          {v.title}
+                          {!v.isActive && (
+                            <span className="text-rose-500" title="Hidden from students">
+                              <FiEyeOff size={11} className="inline" />
+                            </span>
+                          )}
+                        </h4>
+                        <span className="text-[9px] font-bold text-[var(--text-light)] block mt-1">
+                          ⏰ {formatDuration(v.duration)} &bull; <span className="uppercase">{v.videoType}</span>
+                        </span>
                       </div>
-                      <button
-                        onClick={(e) => handleDelete(v._id, e)}
-                        className="p-1.5 text-rose-500 hover:bg-rose-100 rounded-lg hover:border-rose-200 border border-transparent transition-all"
-                      >
-                        <FiTrash2 size={13} />
-                      </button>
+                      
+                      <div className="flex gap-1 shrink-0">
+                        <button
+                          onClick={(e) => handleEditClick(v, e)}
+                          className="p-1.5 text-blue-500 hover:bg-blue-100 rounded-lg hover:border-blue-200 border border-transparent transition-all"
+                        >
+                          <FiEdit size={13} />
+                        </button>
+                        <button
+                          onClick={(e) => handleDelete(v._id, e)}
+                          className="p-1.5 text-rose-500 hover:bg-rose-100 rounded-lg hover:border-rose-200 border border-transparent transition-all"
+                        >
+                          <FiTrash2 size={13} />
+                        </button>
+                      </div>
                     </div>
                   );
                 })
@@ -252,7 +390,7 @@ export default function TeacherVideoLectures() {
 
           </div>
 
-          {/* Right: Student Watch Stats (Col-span 2) */}
+          {/* Right: Student Watch Stats & Lecture Details */}
           <div className="lg:col-span-2">
             {selectedVideo ? (
               <div className="card bg-[var(--bg-card)] border border-[var(--border)] rounded-2xl p-6 shadow-sm space-y-6">
@@ -260,15 +398,47 @@ export default function TeacherVideoLectures() {
                 {/* Header details */}
                 <div className="flex flex-wrap justify-between items-start gap-4 pb-4 border-b border-[var(--border-light)]">
                   <div>
-                    <h2 className="text-lg font-black text-[var(--text-main)]">{selectedVideo.title}</h2>
+                    <h2 className="text-lg font-black text-[var(--text-main)] flex items-center gap-2">
+                      {selectedVideo.title}
+                      {!selectedVideo.isActive && (
+                        <span className="px-2.5 py-0.5 bg-rose-50 border border-rose-100 text-rose-600 text-[8px] font-black uppercase rounded-md tracking-wider flex items-center gap-1">
+                          <FiEyeOff size={10} /> Inactive / Hidden
+                        </span>
+                      )}
+                    </h2>
                     <p className="text-[10px] text-[var(--text-muted)] mt-1 font-bold">
-                      Subject: {selectedVideo.course?.courseName} &bull; Type: <span className="uppercase">{selectedVideo.videoType}</span> &bull; Instructor: {selectedVideo.instructor || 'Mentor'}
+                      Subject: {selectedVideo.course?.courseName} 
+                      {selectedVideo.subject && ` (${selectedVideo.subject})`} 
+                      &bull; Type: <span className="uppercase">{selectedVideo.videoType}</span> 
+                      &bull; Instructor: {selectedVideo.instructor || 'Mentor'}
                     </p>
                   </div>
-                  <span className="px-3 py-1 bg-indigo-50 border border-indigo-100 text-[var(--accent)] text-[10px] font-black uppercase rounded-full">
-                    Syllabus stats
-                  </span>
+                  
+                  <div className="flex items-center gap-2">
+                    {selectedVideo.batch && (
+                      <span className="px-3 py-1 bg-amber-50 border border-amber-100 text-amber-700 text-[10px] font-black uppercase rounded-full">
+                        Batch: {selectedVideo.batch?.batchName}
+                      </span>
+                    )}
+                    <span className="px-3 py-1 bg-indigo-50 border border-indigo-100 text-[var(--accent)] text-[10px] font-black uppercase rounded-full">
+                      Syllabus stats
+                    </span>
+                  </div>
                 </div>
+
+                {/* Display Thumbnail */}
+                {selectedVideo.thumbnailUrl && (
+                  <div className="relative aspect-video max-w-sm rounded-xl overflow-hidden border border-[var(--border-light)] bg-black">
+                    <img 
+                      src={getFullUrl(selectedVideo.thumbnailUrl)} 
+                      alt="Video thumbnail"
+                      className="w-full h-full object-cover"
+                    />
+                    <div className="absolute inset-0 flex items-center justify-center bg-black/20">
+                      <FiPlayCircle className="text-white drop-shadow-md" size={48} />
+                    </div>
+                  </div>
+                )}
 
                 {/* Progress roster list */}
                 <div className="space-y-4">
@@ -291,8 +461,8 @@ export default function TeacherVideoLectures() {
                             </div>
                             <span className={`px-2.5 py-0.5 text-[8px] font-black uppercase rounded border ${
                               p.isCompleted 
-                                ? 'bg-emerald-50 text-emerald-600 border-emerald-100 dark:bg-emerald-500/10 dark:border-emerald-500/20'
-                                : 'bg-blue-50 text-blue-500 border-blue-100 dark:bg-blue-500/10 dark:border-blue-500/20'
+                                ? 'bg-emerald-50 text-emerald-600 border-emerald-100'
+                                : 'bg-blue-50 text-blue-500 border-blue-100'
                             }`}>
                               {p.isCompleted ? 'Completed ✅' : `Watching (${p.progressPercentage}%)`}
                             </span>
@@ -329,19 +499,21 @@ export default function TeacherVideoLectures() {
         </div>
       )}
 
-      {/* Add Video Modal */}
-      {isAddModalOpen && (
+      {/* Add / Edit Video Modal */}
+      {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-          <div className="bg-[var(--bg-card)] border border-[var(--border)] w-full max-w-md rounded-2xl p-6 shadow-xl space-y-4 max-h-[90vh] overflow-y-auto no-scrollbar">
+          <div className="bg-[var(--bg-card)] border border-[var(--border)] w-full max-w-lg rounded-2xl p-6 shadow-xl space-y-4 max-h-[90vh] overflow-y-auto no-scrollbar">
             
             <div className="flex justify-between items-center pb-2 border-b border-[var(--border)]">
-              <h2 className="text-sm font-black uppercase text-[var(--text-main)]">Upload Video Lecture</h2>
-              <button onClick={() => setIsAddModalOpen(false)} className="text-[var(--text-light)] hover:text-[var(--text-main)]">
+              <h2 className="text-sm font-black uppercase text-[var(--text-main)]">
+                {modalType === 'edit' ? 'Edit Video Lecture' : 'Upload Video Lecture'}
+              </h2>
+              <button onClick={() => setIsModalOpen(false)} className="text-[var(--text-light)] hover:text-[var(--text-main)]">
                 <FiX size={18} />
               </button>
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-3">
+            <form onSubmit={handleSubmit} className="space-y-4">
               
               {/* Title */}
               <div className="space-y-1">
@@ -368,7 +540,7 @@ export default function TeacherVideoLectures() {
                 />
               </div>
 
-              {/* Video Type */}
+              {/* Video Type and Duration */}
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1">
                   <label className="text-[9px] font-black uppercase text-[var(--text-light)] tracking-wider">Storage Type</label>
@@ -377,8 +549,8 @@ export default function TeacherVideoLectures() {
                     onChange={(e) => setForm({...form, videoType: e.target.value})}
                     className="w-full px-3 py-2.5 bg-[var(--bg-sub)]/40 border border-[var(--border)] text-xs text-[var(--text-main)] rounded-xl outline-none focus:border-[var(--primary)] font-semibold"
                   >
-                    <option value="embedded">YouTube Embed</option>
-                    <option value="uploaded">Uploaded MP4 link</option>
+                    <option value="embedded">YouTube Embed Link</option>
+                    <option value="uploaded">Direct Upload Video</option>
                   </select>
                 </div>
 
@@ -395,42 +567,73 @@ export default function TeacherVideoLectures() {
                 </div>
               </div>
 
-              {/* URL */}
-              <div className="space-y-1">
-                <label className="text-[9px] font-black uppercase text-[var(--text-light)] tracking-wider">Video Resource Link</label>
-                <input
-                  type="url"
-                  required
-                  value={form.url}
-                  onChange={(e) => setForm({...form, url: e.target.value})}
-                  className="w-full px-3 py-2.5 bg-[var(--bg-sub)]/40 border border-[var(--border)] text-xs text-[var(--text-main)] rounded-xl outline-none focus:border-[var(--primary)] font-semibold"
-                  placeholder="https://youtube.com/... or MP4 link"
-                />
-              </div>
+              {/* URL / File Input */}
+              {form.videoType === 'embedded' ? (
+                <div className="space-y-1">
+                  <label className="text-[9px] font-black uppercase text-[var(--text-light)] tracking-wider">Video Embed Link</label>
+                  <input
+                    type="url"
+                    required
+                    value={form.url}
+                    onChange={(e) => setForm({...form, url: e.target.value})}
+                    className="w-full px-3 py-2.5 bg-[var(--bg-sub)]/40 border border-[var(--border)] text-xs text-[var(--text-main)] rounded-xl outline-none focus:border-[var(--primary)] font-semibold"
+                    placeholder="https://youtube.com/watch?v=..."
+                  />
+                </div>
+              ) : (
+                <div className="space-y-1 bg-[var(--bg-sub)]/30 border border-dashed border-[var(--border)] p-4 rounded-2xl">
+                  <label className="text-[9px] font-black uppercase text-[var(--text-light)] tracking-wider flex items-center gap-1.5">
+                    <FiUploadCloud /> Direct Video Upload
+                  </label>
+                  <input
+                    type="file"
+                    accept="video/*"
+                    onChange={handleVideoFileChange}
+                    className="w-full mt-2 text-xs text-[var(--text-muted)] file:mr-3 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-[10px] file:font-black file:uppercase file:bg-[var(--primary-light)]/40 file:text-[var(--primary)] hover:file:bg-[var(--primary-light)]/60 cursor-pointer"
+                  />
+                  {uploadingVideo && (
+                    <p className="text-[10px] text-[var(--primary)] font-black animate-pulse mt-2">Uploading video file... Please keep modal open.</p>
+                  )}
+                  {form.url && !uploadingVideo && (
+                    <p className="text-[10px] text-emerald-600 font-bold mt-2 truncate">
+                      Uploaded File Path: {form.url}
+                    </p>
+                  )}
+                </div>
+              )}
 
-              {/* Thumbnail URL */}
-              <div className="space-y-1">
-                <label className="text-[9px] font-black uppercase text-[var(--text-light)] tracking-wider">Thumbnail Image Link (Optional)</label>
-                <input
-                  type="url"
-                  value={form.thumbnailUrl}
-                  onChange={(e) => setForm({...form, thumbnailUrl: e.target.value})}
-                  className="w-full px-3 py-2.5 bg-[var(--bg-sub)]/40 border border-[var(--border)] text-xs text-[var(--text-main)] rounded-xl outline-none focus:border-[var(--primary)] font-semibold"
-                  placeholder="https://..."
-                />
-              </div>
+              {/* Thumbnail URL & Upload */}
+              <div className="space-y-1 bg-[var(--bg-sub)]/30 border border-[var(--border)] p-4 rounded-2xl space-y-3">
+                <label className="text-[9px] font-black uppercase text-[var(--text-light)] tracking-wider">Thumbnail Management</label>
+                
+                <div className="space-y-1">
+                  <span className="text-[8px] font-bold text-[var(--text-light)] block">Direct Image File Upload</span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleThumbnailFileChange}
+                    className="w-full text-xs text-[var(--text-muted)] file:mr-3 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-[10px] file:font-black file:uppercase file:bg-[var(--primary-light)]/40 file:text-[var(--primary)] hover:file:bg-[var(--primary-light)]/60 cursor-pointer"
+                  />
+                  {uploadingThumbnail && (
+                    <p className="text-[10px] text-[var(--primary)] font-black animate-pulse mt-1">Uploading image... Please wait.</p>
+                  )}
+                </div>
 
-              {/* Instructor */}
-              <div className="space-y-1">
-                <label className="text-[9px] font-black uppercase text-[var(--text-light)] tracking-wider">Lecture Instructor Name</label>
-                <input
-                  type="text"
-                  required
-                  value={form.instructor}
-                  onChange={(e) => setForm({...form, instructor: e.target.value})}
-                  className="w-full px-3 py-2.5 bg-[var(--bg-sub)]/40 border border-[var(--border)] text-xs text-[var(--text-main)] rounded-xl outline-none focus:border-[var(--primary)] font-semibold"
-                  placeholder="Instructor Name"
-                />
+                <div className="relative flex items-center">
+                  <div className="flex-grow border-t border-[var(--border-light)]"></div>
+                  <span className="flex-shrink mx-4 text-[8px] text-[var(--text-light)] font-bold uppercase">OR USE URL</span>
+                  <div className="flex-grow border-t border-[var(--border-light)]"></div>
+                </div>
+
+                <div className="space-y-1">
+                  <input
+                    type="url"
+                    value={form.thumbnailUrl}
+                    onChange={(e) => setForm({...form, thumbnailUrl: e.target.value})}
+                    className="w-full px-3 py-2 bg-[var(--bg-sub)]/40 border border-[var(--border)] text-xs text-[var(--text-main)] rounded-xl outline-none focus:border-[var(--primary)] font-semibold"
+                    placeholder="https://..."
+                  />
+                </div>
               </div>
 
               {/* Course & Batch Select */}
@@ -451,7 +654,7 @@ export default function TeacherVideoLectures() {
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-[9px] font-black uppercase text-[var(--text-light)] tracking-wider">Roster Batch</label>
+                  <label className="text-[9px] font-black uppercase text-[var(--text-light)] tracking-wider">Roster Batch (Optional)</label>
                   <select
                     value={form.batch}
                     onChange={(e) => setForm({...form, batch: e.target.value})}
@@ -465,13 +668,54 @@ export default function TeacherVideoLectures() {
                 </div>
               </div>
 
+              {/* Instructor & Granular Subject Category */}
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <label className="text-[9px] font-black uppercase text-[var(--text-light)] tracking-wider">Lecture Instructor Name</label>
+                  <input
+                    type="text"
+                    required
+                    value={form.instructor}
+                    onChange={(e) => setForm({...form, instructor: e.target.value})}
+                    className="w-full px-3 py-2.5 bg-[var(--bg-sub)]/40 border border-[var(--border)] text-xs text-[var(--text-main)] rounded-xl outline-none focus:border-[var(--primary)] font-semibold"
+                    placeholder="Instructor Name"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-[9px] font-black uppercase text-[var(--text-light)] tracking-wider">Subject Tag / Topic (Optional)</label>
+                  <input
+                    type="text"
+                    value={form.subject}
+                    onChange={(e) => setForm({...form, subject: e.target.value})}
+                    className="w-full px-3 py-2.5 bg-[var(--bg-sub)]/40 border border-[var(--border)] text-xs text-[var(--text-main)] rounded-xl outline-none focus:border-[var(--primary)] font-semibold"
+                    placeholder="e.g. Flexbox, Graph Theory"
+                  />
+                </div>
+              </div>
+
+              {/* Visibility Toggle */}
+              <div className="flex items-center gap-2 pt-1">
+                <input
+                  type="checkbox"
+                  id="isActive"
+                  checked={form.isActive}
+                  onChange={(e) => setForm({...form, isActive: e.target.checked})}
+                  className="w-4 h-4 rounded border-[var(--border)] text-[var(--primary)] focus:ring-[var(--primary)]"
+                />
+                <label htmlFor="isActive" className="text-[10px] font-black uppercase text-[var(--text-main)] cursor-pointer">
+                  Visible to Students (Active)
+                </label>
+              </div>
+
               {/* Submit */}
               <div className="pt-2">
                 <button
                   type="submit"
-                  className="w-full py-2.5 bg-[var(--primary)] hover:bg-[var(--primary-dark)] text-white text-xs font-black uppercase rounded-xl shadow-md transition-all flex items-center justify-center gap-1.5"
+                  disabled={uploadingVideo || uploadingThumbnail}
+                  className="w-full py-2.5 bg-[var(--primary)] hover:bg-[var(--primary-dark)] disabled:opacity-50 text-white text-xs font-black uppercase rounded-xl shadow-md transition-all flex items-center justify-center gap-1.5"
                 >
-                  <FiFilm /> Publish Video Lecture
+                  <FiFilm /> {modalType === 'edit' ? 'Save Changes' : 'Publish Video Lecture'}
                 </button>
               </div>
 

@@ -1,6 +1,6 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
-const { protect, authorize } = require('./auth');
+const { protect, authorize, checkPermission } = require('./auth');
 
 const optionalProtect = async (req, res, next) => {
   try {
@@ -23,4 +23,4 @@ const optionalProtect = async (req, res, next) => {
   }
 };
 
-module.exports = { protect, authorize, optionalProtect };
+module.exports = { protect, authorize, checkPermission, optionalProtect };

@@ -24,8 +24,22 @@ const teacherSchema = new mongoose.Schema({
   },
   subject: {
     type: String,
-    required: true,
+    default: '',
     trim: true
+  },
+  subjects: [{
+    type: String,
+    default: []
+  }],
+  batches: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Batch',
+    default: []
+  }],
+  status: {
+    type: String,
+    enum: ['active', 'inactive'],
+    default: 'active'
   },
   qualification: {
     type: String,

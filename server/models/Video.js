@@ -32,6 +32,10 @@ const videoSchema = new mongoose.Schema({
     ref: 'Course',
     required: true
   },
+  subject: {
+    type: String,
+    default: ''
+  },
   batch: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Batch'

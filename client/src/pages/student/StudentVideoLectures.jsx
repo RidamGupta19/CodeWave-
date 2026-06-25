@@ -289,6 +289,16 @@ export default function StudentVideoLectures() {
     }
   };
 
+  const getFullUrl = (path) => {
+    if (!path) return '';
+    if (path.startsWith('http://') || path.startsWith('https://') || path.startsWith('data:')) {
+      return path;
+    }
+    const rawApiUrl = import.meta.env.VITE_API_URL || 'https://codewave-solution.onrender.com/api';
+    const serverHost = rawApiUrl.replace(/\/api$/, '').replace(/\/$/, '');
+    return `${serverHost}${path}`;
+  };
+
   const resumeVideo = (video) => {
     isAutoSeeking.current = false;
     setSelectedVideo(video);
@@ -400,7 +410,7 @@ export default function StudentVideoLectures() {
               >
                 <div className="relative w-16 h-16 rounded-xl overflow-hidden bg-black shrink-0">
                   <img 
-                    src={v.thumbnailUrl || 'https://images.unsplash.com/photo-1536440136628-849c177e76a1?q=80&w=150'} 
+                    src={getFullUrl(v.thumbnailUrl) || 'https://images.unsplash.com/photo-1536440136628-849c177e76a1?q=80&w=150'} 
                     alt={v.title}
                     className="w-full h-full object-cover opacity-80"
                   />
@@ -458,7 +468,7 @@ export default function StudentVideoLectures() {
                   <video
                     key={selectedVideo._id}
                     ref={html5PlayerRef}
-                    src={selectedVideo.url}
+                    src={getFullUrl(selectedVideo.url)}
                     controls
                     className="w-full h-full object-contain"
                     onTimeUpdate={handleHtml5TimeUpdate}
@@ -625,7 +635,7 @@ export default function StudentVideoLectures() {
                       {/* Video Thumbnail/Icon Box */}
                       <div className="relative w-12 h-12 rounded-xl bg-black border border-[var(--border-light)] shrink-0 overflow-hidden">
                         <img 
-                          src={v.thumbnailUrl || 'https://images.unsplash.com/photo-1536440136628-849c177e76a1?q=80&w=150'} 
+                          src={getFullUrl(v.thumbnailUrl) || 'https://images.unsplash.com/photo-1536440136628-849c177e76a1?q=80&w=150'} 
                           alt=""
                           className="w-full h-full object-cover opacity-75"
                         />

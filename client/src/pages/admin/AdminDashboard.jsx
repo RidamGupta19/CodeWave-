@@ -18,8 +18,18 @@ import {
   FiTrendingUp,
   FiEdit,
   FiVideo,
-  FiFileText
+  FiFileText,
+  FiLayers,
+  FiTv,
+  FiShield,
+  FiLock,
+  FiDownload,
+  FiUpload
 } from 'react-icons/fi';
+import {
+  AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
+  LineChart, Line, BarChart, Bar, Legend, PieChart, Pie, Cell, ComposedChart
+} from 'recharts';
 import toast from 'react-hot-toast';
 
 const AdminDashboard = () => {
@@ -29,7 +39,7 @@ const AdminDashboard = () => {
   const [topics, setTopics] = useState([]);
   const [assessments, setAssessments] = useState([]);
   
-  const [activeTab, setActiveTab] = useState('users'); // 'users' | 'domains' | 'topics' | 'assessments'
+  const [activeTab, setActiveTab] = useState('overview'); // 'overview' | 'users' | 'domains' | 'topics' | 'assessments'
   const [loading, setLoading] = useState(true);
   
   // Search & Filter State
@@ -73,6 +83,83 @@ const AdminDashboard = () => {
   });
   const [editingAssessment, setEditingAssessment] = useState(null);
 
+  // User Management System State
+  const [userSubTab, setUserSubTab] = useState('students'); // 'students' | 'teachers' | 'subadmins'
+
+  // Paginated Student state
+  const [studentsList, setStudentsList] = useState([]);
+  const [studentPagination, setStudentPagination] = useState({ page: 1, limit: 10, pages: 1, total: 0 });
+  const [studentFilters, setStudentFilters] = useState({ search: '', course: '', batch: '', status: '' });
+  const [studentPage, setStudentPage] = useState(1);
+
+  // Paginated Teacher state
+  const [teachersList, setTeachersList] = useState([]);
+  const [teacherPagination, setTeacherPagination] = useState({ page: 1, limit: 10, pages: 1, total: 0 });
+  const [teacherFilters, setTeacherFilters] = useState({ search: '', subject: '', status: '' });
+  const [teacherPage, setTeacherPage] = useState(1);
+
+  // Sub-Admin state
+  const [subAdminsList, setSubAdminsList] = useState([]);
+
+  // Selections for Bulk Actions
+  const [selectedStudentIds, setSelectedStudentIds] = useState([]);
+  const [selectedTeacherIds, setSelectedTeacherIds] = useState([]);
+  const [selectedSubAdminIds, setSelectedSubAdminIds] = useState([]);
+
+  // Modals state
+  const [showStudentModal, setShowStudentModal] = useState(false);
+  const [editingStudent, setEditingStudent] = useState(null);
+  const [studentForm, setStudentForm] = useState({
+    rollNumber: '',
+    fullName: '',
+    email: '',
+    phone: '',
+    address: '',
+    course: '',
+    batch: '',
+    status: 'active'
+  });
+
+  const [showTeacherModal, setShowTeacherModal] = useState(false);
+  const [editingTeacher, setEditingTeacher] = useState(null);
+  const [teacherForm, setTeacherForm] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    subject: '',
+    subjects: '',
+    qualification: '',
+    experience: '',
+    salary: 0,
+    status: 'active'
+  });
+
+  const [showSubAdminModal, setShowSubAdminModal] = useState(false);
+  const [editingSubAdmin, setEditingSubAdmin] = useState(null);
+  const [subAdminForm, setSubAdminForm] = useState({
+    fullName: '',
+    email: '',
+    password: '',
+    phone: '',
+    permissions: []
+  });
+
+  // Assign Batches/Subjects for teacher modal
+  const [showAssignTeacherModal, setShowAssignTeacherModal] = useState(false);
+  const [assigningTeacherId, setAssigningTeacherId] = useState('');
+  const [assignTeacherForm, setAssignTeacherForm] = useState({
+    subjects: '',
+    batches: []
+  });
+
+  // CSV Import Modal state
+  const [showImportModal, setShowImportModal] = useState(false);
+  const [importedData, setImportedData] = useState([]);
+  const [importErrors, setImportErrors] = useState([]);
+
+  const [coursesList, setCoursesList] = useState([]);
+  const [batchesList, setBatchesList] = useState([]);
+
   useEffect(() => {
     fetchInitialData();
   }, []);
@@ -80,19 +167,476 @@ const AdminDashboard = () => {
   const fetchInitialData = async () => {
     setLoading(true);
     try {
-      const [statsRes, usersRes, domainsRes] = await Promise.all([
+      const [statsRes, usersRes, domainsRes, coursesRes, batchesRes] = await Promise.all([
         api.get('/admin/stats'),
         api.get('/admin/users'),
-        api.get('/domains')
+        api.get('/domains'),
+        api.get('/institute/courses'),
+        api.get('/institute/batches')
       ]);
       setStats(statsRes.data.data);
       setUsers(usersRes.data.data || []);
       setDomains(domainsRes.data.data || []);
+      setCoursesList(coursesRes.data.data || []);
+      setBatchesList(batchesRes.data.data || []);
     } catch (err) {
       console.error(err);
       toast.error('Failed to load administration workspace data');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchStudents = async (page = 1) => {
+    try {
+      const params = {
+        page,
+        limit: 10,
+        search: studentFilters.search,
+        course: studentFilters.course,
+        batch: studentFilters.batch,
+        status: studentFilters.status
+      };
+      const res = await api.get('/admin/users/students', { params });
+      if (res.data.success) {
+        setStudentsList(res.data.data);
+        setStudentPagination(res.data.pagination);
+        setStudentPage(page);
+        setSelectedStudentIds([]);
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error('Failed to load students list');
+    }
+  };
+
+  const fetchTeachers = async (page = 1) => {
+    try {
+      const params = {
+        page,
+        limit: 10,
+        search: teacherFilters.search,
+        subject: teacherFilters.subject,
+        status: teacherFilters.status
+      };
+      const res = await api.get('/admin/users/teachers', { params });
+      if (res.data.success) {
+        setTeachersList(res.data.data);
+        setTeacherPagination(res.data.pagination);
+        setTeacherPage(page);
+        setSelectedTeacherIds([]);
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error('Failed to load teachers list');
+    }
+  };
+
+  const fetchSubAdmins = async () => {
+    try {
+      const res = await api.get('/admin/users/sub-admins');
+      if (res.data.success) {
+        setSubAdminsList(res.data.data);
+        setSelectedSubAdminIds([]);
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error('Failed to load sub-admins list');
+    }
+  };
+
+  useEffect(() => {
+    if (activeTab === 'users') {
+      if (userSubTab === 'students') {
+        fetchStudents(1);
+      } else if (userSubTab === 'teachers') {
+        fetchTeachers(1);
+      } else if (userSubTab === 'subadmins') {
+        fetchSubAdmins();
+      }
+    }
+  }, [activeTab, userSubTab]);
+
+  useEffect(() => {
+    if (activeTab === 'users' && userSubTab === 'students') {
+      const delayDebounce = setTimeout(() => {
+        fetchStudents(1);
+      }, 300);
+      return () => clearTimeout(delayDebounce);
+    }
+  }, [studentFilters]);
+
+  useEffect(() => {
+    if (activeTab === 'users' && userSubTab === 'teachers') {
+      const delayDebounce = setTimeout(() => {
+        fetchTeachers(1);
+      }, 300);
+      return () => clearTimeout(delayDebounce);
+    }
+  }, [teacherFilters]);
+
+  const handleStudentSubmit = async (e) => {
+    e.preventDefault();
+    const loadingToast = toast.loading(editingStudent ? "Updating student profile..." : "Adding new student...");
+    try {
+      if (editingStudent) {
+        await api.put(`/admin/users/students/${editingStudent._id}`, studentForm);
+        toast.success("Student profile updated successfully!", { id: loadingToast });
+      } else {
+        await api.post('/admin/users/students', studentForm);
+        toast.success("Student added successfully! Default pass: CodeWave@123", { id: loadingToast });
+      }
+      setShowStudentModal(false);
+      setEditingStudent(null);
+      setStudentForm({ rollNumber: '', fullName: '', email: '', phone: '', address: '', course: '', batch: '', status: 'active' });
+      fetchStudents(studentPage);
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Operation failed", { id: loadingToast });
+    }
+  };
+
+  const handleStudentStatusToggle = async (id, currentStatus) => {
+    const newStatus = currentStatus === 'active' ? 'suspended' : 'active';
+    const actionName = newStatus === 'suspended' ? 'suspending' : 'activating';
+    const loadingToast = toast.loading(`${actionName.charAt(0).toUpperCase() + actionName.slice(1)} student account...`);
+    try {
+      await api.put(`/admin/users/students/${id}/status`, { status: newStatus });
+      toast.success(`Student account is now ${newStatus}!`, { id: loadingToast });
+      fetchStudents(studentPage);
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Failed to toggle status", { id: loadingToast });
+    }
+  };
+
+  const handleStudentPasswordReset = async (id) => {
+    const password = prompt("Enter new password for student (min 6 characters):");
+    if (!password) return;
+    if (password.length < 6) {
+      toast.error("Password too short");
+      return;
+    }
+    const loadingToast = toast.loading("Resetting password...");
+    try {
+      await api.put(`/admin/users/students/${id}/reset-password`, { password });
+      toast.success("Password reset completed!", { id: loadingToast });
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Failed to reset password", { id: loadingToast });
+    }
+  };
+
+  const handleDeleteStudent = async (id) => {
+    if (!window.confirm("Permanently delete this student and related fee/attendance records?")) return;
+    const loadingToast = toast.loading("Deleting student profile...");
+    try {
+      await api.delete(`/admin/users/students/${id}`);
+      toast.success("Student records deleted!", { id: loadingToast });
+      fetchStudents(1);
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Failed to delete student", { id: loadingToast });
+    }
+  };
+
+  const handleTeacherSubmit = async (e) => {
+    e.preventDefault();
+    const loadingToast = toast.loading(editingTeacher ? "Updating teacher profile..." : "Adding teacher...");
+    const subjectsArray = teacherForm.subjects.split(',').map(s => s.trim()).filter(s => s);
+    const payload = {
+      ...teacherForm,
+      subjects: subjectsArray
+    };
+    try {
+      if (editingTeacher) {
+        await api.put(`/admin/users/teachers/${editingTeacher._id}`, payload);
+        toast.success("Teacher profile updated!", { id: loadingToast });
+      } else {
+        await api.post('/admin/users/teachers', payload);
+        toast.success("Teacher account created! Default pass: CodeWave@123", { id: loadingToast });
+      }
+      setShowTeacherModal(false);
+      setEditingTeacher(null);
+      setTeacherForm({ name: '', email: '', phone: '', subject: '', subjects: '', qualification: '', experience: '', salary: 0, status: 'active' });
+      fetchTeachers(teacherPage);
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Operation failed", { id: loadingToast });
+    }
+  };
+
+  const handleTeacherStatusToggle = async (id, currentStatus) => {
+    const newStatus = currentStatus === 'active' ? 'inactive' : 'active';
+    const loadingToast = toast.loading(`Updating teacher status to ${newStatus}...`);
+    try {
+      await api.put(`/admin/users/teachers/${id}/status`, { status: newStatus });
+      toast.success(`Teacher status is now ${newStatus}!`, { id: loadingToast });
+      fetchTeachers(teacherPage);
+    } catch (err) {
+      toast.error("Failed to toggle status", { id: loadingToast });
+    }
+  };
+
+  const handleAssignTeacherSubmit = async (e) => {
+    e.preventDefault();
+    const loadingToast = toast.loading("Updating teacher assignments...");
+    const subjectsArray = assignTeacherForm.subjects.split(',').map(s => s.trim()).filter(s => s);
+    try {
+      await api.put(`/admin/users/teachers/${assigningTeacherId}/assign`, {
+        subjects: subjectsArray,
+        batches: assignTeacherForm.batches
+      });
+      toast.success("Subjects and batches assigned successfully!", { id: loadingToast });
+      setShowAssignTeacherModal(false);
+      setAssigningTeacherId('');
+      fetchTeachers(teacherPage);
+    } catch (err) {
+      toast.error("Assignment failed", { id: loadingToast });
+    }
+  };
+
+  const handleDeleteTeacher = async (id) => {
+    if (!window.confirm("Permanently delete this teacher account?")) return;
+    const loadingToast = toast.loading("Deleting teacher account...");
+    try {
+      await api.delete(`/admin/users/teachers/${id}`);
+      toast.success("Teacher removed successfully!", { id: loadingToast });
+      fetchTeachers(1);
+    } catch (err) {
+      toast.error("Deletion failed", { id: loadingToast });
+    }
+  };
+
+  const handleSubAdminSubmit = async (e) => {
+    e.preventDefault();
+    const loadingToast = toast.loading(editingSubAdmin ? "Updating settings..." : "Creating sub-admin account...");
+    try {
+      if (editingSubAdmin) {
+        await api.put(`/admin/users/sub-admins/${editingSubAdmin._id}`, subAdminForm);
+        toast.success("Sub-admin settings updated!", { id: loadingToast });
+      } else {
+        if (!subAdminForm.password || subAdminForm.password.length < 6) {
+          toast.error("Password must be at least 6 characters", { id: loadingToast });
+          return;
+        }
+        await api.post('/admin/users/sub-admins', subAdminForm);
+        toast.success("Sub-admin created successfully!", { id: loadingToast });
+      }
+      setShowSubAdminModal(false);
+      setEditingSubAdmin(null);
+      setSubAdminForm({ fullName: '', email: '', password: '', phone: '', permissions: [] });
+      fetchSubAdmins();
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Operation failed", { id: loadingToast });
+    }
+  };
+
+  const handleDeleteSubAdmin = async (id) => {
+    if (!window.confirm("Permanently delete this sub-admin account?")) return;
+    const loadingToast = toast.loading("Removing account...");
+    try {
+      await api.delete(`/admin/users/sub-admins/${id}`);
+      toast.success("Sub-admin deleted!", { id: loadingToast });
+      fetchSubAdmins();
+    } catch (err) {
+      toast.error("Failed to delete", { id: loadingToast });
+    }
+  };
+
+  const togglePermissionSelection = (perm) => {
+    const current = [...subAdminForm.permissions];
+    const index = current.indexOf(perm);
+    if (index > -1) {
+      current.splice(index, 1);
+    } else {
+      current.push(perm);
+    }
+    setSubAdminForm({ ...subAdminForm, permissions: current });
+  };
+
+  const executeBulkAction = async (action, targetRole) => {
+    let ids = [];
+    if (targetRole === 'student') ids = selectedStudentIds;
+    else if (targetRole === 'teacher') ids = selectedTeacherIds;
+    else ids = selectedSubAdminIds;
+
+    if (ids.length === 0) {
+      toast.error("No items selected");
+      return;
+    }
+
+    let resetPasswordValue = '';
+    let newStatus = '';
+
+    if (action === 'delete') {
+      if (!window.confirm(`Are you sure you want to delete these ${ids.length} accounts?`)) return;
+    } else if (action === 'status') {
+      newStatus = prompt("Enter new status ('active', 'suspended', or 'inactive'):");
+      if (!newStatus) return;
+      if (!['active', 'suspended', 'inactive'].includes(newStatus)) {
+        toast.error("Invalid status value.");
+        return;
+      }
+    } else if (action === 'reset-password') {
+      resetPasswordValue = prompt("Enter new password for selected accounts (min 6 characters):");
+      if (!resetPasswordValue) return;
+      if (resetPasswordValue.length < 6) {
+        toast.error("Password too short");
+        return;
+      }
+    }
+
+    const loadingToast = toast.loading("Executing bulk updates...");
+    try {
+      await api.post('/admin/users/bulk-action', {
+        action,
+        ids,
+        targetRole,
+        newStatus,
+        resetPasswordValue
+      });
+      toast.success("Bulk action completed!", { id: loadingToast });
+      if (targetRole === 'student') {
+        setSelectedStudentIds([]);
+        fetchStudents(studentPage);
+      } else if (targetRole === 'teacher') {
+        setSelectedTeacherIds([]);
+        fetchTeachers(teacherPage);
+      } else {
+        setSelectedSubAdminIds([]);
+        fetchSubAdmins();
+      }
+    } catch (err) {
+      toast.error("Bulk operation failed", { id: loadingToast });
+    }
+  };
+
+  const handleCSVFileChange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const text = event.target.result;
+      const rows = text.split('\n').map(row => row.trim()).filter(row => row);
+      if (rows.length < 2) {
+        toast.error('CSV is empty or missing headers');
+        return;
+      }
+      
+      const headers = rows[0].split(',').map(h => h.trim().replace(/^["']|["']$/g, ''));
+      const parsedStudents = [];
+      const errors = [];
+
+      for (let i = 1; i < rows.length; i++) {
+        const cols = rows[i].split(',').map(c => c.trim().replace(/^["']|["']$/g, ''));
+        if (cols.length === 0 || (cols.length === 1 && cols[0] === '')) continue;
+
+        const student = {};
+        headers.forEach((header, index) => {
+          student[header] = cols[index] || '';
+        });
+
+        const rollNumber = student['rollNumber'] || student['Roll Number'] || student['RollNo'] || '';
+        const fullName = student['fullName'] || student['Full Name'] || student['Name'] || '';
+        const email = student['email'] || student['Email'] || '';
+        const phone = student['phone'] || student['Phone'] || student['Mobile'] || '';
+        const address = student['address'] || student['Address'] || '';
+        const courseName = student['courseName'] || student['Course'] || '';
+        const batchName = student['batchName'] || student['Batch'] || '';
+
+        if (!rollNumber || !fullName || !email) {
+          errors.push(`Row ${i + 1}: Missing Roll Number, Full Name, or Email.`);
+        }
+
+        parsedStudents.push({
+          rollNumber,
+          fullName,
+          email,
+          phone,
+          address,
+          courseName,
+          batchName
+        });
+      }
+
+      setImportedData(parsedStudents);
+      setImportErrors(errors);
+    };
+    reader.readAsText(file);
+  };
+
+  const handleImportSubmit = async () => {
+    if (importedData.length === 0) {
+      toast.error("No data parsed to import");
+      return;
+    }
+    if (importErrors.length > 0) {
+      if (!window.confirm("There are validation errors. Do you want to skip invalid rows and proceed?")) return;
+    }
+
+    const validStudents = importedData.filter(s => s.fullName && s.email && s.rollNumber);
+    if (validStudents.length === 0) {
+      toast.error("No valid student rows to import");
+      return;
+    }
+
+    const loadingToast = toast.loading(`Importing ${validStudents.length} students...`);
+    try {
+      const res = await api.post('/admin/users/students/import', { students: validStudents });
+      if (res.data.success) {
+        const results = res.data.data;
+        toast.success(`Successfully imported ${results.successCount} students!`, { id: loadingToast });
+        if (results.errors.length > 0) {
+          toast(`Skipped ${results.errors.length} duplicate/invalid rows.`, { icon: '⚠️' });
+        }
+        setShowImportModal(false);
+        setImportedData([]);
+        setImportErrors([]);
+        fetchStudents(1);
+      }
+    } catch (err) {
+      toast.error("Import failed", { id: loadingToast });
+    }
+  };
+
+  const handleExportCSV = async (role) => {
+    try {
+      const res = await api.get(`/admin/users/export?role=${role}`);
+      if (res.data.success && res.data.data) {
+        const data = res.data.data;
+        let csvContent = "\uFEFF"; // BOM for Excel UTF-8
+        
+        if (role === 'student') {
+          csvContent += "Roll Number,Full Name,Email,Phone,Course,Batch,Status\n";
+          data.forEach(item => {
+            const courseName = item.course ? item.course.courseName : '';
+            const batchName = item.batch ? item.batch.batchName : '';
+            csvContent += `"${item.rollNumber || ''}","${item.fullName || ''}","${item.email || ''}","${item.phone || ''}","${courseName}","${batchName}","${item.status || ''}"\n`;
+          });
+        } else if (role === 'teacher') {
+          csvContent += "Name,Email,Phone,Subjects,Qualification,Experience,Salary,Status\n";
+          data.forEach(item => {
+            const subjectsStr = (item.subjects || []).join('; ');
+            csvContent += `"${item.name || ''}","${item.email || ''}","${item.phone || ''}","${subjectsStr}","${item.qualification || ''}","${item.experience || ''}","${item.salary || 0}","${item.status || ''}"\n`;
+          });
+        } else {
+          csvContent += "Full Name,Email,Phone,Permissions,Status\n";
+          data.forEach(item => {
+            const permissionsStr = (item.permissions || []).join('; ');
+            csvContent += `"${item.fullName || ''}","${item.email || ''}","${item.phone || ''}","${permissionsStr}","${item.status || ''}"\n`;
+          });
+        }
+
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement("a");
+        const url = URL.createObjectURL(blob);
+        link.setAttribute("href", url);
+        link.setAttribute("download", `${role}_export_${new Date().toISOString().slice(0,10)}.csv`);
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        toast.success(`${role.charAt(0).toUpperCase() + role.slice(1)} records exported successfully!`);
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error('Failed to export records');
     }
   };
 
@@ -337,6 +881,12 @@ const AdminDashboard = () => {
 
           <div className="flex flex-wrap gap-2 bg-slate-100/80 dark:bg-slate-950/40 p-1 rounded-xl border border-slate-200/60 dark:border-white/5">
             <button
+              onClick={() => setActiveTab('overview')}
+              className={`px-4 py-2 rounded-lg text-xs font-black transition-all ${activeTab === 'overview' ? 'bg-emerald-600 dark:bg-indigo-600 text-white shadow-sm' : 'text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white'}`}
+            >
+              📊 Institute Overview
+            </button>
+            <button
               onClick={() => setActiveTab('users')}
               className={`px-4 py-2 rounded-lg text-xs font-black transition-all ${activeTab === 'users' ? 'bg-emerald-600 dark:bg-indigo-600 text-white shadow-sm' : 'text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white'}`}
             >
@@ -370,171 +920,1129 @@ const AdminDashboard = () => {
         </div>
       </div>
 
-      {/* Statistics Overview row */}
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-10">
-        <div className="admin-stat-card bg-white border border-slate-100 dark:bg-slate-900/55 dark:border-white/5 p-5 rounded-2xl shadow-sm hover:shadow-md transition-all duration-300">
-          <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest block mb-1">Total Registered</span>
-          <div className="text-2xl font-black text-slate-800 dark:text-white flex items-center gap-2">
-            <FiUsers className="text-indigo-650 dark:text-indigo-400 text-lg" /> {stats?.totalUsers || 0}
+      {/* Statistics Overview row (only show on other management tabs) */}
+      {activeTab !== 'overview' && (
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-10">
+          <div className="admin-stat-card bg-white border border-slate-100 dark:bg-slate-900/55 dark:border-white/5 p-5 rounded-2xl shadow-sm hover:shadow-md transition-all duration-300">
+            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest block mb-1">Total Registered</span>
+            <div className="text-2xl font-black text-slate-800 dark:text-white flex items-center gap-2">
+              <FiUsers className="text-indigo-650 dark:text-indigo-400 text-lg" /> {stats?.totalUsers || 0}
+            </div>
+          </div>
+          <div className="admin-stat-card bg-white border border-slate-100 dark:bg-slate-900/55 dark:border-white/5 p-5 rounded-2xl shadow-sm hover:shadow-md transition-all duration-300">
+            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest block mb-1">Students</span>
+            <div className="text-2xl font-black text-slate-800 dark:text-white flex items-center gap-2">
+              <FiUserCheck className="text-emerald-650 dark:text-emerald-400 text-lg" /> {stats?.totalStudents || 0}
+            </div>
+          </div>
+          <div className="admin-stat-card bg-white border border-slate-100 dark:bg-slate-900/55 dark:border-white/5 p-5 rounded-2xl shadow-sm hover:shadow-md transition-all duration-300">
+            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest block mb-1">Assigned Mentors</span>
+            <div className="text-2xl font-black text-slate-800 dark:text-white flex items-center gap-2">
+              <FiAward className="text-amber-550 dark:text-amber-400 text-lg" /> {stats?.totalMentors || 0}
+            </div>
+          </div>
+          <div className="admin-stat-card bg-white border border-slate-100 dark:bg-slate-900/55 dark:border-white/5 p-5 rounded-2xl shadow-sm hover:shadow-md transition-all duration-300">
+            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest block mb-1">Active Specializations</span>
+            <div className="text-2xl font-black text-slate-800 dark:text-white flex items-center gap-2">
+              <FiMap className="text-purple-650 dark:text-purple-400 text-lg" /> {stats?.totalDomains || 0}
+            </div>
+          </div>
+          <div className="admin-stat-card bg-white border border-slate-100 dark:bg-slate-900/55 dark:border-white/5 p-5 rounded-2xl col-span-2 md:col-span-1 shadow-sm hover:shadow-md transition-all duration-300">
+            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest block mb-1">Milestones</span>
+            <div className="text-2xl font-black text-slate-800 dark:text-white flex items-center gap-2">
+              <FiCheckSquare className="text-sky-650 dark:text-sky-400 text-lg" /> {stats?.totalAssessments || 0}
+            </div>
           </div>
         </div>
-        <div className="admin-stat-card bg-white border border-slate-100 dark:bg-slate-900/55 dark:border-white/5 p-5 rounded-2xl shadow-sm hover:shadow-md transition-all duration-300">
-          <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest block mb-1">Students</span>
-          <div className="text-2xl font-black text-slate-800 dark:text-white flex items-center gap-2">
-            <FiUserCheck className="text-emerald-650 dark:text-emerald-400 text-lg" /> {stats?.totalStudents || 0}
-          </div>
-        </div>
-        <div className="admin-stat-card bg-white border border-slate-100 dark:bg-slate-900/55 dark:border-white/5 p-5 rounded-2xl shadow-sm hover:shadow-md transition-all duration-300">
-          <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest block mb-1">Assigned Mentors</span>
-          <div className="text-2xl font-black text-slate-800 dark:text-white flex items-center gap-2">
-            <FiAward className="text-amber-550 dark:text-amber-400 text-lg" /> {stats?.totalMentors || 0}
-          </div>
-        </div>
-        <div className="admin-stat-card bg-white border border-slate-100 dark:bg-slate-900/55 dark:border-white/5 p-5 rounded-2xl shadow-sm hover:shadow-md transition-all duration-300">
-          <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest block mb-1">Active Specializations</span>
-          <div className="text-2xl font-black text-slate-800 dark:text-white flex items-center gap-2">
-            <FiMap className="text-purple-650 dark:text-purple-400 text-lg" /> {stats?.totalDomains || 0}
-          </div>
-        </div>
-        <div className="admin-stat-card bg-white border border-slate-100 dark:bg-slate-900/55 dark:border-white/5 p-5 rounded-2xl col-span-2 md:col-span-1 shadow-sm hover:shadow-md transition-all duration-300">
-          <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest block mb-1">Milestones</span>
-          <div className="text-2xl font-black text-slate-800 dark:text-white flex items-center gap-2">
-            <FiCheckSquare className="text-sky-650 dark:text-sky-400 text-lg" /> {stats?.totalAssessments || 0}
-          </div>
-        </div>
-      </div>
+      )}
 
       {/* Tabs panels */}
+      {activeTab === 'overview' && (
+        <div className="space-y-10 animate-in fade-in duration-300">
+          
+          {/* Dashboard Cards Grid (12 Cards) */}
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
+             {/* 1. Students */}
+             <div className="bg-white dark:bg-slate-950 border border-slate-200 dark:border-white/5 rounded-3xl p-6 shadow-sm flex items-center justify-between hover:shadow-md transition-all duration-300">
+               <div>
+                 <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest block mb-1">Total Students</span>
+                 <span className="text-3xl font-black text-slate-800 dark:text-white leading-tight">{stats?.totalStudents || 0}</span>
+               </div>
+               <div className="p-3.5 bg-indigo-50 dark:bg-indigo-500/10 rounded-2xl text-indigo-600 dark:text-indigo-400">
+                 <FiUsers size={22} />
+               </div>
+             </div>
+             {/* 2. Teachers */}
+             <div className="bg-white dark:bg-slate-950 border border-slate-200 dark:border-white/5 rounded-3xl p-6 shadow-sm flex items-center justify-between hover:shadow-md transition-all duration-300">
+               <div>
+                 <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest block mb-1">Total Teachers</span>
+                 <span className="text-3xl font-black text-slate-800 dark:text-white leading-tight">{stats?.totalTeachers || 0}</span>
+               </div>
+               <div className="p-3.5 bg-emerald-50 dark:bg-emerald-500/10 rounded-2xl text-emerald-600 dark:text-emerald-400">
+                 <FiUserCheck size={22} />
+               </div>
+             </div>
+             {/* 3. Courses */}
+             <div className="bg-white dark:bg-slate-950 border border-slate-200 dark:border-white/5 rounded-3xl p-6 shadow-sm flex items-center justify-between hover:shadow-md transition-all duration-300">
+               <div>
+                 <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest block mb-1">Total Courses</span>
+                 <span className="text-3xl font-black text-slate-800 dark:text-white leading-tight">{stats?.totalCourses || 0}</span>
+               </div>
+               <div className="p-3.5 bg-violet-50 dark:bg-violet-500/10 rounded-2xl text-violet-600 dark:text-violet-400">
+                 <FiBookOpen size={22} />
+               </div>
+             </div>
+             {/* 4. Batches */}
+             <div className="bg-white dark:bg-slate-950 border border-slate-200 dark:border-white/5 rounded-3xl p-6 shadow-sm flex items-center justify-between hover:shadow-md transition-all duration-300">
+               <div>
+                 <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest block mb-1">Total Batches</span>
+                 <span className="text-3xl font-black text-slate-800 dark:text-white leading-tight">{stats?.totalBatches || 0}</span>
+               </div>
+               <div className="p-3.5 bg-blue-50 dark:bg-blue-500/10 rounded-2xl text-blue-600 dark:text-blue-400">
+                 <FiLayers size={22} />
+               </div>
+             </div>
+             {/* 5. Live Classes */}
+             <div className="bg-white dark:bg-slate-950 border border-slate-200 dark:border-white/5 rounded-3xl p-6 shadow-sm flex items-center justify-between hover:shadow-md transition-all duration-300">
+               <div>
+                 <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest block mb-1">Active Live Classes</span>
+                 <span className="text-3xl font-black text-slate-800 dark:text-white leading-tight">{stats?.activeLiveClasses || 0}</span>
+               </div>
+               <div className="p-3.5 bg-amber-50 dark:bg-amber-500/10 rounded-2xl text-amber-600 dark:text-amber-400">
+                 <FiTv size={22} className="animate-pulse" />
+               </div>
+             </div>
+             {/* 6. Video Lectures */}
+             <div className="bg-white dark:bg-slate-950 border border-slate-200 dark:border-white/5 rounded-3xl p-6 shadow-sm flex items-center justify-between hover:shadow-md transition-all duration-300">
+               <div>
+                 <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest block mb-1">Video Lectures</span>
+                 <span className="text-3xl font-black text-slate-800 dark:text-white leading-tight">{stats?.totalVideoLectures || 0}</span>
+               </div>
+               <div className="p-3.5 bg-rose-50 dark:bg-rose-500/10 rounded-2xl text-rose-600 dark:text-rose-400">
+                 <FiVideo size={22} />
+               </div>
+             </div>
+             {/* 7. Notes */}
+             <div className="bg-white dark:bg-slate-950 border border-slate-200 dark:border-white/5 rounded-3xl p-6 shadow-sm flex items-center justify-between hover:shadow-md transition-all duration-300">
+               <div>
+                 <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest block mb-1">Total Notes</span>
+                 <span className="text-3xl font-black text-slate-800 dark:text-white leading-tight">{stats?.totalNotes || 0}</span>
+               </div>
+               <div className="p-3.5 bg-sky-50 dark:bg-sky-500/10 rounded-2xl text-sky-600 dark:text-sky-400">
+                 <FiFileText size={22} />
+               </div>
+             </div>
+             {/* 8. Assignments */}
+             <div className="bg-white dark:bg-slate-950 border border-slate-200 dark:border-white/5 rounded-3xl p-6 shadow-sm flex items-center justify-between hover:shadow-md transition-all duration-300">
+               <div>
+                 <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest block mb-1">Total Assignments</span>
+                 <span className="text-3xl font-black text-slate-800 dark:text-white leading-tight">{stats?.totalAssignments || 0}</span>
+               </div>
+               <div className="p-3.5 bg-orange-50 dark:bg-orange-500/10 rounded-2xl text-orange-600 dark:text-orange-400">
+                 <FiEdit size={22} />
+               </div>
+             </div>
+             {/* 9. Assessments */}
+             <div className="bg-white dark:bg-slate-950 border border-slate-200 dark:border-white/5 rounded-3xl p-6 shadow-sm flex items-center justify-between hover:shadow-md transition-all duration-300">
+               <div>
+                 <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest block mb-1">Total Assessments</span>
+                 <span className="text-3xl font-black text-slate-800 dark:text-white leading-tight">{stats?.totalAssessments || 0}</span>
+               </div>
+               <div className="p-3.5 bg-pink-50 dark:bg-pink-500/10 rounded-2xl text-pink-600 dark:text-pink-400">
+                 <FiCheckSquare size={22} />
+               </div>
+             </div>
+             {/* 10. Attendance Today */}
+             <div className="bg-white dark:bg-slate-950 border border-slate-200 dark:border-white/5 rounded-3xl p-6 shadow-sm flex items-center justify-between hover:shadow-md transition-all duration-300">
+               <div>
+                 <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest block mb-1">Attendance Today</span>
+                 <span className="text-3xl font-black text-slate-800 dark:text-white leading-tight">{stats?.attendanceToday || 0}%</span>
+               </div>
+               <div className="p-3.5 bg-teal-50 dark:bg-teal-500/10 rounded-2xl text-teal-600 dark:text-teal-400">
+                 <FiClock size={22} />
+               </div>
+             </div>
+             {/* 11. New Admissions */}
+             <div className="bg-white dark:bg-slate-950 border border-slate-200 dark:border-white/5 rounded-3xl p-6 shadow-sm flex items-center justify-between hover:shadow-md transition-all duration-300">
+               <div>
+                 <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest block mb-1">New Admissions (30d)</span>
+                 <span className="text-3xl font-black text-slate-800 dark:text-white leading-tight">{stats?.newAdmissions || 0}</span>
+               </div>
+               <div className="p-3.5 bg-fuchsia-50 dark:bg-fuchsia-500/10 rounded-2xl text-fuchsia-600 dark:text-fuchsia-400">
+                 <FiPlus size={22} />
+               </div>
+             </div>
+             {/* 12. Platform Activity */}
+             <div className="bg-white dark:bg-slate-950 border border-slate-200 dark:border-white/5 rounded-3xl p-6 shadow-sm flex items-center justify-between hover:shadow-md transition-all duration-300">
+               <div>
+                 <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest block mb-1">Platform Activity</span>
+                 <span className="text-3xl font-black text-slate-800 dark:text-white leading-tight">{stats?.platformActivity || 0}</span>
+               </div>
+               <div className="p-3.5 bg-purple-50 dark:bg-purple-500/10 rounded-2xl text-purple-600 dark:text-purple-400">
+                 <FiActivity size={22} />
+               </div>
+             </div>
+          </div>
+
+          {/* Dashboard Charts (6 Charts in responsive grid) */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            
+            {/* Chart 1: Student Growth */}
+            <div className="bg-white dark:bg-slate-950 border border-slate-200 dark:border-white/5 p-6 rounded-3xl shadow-sm space-y-4">
+              <h3 className="text-xs font-black uppercase text-slate-550 dark:text-slate-400 tracking-wider flex items-center gap-1.5">
+                <FiTrendingUp className="text-indigo-500" /> Student Growth
+              </h3>
+              <div className="h-64">
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart data={stats?.charts?.studentGrowth || []}>
+                    <defs>
+                      <linearGradient id="colorStudents" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#6366f1" stopOpacity={0.3}/>
+                        <stop offset="95%" stopColor="#6366f1" stopOpacity={0}/>
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(148, 163, 184, 0.1)" />
+                    <XAxis dataKey="month" stroke="#94a3b8" fontSize={10} tickLine={false} />
+                    <YAxis stroke="#94a3b8" fontSize={10} tickLine={false} />
+                    <Tooltip contentStyle={{ backgroundColor: '#0f172a', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px' }} itemStyle={{ color: '#fff' }} />
+                    <Area type="monotone" dataKey="students" stroke="#6366f1" strokeWidth={2} fillOpacity={1} fill="url(#colorStudents)" name="Total Students" />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+
+            {/* Chart 2: Attendance Trends */}
+            <div className="bg-white dark:bg-slate-950 border border-slate-200 dark:border-white/5 p-6 rounded-3xl shadow-sm space-y-4">
+              <h3 className="text-xs font-black uppercase text-slate-550 dark:text-slate-400 tracking-wider flex items-center gap-1.5">
+                <FiClock className="text-emerald-500" /> Attendance Trends (Last 7 Days)
+              </h3>
+              <div className="h-64">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={stats?.charts?.attendanceTrends || []}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(148, 163, 184, 0.1)" />
+                    <XAxis dataKey="day" stroke="#94a3b8" fontSize={10} tickLine={false} />
+                    <YAxis stroke="#94a3b8" fontSize={10} tickLine={false} domain={[60, 100]} />
+                    <Tooltip contentStyle={{ backgroundColor: '#0f172a', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px' }} itemStyle={{ color: '#fff' }} />
+                    <Line type="monotone" dataKey="rate" stroke="#10b981" strokeWidth={3} dot={{ r: 4, strokeWidth: 2 }} activeDot={{ r: 6 }} name="Attendance Rate (%)" />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+
+            {/* Chart 3: Assignment Submission Rate */}
+            <div className="bg-white dark:bg-slate-950 border border-slate-200 dark:border-white/5 p-6 rounded-3xl shadow-sm space-y-4">
+              <h3 className="text-xs font-black uppercase text-slate-550 dark:text-slate-400 tracking-wider flex items-center gap-1.5">
+                <FiEdit className="text-violet-500" /> Assignment Submission Rate
+              </h3>
+              <div className="h-64 flex flex-col sm:flex-row justify-center items-center gap-6">
+                <div className="h-full w-full max-w-[200px] shrink-0">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={stats?.charts?.assignmentSubmission || []}
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={60}
+                        outerRadius={80}
+                        paddingAngle={5}
+                        dataKey="value"
+                      >
+                        <Cell fill="#10b981" />
+                        <Cell fill="#f59e0b" />
+                        <Cell fill="#f43f5e" />
+                      </Pie>
+                      <Tooltip contentStyle={{ backgroundColor: '#0f172a', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px' }} itemStyle={{ color: '#fff' }} />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+                <div className="space-y-3">
+                  {(stats?.charts?.assignmentSubmission || []).map((entry, index) => {
+                    const colors = ["#10b981", "#f59e0b", "#f43f5e"];
+                    return (
+                      <div key={entry.name} className="flex items-center gap-2">
+                        <span className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: colors[index] }}></span>
+                        <span className="text-xs font-bold text-slate-700 dark:text-slate-300">{entry.name}: {entry.value}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+
+            {/* Chart 4: Assessment Performance */}
+            <div className="bg-white dark:bg-slate-950 border border-slate-200 dark:border-white/5 p-6 rounded-3xl shadow-sm space-y-4">
+              <h3 className="text-xs font-black uppercase text-slate-550 dark:text-slate-400 tracking-wider flex items-center gap-1.5">
+                <FiCheckSquare className="text-amber-500" /> Assessment Performance
+              </h3>
+              <div className="h-64">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={stats?.charts?.assessmentPerformance || []}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(148, 163, 184, 0.1)" />
+                    <XAxis dataKey="category" stroke="#94a3b8" fontSize={9} tickLine={false} />
+                    <YAxis stroke="#94a3b8" fontSize={10} tickLine={false} />
+                    <Tooltip contentStyle={{ backgroundColor: '#0f172a', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px' }} itemStyle={{ color: '#fff' }} />
+                    <Bar dataKey="count" fill="#8b5cf6" radius={[8, 8, 0, 0]} name="Student Count" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+
+            {/* Chart 5: Daily Active Users */}
+            <div className="bg-white dark:bg-slate-950 border border-slate-200 dark:border-white/5 p-6 rounded-3xl shadow-sm space-y-4">
+              <h3 className="text-xs font-black uppercase text-slate-550 dark:text-slate-400 tracking-wider flex items-center gap-1.5">
+                <FiActivity className="text-rose-500" /> Daily Active Users
+              </h3>
+              <div className="h-64">
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart data={stats?.charts?.dailyActiveUsers || []}>
+                    <defs>
+                      <linearGradient id="colorUsers" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#f43f5e" stopOpacity={0.3}/>
+                        <stop offset="95%" stopColor="#f43f5e" stopOpacity={0}/>
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(148, 163, 184, 0.1)" />
+                    <XAxis dataKey="day" stroke="#94a3b8" fontSize={10} tickLine={false} />
+                    <YAxis stroke="#94a3b8" fontSize={10} tickLine={false} />
+                    <Tooltip contentStyle={{ backgroundColor: '#0f172a', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px' }} itemStyle={{ color: '#fff' }} />
+                    <Area type="monotone" dataKey="users" stroke="#f43f5e" strokeWidth={2} fillOpacity={1} fill="url(#colorUsers)" name="Active Users" />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+
+            {/* Chart 6: Monthly Analytics */}
+            <div className="bg-white dark:bg-slate-950 border border-slate-200 dark:border-white/5 p-6 rounded-3xl shadow-sm space-y-4">
+              <h3 className="text-xs font-black uppercase text-slate-550 dark:text-slate-400 tracking-wider flex items-center gap-1.5">
+                <FiLayers className="text-sky-500" /> Monthly Analytics
+              </h3>
+              <div className="h-64">
+                <ResponsiveContainer width="100%" height="100%">
+                  <ComposedChart data={stats?.charts?.monthlyAnalytics || []}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(148, 163, 184, 0.1)" />
+                    <XAxis dataKey="month" stroke="#94a3b8" fontSize={10} tickLine={false} />
+                    <YAxis stroke="#94a3b8" fontSize={10} tickLine={false} />
+                    <Tooltip contentStyle={{ backgroundColor: '#0f172a', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px' }} itemStyle={{ color: '#fff' }} />
+                    <Legend wrapperStyle={{ fontSize: 10 }} />
+                    <Bar dataKey="registrations" barSize={12} fill="#3b82f6" name="Admissions" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="materials" barSize={12} fill="#0ea5e9" name="Notes Upload" radius={[4, 4, 0, 0]} />
+                    <Line type="monotone" dataKey="submissions" stroke="#10b981" strokeWidth={2} name="Coding Activity" />
+                  </ComposedChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+
+          </div>
+
+          {/* Recent Activity Section */}
+          <div className="space-y-6">
+            <h2 className="text-sm font-black uppercase tracking-widest text-slate-800 dark:text-white flex items-center gap-2">
+              <FiActivity /> Live Institute Activity Roster
+            </h2>
+            
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+               {/* 1. Registrations */}
+               <div className="bg-white dark:bg-slate-950 border border-slate-200 dark:border-white/5 p-5 rounded-3xl shadow-sm space-y-4">
+                 <h4 className="text-xs font-black uppercase tracking-wider text-indigo-650 dark:text-indigo-400 pb-2 border-b border-slate-100 dark:border-white/5">
+                   New Student Registrations
+                 </h4>
+                 <div className="space-y-3.5">
+                   {stats?.recentActivity?.newStudents?.length > 0 ? (
+                     stats.recentActivity.newStudents.map((std) => (
+                       <div key={std._id} className="flex justify-between items-center text-xs">
+                         <div>
+                           <span className="font-bold text-slate-800 dark:text-white block">{std.fullName}</span>
+                           <span className="text-[10px] text-slate-550 dark:text-slate-400 block mt-0.5">{std.email}</span>
+                         </div>
+                         <span className="text-[9px] font-bold text-slate-550 dark:text-slate-400 bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-white/5 px-2.5 py-1 rounded-lg shrink-0">
+                           {new Date(std.createdAt).toLocaleDateString(undefined, {month: 'short', day: 'numeric'})}
+                         </span>
+                       </div>
+                     ))
+                   ) : (
+                     <p className="text-xs text-slate-400 font-semibold py-4 text-center">No recent registrations.</p>
+                   )}
+                 </div>
+               </div>
+
+               {/* 2. Submissions */}
+               <div className="bg-white dark:bg-slate-950 border border-slate-200 dark:border-white/5 p-5 rounded-3xl shadow-sm space-y-4">
+                 <h4 className="text-xs font-black uppercase tracking-wider text-emerald-650 dark:text-emerald-400 pb-2 border-b border-slate-100 dark:border-white/5">
+                   Assignment Submissions
+                 </h4>
+                 <div className="space-y-3.5">
+                   {stats?.recentActivity?.submissions?.length > 0 ? (
+                     stats.recentActivity.submissions.map((sub, idx) => (
+                       <div key={idx} className="flex justify-between items-center text-xs">
+                         <div className="min-w-0 flex-1 pr-2">
+                           <span className="font-bold text-slate-800 dark:text-white block truncate">{sub.assignmentTitle}</span>
+                           <span className="text-[10px] text-slate-550 dark:text-slate-400 block mt-0.5 truncate">By: {sub.studentName}</span>
+                         </div>
+                         <span className={`text-[8px] font-black uppercase tracking-wide border px-2 py-0.5 rounded ${
+                           sub.status === 'Graded' 
+                             ? 'bg-emerald-50 text-emerald-600 border-emerald-100'
+                             : 'bg-amber-50 text-amber-600 border-amber-100'
+                         }`}>
+                           {sub.status}
+                         </span>
+                       </div>
+                     ))
+                   ) : (
+                     <p className="text-xs text-slate-400 font-semibold py-4 text-center">No recent submissions.</p>
+                   )}
+                 </div>
+               </div>
+
+               {/* 3. Teacher Uploads */}
+               <div className="bg-white dark:bg-slate-950 border border-slate-200 dark:border-white/5 p-5 rounded-3xl shadow-sm space-y-4">
+                 <h4 className="text-xs font-black uppercase tracking-wider text-purple-650 dark:text-purple-400 pb-2 border-b border-slate-100 dark:border-white/5">
+                   Teacher Uploads (Notes)
+                 </h4>
+                 <div className="space-y-3.5">
+                   {stats?.recentActivity?.teacherUploads?.length > 0 ? (
+                     stats.recentActivity.teacherUploads.map((mat) => (
+                       <div key={mat._id} className="flex justify-between items-center text-xs">
+                         <div className="min-w-0 flex-1 pr-2">
+                           <span className="font-bold text-slate-800 dark:text-white block truncate">{mat.title}</span>
+                           <span className="text-[10px] text-slate-550 dark:text-slate-400 block mt-0.5 truncate">Uploaded by: {mat.uploadedBy?.fullName || 'Mentor'}</span>
+                         </div>
+                         <span className="text-[9px] font-bold text-slate-550 dark:text-slate-400 bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-white/5 px-2.5 py-1 rounded-lg shrink-0">
+                           {new Date(mat.createdAt).toLocaleDateString(undefined, {month: 'short', day: 'numeric'})}
+                         </span>
+                       </div>
+                     ))
+                   ) : (
+                     <p className="text-xs text-slate-400 font-semibold py-4 text-center">No recent uploads.</p>
+                   )}
+                 </div>
+               </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+               {/* 4. Live Classes */}
+               <div className="bg-white dark:bg-slate-950 border border-slate-200 dark:border-white/5 p-5 rounded-3xl shadow-sm space-y-4">
+                 <h4 className="text-xs font-black uppercase tracking-wider text-amber-600 dark:text-amber-400 pb-2 border-b border-slate-100 dark:border-white/5">
+                   Live Classes Created
+                 </h4>
+                 <div className="space-y-3.5">
+                   {stats?.recentActivity?.liveClasses?.length > 0 ? (
+                     stats.recentActivity.liveClasses.map((cls) => (
+                       <div key={cls._id} className="flex justify-between items-center text-xs">
+                         <div className="min-w-0 flex-1 pr-2">
+                           <span className="font-bold text-slate-800 dark:text-white block truncate">{cls.topic}</span>
+                           <span className="text-[10px] text-slate-550 dark:text-slate-400 block mt-0.5 truncate">
+                             Batch: {cls.batch?.batchName} &bull; Mentor: {cls.teacher?.name}
+                           </span>
+                         </div>
+                         <span className="text-[9px] font-bold text-slate-550 dark:text-slate-400 bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-white/5 px-2.5 py-1 rounded-lg shrink-0">
+                           {new Date(cls.date).toLocaleDateString(undefined, {month: 'short', day: 'numeric'})}
+                         </span>
+                       </div>
+                     ))
+                   ) : (
+                     <p className="text-xs text-slate-400 font-semibold py-4 text-center">No live classes scheduled.</p>
+                   )}
+                 </div>
+               </div>
+
+               {/* 5. Notifications */}
+               <div className="bg-white dark:bg-slate-950 border border-slate-200 dark:border-white/5 p-5 rounded-3xl shadow-sm space-y-4">
+                 <h4 className="text-xs font-black uppercase tracking-wider text-rose-650 dark:text-rose-400 pb-2 border-b border-slate-100 dark:border-white/5">
+                   Recent Notifications & Announcements
+                 </h4>
+                 <div className="space-y-3.5">
+                   {stats?.recentActivity?.notifications?.length > 0 ? (
+                     stats.recentActivity.notifications.map((not) => (
+                       <div key={not._id} className="flex justify-between items-center text-xs">
+                         <div className="min-w-0 flex-1 pr-2">
+                           <span className="font-bold text-slate-800 dark:text-white block truncate">{not.title}</span>
+                           <span className="text-[10px] text-slate-550 dark:text-slate-400 block mt-0.5 truncate">{not.message || not.description}</span>
+                         </div>
+                         <span className="text-[9px] font-bold text-slate-550 dark:text-slate-400 bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-white/5 px-2.5 py-1 rounded-lg shrink-0">
+                           {new Date(not.createdAt).toLocaleDateString(undefined, {month: 'short', day: 'numeric'})}
+                         </span>
+                       </div>
+                     ))
+                   ) : (
+                     <p className="text-xs text-slate-400 font-semibold py-4 text-center">No recent notifications.</p>
+                   )}
+                 </div>
+               </div>
+            </div>
+
+          </div>
+
+        </div>
+      )}
+
       {activeTab === 'users' && (
         <div className="admin-panel bg-white dark:bg-slate-900/40 border border-slate-150 dark:border-white/5 rounded-3xl p-6 shadow-md dark:shadow-xl space-y-6">
-          {/* Controls toolbar */}
-          <div className="flex flex-col md:flex-row justify-between gap-4">
-            <div className="relative flex-1">
-              <FiSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500" />
-              <input
-                type="text"
-                placeholder="Search registered teammates or students by name/email..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-slate-50 dark:bg-slate-950/45 border border-slate-200 dark:border-white/5 rounded-xl pl-11 pr-4 py-2.5 text-xs text-slate-800 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-emerald-650 dark:focus:border-indigo-500 transition-all font-semibold"
-              />
-            </div>
-
-            <div className="flex items-center gap-2">
-              <span className="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap">Privilege Filter:</span>
-              <select
-                value={roleFilter}
-                onChange={(e) => setRoleFilter(e.target.value)}
-                className="bg-slate-50 dark:bg-slate-950/45 border border-slate-200 dark:border-white/5 rounded-xl px-4 py-2.5 text-xs text-slate-700 dark:text-slate-300 font-bold focus:outline-none focus:border-emerald-650 dark:focus:border-indigo-500"
-              >
-                <option value="all">Show All Users</option>
-                <option value="student">Students Only</option>
-                <option value="mentor">Mentors Only</option>
-                <option value="admin">Admins Only</option>
-              </select>
-            </div>
+          
+          {/* User Sub-Tabs */}
+          <div className="flex border-b border-slate-200 dark:border-white/5 pb-0">
+            <button
+              onClick={() => setUserSubTab('students')}
+              className={`pb-3 px-4 text-xs font-black border-b-2 transition-all ${userSubTab === 'students' ? 'border-emerald-600 dark:border-indigo-500 text-emerald-600 dark:text-indigo-400' : 'border-transparent text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white'}`}
+            >
+              🎓 Students ({studentPagination.total})
+            </button>
+            <button
+              onClick={() => setUserSubTab('teachers')}
+              className={`pb-3 px-4 text-xs font-black border-b-2 transition-all ${userSubTab === 'teachers' ? 'border-emerald-600 dark:border-indigo-500 text-emerald-600 dark:text-indigo-400' : 'border-transparent text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white'}`}
+            >
+              👩‍🏫 Teachers ({teacherPagination.total})
+            </button>
+            <button
+              onClick={() => setUserSubTab('subadmins')}
+              className={`pb-3 px-4 text-xs font-black border-b-2 transition-all ${userSubTab === 'subadmins' ? 'border-emerald-600 dark:border-indigo-500 text-emerald-600 dark:text-indigo-400' : 'border-transparent text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white'}`}
+            >
+              🛡️ Admins & Sub-Admins ({subAdminsList.length})
+            </button>
           </div>
 
-          {/* Users Grid/Table */}
-          <div className="overflow-x-auto rounded-2xl border border-slate-200 dark:border-white/5 bg-slate-50/50 dark:bg-slate-950/20">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="border-b border-slate-200 dark:border-white/5 bg-slate-100/70 dark:bg-slate-950/40 text-[10px] font-black text-slate-550 dark:text-slate-400 uppercase tracking-widest">
-                  <th className="p-4">User Identity</th>
-                  <th className="p-4">Assigned Role</th>
-                  <th className="p-4">Selected Specialization</th>
-                  <th className="p-4">XP & Progress</th>
-                  <th className="p-4">Academic details</th>
-                  <th className="p-4 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100 dark:divide-white/5">
-                {filteredUsers.length > 0 ? (
-                  filteredUsers.map((user) => (
-                    <tr key={user._id} className="hover:bg-slate-100/50 dark:hover:bg-slate-900/30 transition-colors">
-                      <td className="p-4">
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-indigo-600/20 border border-emerald-100 dark:border-indigo-500/20 text-emerald-700 dark:text-indigo-400 font-black text-sm flex items-center justify-center">
-                            {user.fullName.charAt(0)}
-                          </div>
-                          <div>
-                            <span className="font-bold text-slate-800 dark:text-white text-xs block">{user.fullName}</span>
-                            <span className="text-[10px] text-slate-500 font-medium block mt-0.5">{user.email}</span>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="p-4">
-                        <select
-                          value={user.role}
-                          onChange={(e) => handleRoleChange(user._id, e.target.value)}
-                          className="bg-white dark:bg-slate-950/60 border border-slate-200 dark:border-white/5 rounded-lg px-2 py-1.5 text-[10px] font-black text-emerald-700 dark:text-indigo-300 uppercase tracking-wider focus:outline-none focus:border-emerald-650 dark:focus:border-indigo-500"
-                        >
-                          <option value="student">Student</option>
-                          <option value="mentor">Mentor</option>
-                          <option value="admin">Administrator</option>
-                        </select>
-                      </td>
-                      <td className="p-4">
-                        {user.selectedDomain ? (
-                          <span className="text-xs font-bold text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800/40 border border-slate-200 dark:border-white/5 px-2.5 py-1 rounded-lg">
-                            🚀 {user.selectedDomain.name}
-                          </span>
-                        ) : (
-                          <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Unselected</span>
-                        )}
-                      </td>
-                      <td className="p-4 space-y-1.5">
-                        <div className="flex justify-between text-[10px] font-black">
-                          <span className="text-amber-600 dark:text-amber-400">{user.xp || 0} XP • Lvl {Math.floor((user.xp || 0) / 1000) + 1}</span>
-                          <span className="text-emerald-700 dark:text-indigo-400">{user.overallProgress || 0}% Complete</span>
-                        </div>
-                        <div className="w-32 h-1.5 bg-slate-200 dark:bg-slate-950/80 rounded-full overflow-hidden border border-slate-300/40 dark:border-white/5">
-                          <div 
-                            className="h-full bg-gradient-to-r from-emerald-500 to-emerald-400 dark:from-indigo-500 dark:to-indigo-400 transition-all duration-300"
-                            style={{ width: `${user.overallProgress || 0}%` }}
-                          ></div>
-                        </div>
-                      </td>
-                      <td className="p-4">
-                        {user.profile?.collegeName ? (
-                          <div>
-                            <span className="text-[10px] text-slate-700 dark:text-slate-400 font-bold block">{user.profile.collegeName.substring(0, 25)}</span>
-                            <span className="text-[9px] text-slate-550 dark:text-slate-550 font-semibold block">{user.profile.branch} • Year {user.profile.year}</span>
-                          </div>
-                        ) : (
-                          <span className="text-[10px] text-slate-500 italic">No academic profile</span>
-                        )}
-                      </td>
-                      <td className="p-4 text-right">
-                        <div className="flex items-center justify-end gap-2">
-                          <button
-                            onClick={() => openPersonalizeDrawer(user)}
-                            className="w-8 h-8 rounded-lg bg-emerald-50 dark:bg-indigo-600/10 text-emerald-700 dark:text-indigo-400 border border-emerald-100 dark:border-indigo-500/10 flex items-center justify-center text-xs hover:bg-emerald-600 dark:hover:bg-indigo-600 hover:text-white transition-all"
-                            title="Personalize & View details"
-                          >
-                            <FiEye />
-                          </button>
-                          <button
-                            onClick={() => handleDeleteUser(user._id)}
-                            className="w-8 h-8 rounded-lg bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/10 dark:border-rose-500/10 flex items-center justify-center text-xs hover:bg-rose-500 hover:text-white transition-all"
-                            title="Delete User"
-                          >
-                            <FiTrash2 />
-                          </button>
-                        </div>
-                      </td>
+          {/* Render Students List Panel */}
+          {userSubTab === 'students' && (
+            <div className="space-y-6">
+              {/* Controls toolbar */}
+              <div className="flex flex-col lg:flex-row justify-between gap-4">
+                <div className="relative flex-1">
+                  <FiSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500" />
+                  <input
+                    type="text"
+                    placeholder="Search students by roll number, name, or email..."
+                    value={studentFilters.search}
+                    onChange={(e) => setStudentFilters({ ...studentFilters, search: e.target.value })}
+                    className="w-full bg-slate-50 dark:bg-slate-950/45 border border-slate-200 dark:border-white/5 rounded-xl pl-11 pr-4 py-2.5 text-xs text-slate-800 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-emerald-600 dark:focus:border-indigo-500 transition-all font-semibold"
+                  />
+                </div>
+
+                <div className="flex flex-wrap items-center gap-3">
+                  <select
+                    value={studentFilters.course}
+                    onChange={(e) => setStudentFilters({ ...studentFilters, course: e.target.value })}
+                    className="bg-slate-50 dark:bg-slate-950/45 border border-slate-200 dark:border-white/5 rounded-xl px-4 py-2.5 text-xs text-slate-700 dark:text-slate-300 font-bold focus:outline-none focus:border-emerald-600 dark:focus:border-indigo-500"
+                  >
+                    <option value="">All Courses</option>
+                    {coursesList.map(c => (
+                      <option key={c._id} value={c._id}>{c.courseName}</option>
+                    ))}
+                  </select>
+
+                  <select
+                    value={studentFilters.batch}
+                    onChange={(e) => setStudentFilters({ ...studentFilters, batch: e.target.value })}
+                    className="bg-slate-50 dark:bg-slate-950/45 border border-slate-200 dark:border-white/5 rounded-xl px-4 py-2.5 text-xs text-slate-700 dark:text-slate-300 font-bold focus:outline-none focus:border-emerald-600 dark:focus:border-indigo-500"
+                  >
+                    <option value="">All Batches</option>
+                    {batchesList.map(b => (
+                      <option key={b._id} value={b._id}>{b.batchName}</option>
+                    ))}
+                  </select>
+
+                  <select
+                    value={studentFilters.status}
+                    onChange={(e) => setStudentFilters({ ...studentFilters, status: e.target.value })}
+                    className="bg-slate-50 dark:bg-slate-950/45 border border-slate-200 dark:border-white/5 rounded-xl px-4 py-2.5 text-xs text-slate-700 dark:text-slate-300 font-bold focus:outline-none focus:border-emerald-600 dark:focus:border-indigo-500"
+                  >
+                    <option value="">All Statuses</option>
+                    <option value="active">Active</option>
+                    <option value="suspended">Suspended</option>
+                    <option value="inactive">Inactive</option>
+                  </select>
+
+                  <button
+                    onClick={() => {
+                      setEditingStudent(null);
+                      setStudentForm({ rollNumber: '', fullName: '', email: '', phone: '', address: '', course: '', batch: '', status: 'active' });
+                      setShowStudentModal(true);
+                    }}
+                    className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 dark:bg-indigo-600 dark:hover:bg-indigo-500 text-white rounded-xl text-xs font-black transition-all flex items-center gap-1.5"
+                  >
+                    <FiPlus /> Add Student
+                  </button>
+
+                  <button
+                    onClick={() => setShowImportModal(true)}
+                    className="px-4 py-2.5 bg-emerald-50 dark:bg-indigo-650/20 text-emerald-700 dark:text-indigo-400 border border-emerald-100 dark:border-indigo-500/10 rounded-xl text-xs font-black transition-all flex items-center gap-1.5"
+                  >
+                    <FiUpload /> Import CSV
+                  </button>
+
+                  <button
+                    onClick={() => handleExportCSV('student')}
+                    className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 border border-slate-200 dark:border-white/5 text-slate-700 dark:text-slate-300 rounded-xl text-xs font-black transition-all flex items-center gap-1.5"
+                  >
+                    <FiDownload /> Export CSV
+                  </button>
+                </div>
+              </div>
+
+              {/* Bulk Actions Selector (Student) */}
+              {selectedStudentIds.length > 0 && (
+                <div className="p-4 bg-emerald-50/50 dark:bg-indigo-950/20 border border-emerald-150 dark:border-indigo-900/30 rounded-2xl flex items-center justify-between animate-fade-in">
+                  <span className="text-xs font-bold text-slate-700 dark:text-indigo-300">
+                    Selected {selectedStudentIds.length} students
+                  </span>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => executeBulkAction('status', 'student')}
+                      className="px-3.5 py-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/5 rounded-lg text-xs font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-50"
+                    >
+                      Update Status
+                    </button>
+                    <button
+                      onClick={() => executeBulkAction('reset-password', 'student')}
+                      className="px-3.5 py-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/5 rounded-lg text-xs font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-50"
+                    >
+                      Reset Passwords
+                    </button>
+                    <button
+                      onClick={() => executeBulkAction('delete', 'student')}
+                      className="px-3.5 py-1.5 bg-rose-600 hover:bg-rose-500 text-white rounded-lg text-xs font-black"
+                    >
+                      Delete Selected
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Table */}
+              <div className="overflow-x-auto rounded-2xl border border-slate-200 dark:border-white/5 bg-slate-50/50 dark:bg-slate-950/20">
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="border-b border-slate-200 dark:border-white/5 bg-slate-100/70 dark:bg-slate-950/40 text-[10px] font-black text-slate-550 dark:text-slate-400 uppercase tracking-widest">
+                      <th className="p-4 w-12 text-center">
+                        <input
+                          type="checkbox"
+                          checked={studentsList.length > 0 && selectedStudentIds.length === studentsList.length}
+                          onChange={(e) => {
+                            if (e.target.checked) setSelectedStudentIds(studentsList.map(s => s._id));
+                            else setSelectedStudentIds([]);
+                          }}
+                        />
+                      </th>
+                      <th className="p-4">Roll Number</th>
+                      <th className="p-4">Student Profile</th>
+                      <th className="p-4">Assigned Course</th>
+                      <th className="p-4">Assigned Batch</th>
+                      <th className="p-4">Account Status</th>
+                      <th className="p-4 text-right">Actions</th>
                     </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan="6" className="p-8 text-center text-slate-500 text-xs font-semibold">
-                      No users match your criteria.
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100 dark:divide-white/5">
+                    {studentsList.length > 0 ? (
+                      studentsList.map((std) => (
+                        <tr key={std._id} className="hover:bg-slate-100/50 dark:hover:bg-slate-900/30 transition-colors">
+                          <td className="p-4 text-center">
+                            <input
+                              type="checkbox"
+                              checked={selectedStudentIds.includes(std._id)}
+                              onChange={(e) => {
+                                if (e.target.checked) setSelectedStudentIds([...selectedStudentIds, std._id]);
+                                else setSelectedStudentIds(selectedStudentIds.filter(id => id !== std._id));
+                              }}
+                            />
+                          </td>
+                          <td className="p-4 font-bold text-xs text-slate-800 dark:text-white uppercase tracking-wider">{std.rollNumber}</td>
+                          <td className="p-4">
+                            <div className="flex items-center gap-3">
+                              <div className="w-9 h-9 rounded-xl bg-emerald-50 dark:bg-indigo-650/20 text-emerald-700 dark:text-indigo-400 font-black text-xs flex items-center justify-center">
+                                {std.fullName.charAt(0)}
+                              </div>
+                              <div>
+                                <span className="font-bold text-slate-800 dark:text-white text-xs block">{std.fullName}</span>
+                                <span className="text-[9px] text-slate-500 font-semibold block mt-0.5">{std.email} &bull; {std.phone || 'No phone'}</span>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="p-4 text-xs font-bold text-slate-700 dark:text-slate-300">
+                            {std.course ? std.course.courseName : <span className="text-[10px] text-slate-400 italic">None</span>}
+                          </td>
+                          <td className="p-4 text-xs font-bold text-slate-700 dark:text-slate-300">
+                            {std.batch ? std.batch.batchName : <span className="text-[10px] text-slate-400 italic">None</span>}
+                          </td>
+                          <td className="p-4">
+                            <span className={`text-[8px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full border ${
+                              std.status === 'active'
+                                ? 'bg-emerald-50 text-emerald-750 border-emerald-100 dark:bg-emerald-950/20 dark:text-emerald-400 dark:border-emerald-900/30'
+                                : std.status === 'suspended'
+                                ? 'bg-amber-50 text-amber-700 border-amber-100 dark:bg-amber-950/20 dark:text-amber-400 dark:border-amber-900/30'
+                                : 'bg-slate-50 text-slate-600 border-slate-100 dark:bg-slate-900 dark:text-slate-400 dark:border-white/5'
+                            }`}>
+                              {std.status}
+                            </span>
+                          </td>
+                          <td className="p-4 text-right">
+                            <div className="flex items-center justify-end gap-2">
+                              <button
+                                onClick={() => handleStudentStatusToggle(std._id, std.status)}
+                                className={`w-8 h-8 rounded-lg flex items-center justify-center text-xs border transition-all ${
+                                  std.status === 'active'
+                                    ? 'bg-amber-50 border-amber-100 text-amber-600 hover:bg-amber-600 hover:text-white'
+                                    : 'bg-emerald-50 border-emerald-100 text-emerald-600 hover:bg-emerald-600 hover:text-white'
+                                }`}
+                                title={std.status === 'active' ? "Suspend Student" : "Activate Student"}
+                              >
+                                <FiX />
+                              </button>
+                              <button
+                                onClick={() => handleStudentPasswordReset(std._id)}
+                                className="w-8 h-8 rounded-lg bg-indigo-50 border border-indigo-150 text-indigo-650 hover:bg-indigo-650 hover:text-white flex items-center justify-center text-xs dark:bg-indigo-900/10 dark:border-indigo-500/20 dark:text-indigo-400 dark:hover:bg-indigo-600"
+                                title="Reset Student Password"
+                              >
+                                <FiLock />
+                              </button>
+                              <button
+                                onClick={() => {
+                                  setEditingStudent(std);
+                                  setStudentForm({
+                                    rollNumber: std.rollNumber,
+                                    fullName: std.fullName,
+                                    email: std.email,
+                                    phone: std.phone || '',
+                                    address: std.address || '',
+                                    course: std.course?._id || std.course || '',
+                                    batch: std.batch?._id || std.batch || '',
+                                    status: std.status
+                                  });
+                                  setShowStudentModal(true);
+                                }}
+                                className="w-8 h-8 rounded-lg bg-emerald-50 dark:bg-indigo-600/10 text-emerald-700 dark:text-indigo-400 border border-emerald-100 dark:border-indigo-500/10 flex items-center justify-center text-xs hover:bg-emerald-600 dark:hover:bg-indigo-600 hover:text-white transition-all"
+                                title="Edit Student Profile"
+                              >
+                                <FiEdit />
+                              </button>
+                              <button
+                                onClick={() => handleDeleteStudent(std._id)}
+                                className="w-8 h-8 rounded-lg bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/10 dark:border-rose-500/10 flex items-center justify-center text-xs hover:bg-rose-500 hover:text-white transition-all"
+                                title="Delete Student"
+                              >
+                                <FiTrash2 />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td colSpan="7" className="p-8 text-center text-slate-500 text-xs font-semibold">
+                          No students found matching current filters.
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Pagination */}
+              {studentPagination.pages > 1 && (
+                <div className="flex items-center justify-between pt-4 border-t border-slate-100 dark:border-white/5">
+                  <span className="text-xs text-slate-500 font-semibold">
+                    Showing Page {studentPagination.page} of {studentPagination.pages} &bull; Total {studentPagination.total} Students
+                  </span>
+                  <div className="flex gap-2">
+                    <button
+                      disabled={studentPagination.page === 1}
+                      onClick={() => fetchStudents(studentPagination.page - 1)}
+                      className="px-3.5 py-1.5 border border-slate-200 dark:border-white/5 text-xs font-bold rounded-xl text-slate-700 dark:text-slate-300 disabled:opacity-40 hover:bg-slate-50 dark:hover:bg-slate-900"
+                    >
+                      Previous
+                    </button>
+                    <button
+                      disabled={studentPagination.page === studentPagination.pages}
+                      onClick={() => fetchStudents(studentPagination.page + 1)}
+                      className="px-3.5 py-1.5 border border-slate-200 dark:border-white/5 text-xs font-bold rounded-xl text-slate-700 dark:text-slate-300 disabled:opacity-40 hover:bg-slate-50 dark:hover:bg-slate-900"
+                    >
+                      Next
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Render Teachers List Panel */}
+          {userSubTab === 'teachers' && (
+            <div className="space-y-6">
+              {/* Controls toolbar */}
+              <div className="flex flex-col lg:flex-row justify-between gap-4">
+                <div className="relative flex-1">
+                  <FiSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500" />
+                  <input
+                    type="text"
+                    placeholder="Search teachers by name or email..."
+                    value={teacherFilters.search}
+                    onChange={(e) => setTeacherFilters({ ...teacherFilters, search: e.target.value })}
+                    className="w-full bg-slate-50 dark:bg-slate-950/45 border border-slate-200 dark:border-white/5 rounded-xl pl-11 pr-4 py-2.5 text-xs text-slate-800 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-emerald-650 dark:focus:border-indigo-500 transition-all font-semibold"
+                  />
+                </div>
+
+                <div className="flex flex-wrap items-center gap-3">
+                  <input
+                    type="text"
+                    placeholder="Filter by Subject..."
+                    value={teacherFilters.subject}
+                    onChange={(e) => setTeacherFilters({ ...teacherFilters, subject: e.target.value })}
+                    className="bg-slate-50 dark:bg-slate-950/45 border border-slate-200 dark:border-white/5 rounded-xl px-4 py-2 text-xs text-slate-800 dark:text-white placeholder-slate-400 focus:outline-none focus:border-emerald-650 dark:focus:border-indigo-500 font-semibold"
+                  />
+
+                  <select
+                    value={teacherFilters.status}
+                    onChange={(e) => setTeacherFilters({ ...teacherFilters, status: e.target.value })}
+                    className="bg-slate-50 dark:bg-slate-950/45 border border-slate-200 dark:border-white/5 rounded-xl px-4 py-2.5 text-xs text-slate-700 dark:text-slate-300 font-bold focus:outline-none focus:border-emerald-650 dark:focus:border-indigo-500"
+                  >
+                    <option value="">All Statuses</option>
+                    <option value="active">Active Only</option>
+                    <option value="inactive">Inactive Only</option>
+                  </select>
+
+                  <button
+                    onClick={() => {
+                      setEditingTeacher(null);
+                      setTeacherForm({ name: '', email: '', phone: '', subject: '', subjects: '', qualification: '', experience: '', salary: 0, status: 'active' });
+                      setShowTeacherModal(true);
+                    }}
+                    className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 dark:bg-indigo-600 dark:hover:bg-indigo-500 text-white rounded-xl text-xs font-black transition-all flex items-center gap-1.5"
+                  >
+                    <FiPlus /> Add Teacher
+                  </button>
+
+                  <button
+                    onClick={() => handleExportCSV('teacher')}
+                    className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 border border-slate-200 dark:border-white/5 text-slate-700 dark:text-slate-300 rounded-xl text-xs font-black transition-all flex items-center gap-1.5"
+                  >
+                    <FiDownload /> Export CSV
+                  </button>
+                </div>
+              </div>
+
+              {/* Bulk Actions Selector (Teacher) */}
+              {selectedTeacherIds.length > 0 && (
+                <div className="p-4 bg-emerald-50/50 dark:bg-indigo-950/20 border border-emerald-150 dark:border-indigo-900/30 rounded-2xl flex items-center justify-between animate-fade-in">
+                  <span className="text-xs font-bold text-slate-700 dark:text-indigo-300">
+                    Selected {selectedTeacherIds.length} teachers
+                  </span>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => executeBulkAction('status', 'teacher')}
+                      className="px-3.5 py-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/5 rounded-lg text-xs font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-50"
+                    >
+                      Update Status
+                    </button>
+                    <button
+                      onClick={() => executeBulkAction('reset-password', 'teacher')}
+                      className="px-3.5 py-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/5 rounded-lg text-xs font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-50"
+                    >
+                      Reset Passwords
+                    </button>
+                    <button
+                      onClick={() => executeBulkAction('delete', 'teacher')}
+                      className="px-3.5 py-1.5 bg-rose-600 hover:bg-rose-500 text-white rounded-lg text-xs font-black"
+                    >
+                      Delete Selected
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Table */}
+              <div className="overflow-x-auto rounded-2xl border border-slate-200 dark:border-white/5 bg-slate-50/50 dark:bg-slate-950/20">
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="border-b border-slate-200 dark:border-white/5 bg-slate-100/70 dark:bg-slate-950/40 text-[10px] font-black text-slate-550 dark:text-slate-400 uppercase tracking-widest">
+                      <th className="p-4 w-12 text-center">
+                        <input
+                          type="checkbox"
+                          checked={teachersList.length > 0 && selectedTeacherIds.length === teachersList.length}
+                          onChange={(e) => {
+                            if (e.target.checked) setSelectedTeacherIds(teachersList.map(t => t._id));
+                            else setSelectedTeacherIds([]);
+                          }}
+                        />
+                      </th>
+                      <th className="p-4">Teacher Profile</th>
+                      <th className="p-4">Subjects List</th>
+                      <th className="p-4">Assigned Batches</th>
+                      <th className="p-4">Joining Details</th>
+                      <th className="p-4">Status</th>
+                      <th className="p-4 text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100 dark:divide-white/5">
+                    {teachersList.length > 0 ? (
+                      teachersList.map((tea) => (
+                        <tr key={tea._id} className="hover:bg-slate-100/50 dark:hover:bg-slate-900/30 transition-colors">
+                          <td className="p-4 text-center">
+                            <input
+                              type="checkbox"
+                              checked={selectedTeacherIds.includes(tea._id)}
+                              onChange={(e) => {
+                                if (e.target.checked) setSelectedTeacherIds([...selectedTeacherIds, tea._id]);
+                                else setSelectedTeacherIds(selectedTeacherIds.filter(id => id !== tea._id));
+                              }}
+                            />
+                          </td>
+                          <td className="p-4">
+                            <div className="flex items-center gap-3">
+                              <div className="w-9 h-9 rounded-xl bg-violet-50 dark:bg-violet-950/30 text-violet-700 dark:text-violet-400 font-black text-xs flex items-center justify-center">
+                                {tea.name.charAt(0)}
+                              </div>
+                              <div>
+                                <span className="font-bold text-slate-800 dark:text-white text-xs block">{tea.name}</span>
+                                <span className="text-[9px] text-slate-500 font-semibold block mt-0.5">{tea.email} &bull; {tea.phone || 'No phone'}</span>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="p-4">
+                            <div className="flex flex-wrap gap-1">
+                              {tea.subjects && tea.subjects.length > 0 ? (
+                                tea.subjects.map((sub, i) => (
+                                  <span key={i} className="text-[9px] font-bold text-slate-700 dark:text-slate-350 bg-slate-150 dark:bg-slate-800 px-2 py-0.5 rounded-lg border border-slate-200/50 dark:border-white/5">
+                                    {sub}
+                                  </span>
+                                ))
+                              ) : tea.subject ? (
+                                <span className="text-[9px] font-bold text-slate-700 dark:text-slate-350 bg-slate-150 dark:bg-slate-800 px-2 py-0.5 rounded-lg border border-slate-200/50 dark:border-white/5">
+                                  {tea.subject}
+                                </span>
+                              ) : (
+                                <span className="text-[9px] text-slate-400 italic">None</span>
+                              )}
+                            </div>
+                          </td>
+                          <td className="p-4">
+                            <div className="flex flex-wrap gap-1">
+                              {tea.batches && tea.batches.length > 0 ? (
+                                tea.batches.map((bat, i) => (
+                                  <span key={i} className="text-[9px] font-bold text-indigo-750 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/20 px-2 py-0.5 rounded-lg border border-indigo-100 dark:border-indigo-900/20">
+                                    {bat.batchName || bat}
+                                  </span>
+                                ))
+                              ) : (
+                                <span className="text-[9px] text-slate-400 italic">Unassigned</span>
+                              )}
+                            </div>
+                          </td>
+                          <td className="p-4">
+                            <span className="text-[10px] text-slate-750 dark:text-slate-350 font-bold block">Qual: {tea.qualification || 'N/A'}</span>
+                            <span className="text-[9px] text-slate-500 font-semibold block mt-0.5">Salary: ₹{tea.salary?.toLocaleString() || 0}</span>
+                          </td>
+                          <td className="p-4">
+                            <span className={`text-[8px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full border ${
+                              tea.status === 'active'
+                                ? 'bg-emerald-50 text-emerald-750 border-emerald-100 dark:bg-emerald-950/20 dark:text-emerald-400 dark:border-emerald-900/30'
+                                : 'bg-slate-50 text-slate-600 border-slate-100 dark:bg-slate-900 dark:text-slate-400 dark:border-white/5'
+                            }`}>
+                              {tea.status || 'active'}
+                            </span>
+                          </td>
+                          <td className="p-4 text-right">
+                            <div className="flex items-center justify-end gap-2">
+                              <button
+                                onClick={() => handleTeacherStatusToggle(tea._id, tea.status || 'active')}
+                                className={`w-8 h-8 rounded-lg flex items-center justify-center text-xs border transition-all ${
+                                  (tea.status || 'active') === 'active'
+                                    ? 'bg-amber-50 border-amber-100 text-amber-600 hover:bg-amber-600 hover:text-white'
+                                    : 'bg-emerald-50 border-emerald-100 text-emerald-600 hover:bg-emerald-600 hover:text-white'
+                                }`}
+                                title={(tea.status || 'active') === 'active' ? "Deactivate Teacher" : "Activate Teacher"}
+                              >
+                                <FiX />
+                              </button>
+                              <button
+                                onClick={() => {
+                                  setAssigningTeacherId(tea._id);
+                                  setAssignTeacherForm({
+                                    subjects: tea.subjects ? tea.subjects.join(', ') : tea.subject || '',
+                                    batches: tea.batches ? tea.batches.map(b => b._id || b) : []
+                                  });
+                                  setShowAssignTeacherModal(true);
+                                }}
+                                className="w-8 h-8 rounded-lg bg-indigo-50 border border-indigo-150 text-indigo-650 hover:bg-indigo-650 hover:text-white flex items-center justify-center text-xs dark:bg-indigo-900/10 dark:border-indigo-500/20 dark:text-indigo-400 dark:hover:bg-indigo-600"
+                                title="Assign Batches & Subjects"
+                              >
+                                <FiLayers />
+                              </button>
+                              <button
+                                onClick={() => {
+                                  setEditingTeacher(tea);
+                                  setTeacherForm({
+                                    name: tea.name,
+                                    email: tea.email,
+                                    phone: tea.phone || '',
+                                    subject: tea.subject || '',
+                                    subjects: tea.subjects ? tea.subjects.join(', ') : tea.subject || '',
+                                    qualification: tea.qualification || '',
+                                    experience: tea.experience || '',
+                                    salary: tea.salary || 0,
+                                    status: tea.status || 'active'
+                                  });
+                                  setShowTeacherModal(true);
+                                }}
+                                className="w-8 h-8 rounded-lg bg-emerald-50 dark:bg-indigo-600/10 text-emerald-700 dark:text-indigo-400 border border-emerald-100 dark:border-indigo-500/10 flex items-center justify-center text-xs hover:bg-emerald-600 dark:hover:bg-indigo-600 hover:text-white transition-all"
+                                title="Edit Teacher Profile"
+                              >
+                                <FiEdit />
+                              </button>
+                              <button
+                                onClick={() => handleDeleteTeacher(tea._id)}
+                                className="w-8 h-8 rounded-lg bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/10 dark:border-rose-500/10 flex items-center justify-center text-xs hover:bg-rose-500 hover:text-white transition-all"
+                                title="Delete Teacher"
+                              >
+                                <FiTrash2 />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td colSpan="7" className="p-8 text-center text-slate-500 text-xs font-semibold">
+                          No teachers found matching current filters.
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Pagination */}
+              {teacherPagination.pages > 1 && (
+                <div className="flex items-center justify-between pt-4 border-t border-slate-100 dark:border-white/5">
+                  <span className="text-xs text-slate-500 font-semibold">
+                    Showing Page {teacherPagination.page} of {teacherPagination.pages} &bull; Total {teacherPagination.total} Teachers
+                  </span>
+                  <div className="flex gap-2">
+                    <button
+                      disabled={teacherPagination.page === 1}
+                      onClick={() => fetchTeachers(teacherPagination.page - 1)}
+                      className="px-3.5 py-1.5 border border-slate-200 dark:border-white/5 text-xs font-bold rounded-xl text-slate-700 dark:text-slate-300 disabled:opacity-40 hover:bg-slate-50 dark:hover:bg-slate-900"
+                    >
+                      Previous
+                    </button>
+                    <button
+                      disabled={teacherPagination.page === teacherPagination.pages}
+                      onClick={() => fetchTeachers(teacherPagination.page + 1)}
+                      className="px-3.5 py-1.5 border border-slate-200 dark:border-white/5 text-xs font-bold rounded-xl text-slate-700 dark:text-slate-300 disabled:opacity-40 hover:bg-slate-50 dark:hover:bg-slate-900"
+                    >
+                      Next
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Render Admins Panel */}
+          {userSubTab === 'subadmins' && (
+            <div className="space-y-6">
+              <div className="flex justify-between items-center">
+                <h3 className="text-xs font-black uppercase text-slate-550 dark:text-slate-400 tracking-wider">Sub-Administrators Control List</h3>
+                <button
+                  onClick={() => {
+                    setEditingSubAdmin(null);
+                    setSubAdminForm({ fullName: '', email: '', password: '', phone: '', permissions: [] });
+                    setShowSubAdminModal(true);
+                  }}
+                  className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 dark:bg-indigo-600 dark:hover:bg-indigo-500 text-white rounded-xl text-xs font-black transition-all flex items-center gap-1.5"
+                >
+                  <FiPlus /> Create Sub-Admin
+                </button>
+              </div>
+
+              {/* Table */}
+              <div className="overflow-x-auto rounded-2xl border border-slate-200 dark:border-white/5 bg-slate-50/50 dark:bg-slate-950/20">
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="border-b border-slate-200 dark:border-white/5 bg-slate-100/70 dark:bg-slate-950/40 text-[10px] font-black text-slate-550 dark:text-slate-400 uppercase tracking-widest">
+                      <th className="p-4">Admin Profile</th>
+                      <th className="p-4">Phone</th>
+                      <th className="p-4">Assigned Permissions</th>
+                      <th className="p-4">Status</th>
+                      <th className="p-4 text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100 dark:divide-white/5">
+                    {subAdminsList.length > 0 ? (
+                      subAdminsList.map((adm) => (
+                        <tr key={adm._id} className="hover:bg-slate-100/50 dark:hover:bg-slate-900/30 transition-colors">
+                          <td className="p-4">
+                            <div className="flex items-center gap-3">
+                              <div className="w-9 h-9 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-350 font-black text-xs flex items-center justify-center border border-slate-250/60 dark:border-white/5">
+                                <FiShield />
+                              </div>
+                              <div>
+                                <span className="font-bold text-slate-800 dark:text-white text-xs block">{adm.fullName}</span>
+                                <span className="text-[9px] text-slate-500 font-semibold block mt-0.5">{adm.email}</span>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="p-4 text-xs font-bold text-slate-750 dark:text-slate-350">{adm.phone || 'No phone'}</td>
+                          <td className="p-4">
+                            <div className="flex flex-wrap gap-1">
+                              {adm.permissions && adm.permissions.length > 0 ? (
+                                adm.permissions.map((perm, i) => (
+                                  <span key={i} className="text-[9px] font-black uppercase text-indigo-700 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/20 px-2.5 py-0.5 rounded-lg border border-indigo-100 dark:border-indigo-900/20">
+                                    {perm.replace('manage_', '')}
+                                  </span>
+                                ))
+                              ) : (
+                                <span className="text-[9px] text-rose-500 font-black uppercase tracking-wider bg-rose-50 dark:bg-rose-950/20 border border-rose-100 dark:border-rose-900/20 px-2 py-0.5 rounded">No privileges</span>
+                              )}
+                            </div>
+                          </td>
+                          <td className="p-4">
+                            <span className={`text-[8px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full border ${
+                              adm.status === 'active'
+                                ? 'bg-emerald-50 text-emerald-750 border-emerald-100 dark:bg-emerald-950/20 dark:text-emerald-400 dark:border-emerald-900/30'
+                                : 'bg-slate-50 text-slate-600 border-slate-100 dark:bg-slate-900 dark:text-slate-400 dark:border-white/5'
+                            }`}>
+                              {adm.status || 'active'}
+                            </span>
+                          </td>
+                          <td className="p-4 text-right">
+                            <div className="flex items-center justify-end gap-2">
+                              <button
+                                onClick={() => {
+                                  setEditingSubAdmin(adm);
+                                  setSubAdminForm({
+                                    fullName: adm.fullName,
+                                    email: adm.email,
+                                    password: '',
+                                    phone: adm.phone || '',
+                                    permissions: adm.permissions || [],
+                                    status: adm.status || 'active'
+                                  });
+                                  setShowSubAdminModal(true);
+                                }}
+                                className="w-8 h-8 rounded-lg bg-emerald-50 dark:bg-indigo-600/10 text-emerald-700 dark:text-indigo-400 border border-emerald-100 dark:border-indigo-500/10 flex items-center justify-center text-xs hover:bg-emerald-600 dark:hover:bg-indigo-600 hover:text-white transition-all"
+                                title="Edit sub-admin details / permissions"
+                              >
+                                <FiEdit />
+                              </button>
+                              <button
+                                onClick={() => handleDeleteSubAdmin(adm._id)}
+                                className="w-8 h-8 rounded-lg bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/10 dark:border-rose-500/10 flex items-center justify-center text-xs hover:bg-rose-500 hover:text-white transition-all"
+                                title="Delete Admin"
+                              >
+                                <FiTrash2 />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td colSpan="5" className="p-8 text-center text-slate-500 text-xs font-semibold">
+                          No sub-administrators currently defined.
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
         </div>
       )}
 
@@ -1384,6 +2892,583 @@ const AdminDashboard = () => {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Add/Edit Student Modal */}
+      {showStudentModal && (
+        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-slate-950 border border-slate-200 dark:border-white/5 rounded-3xl p-6 max-w-md w-full shadow-2xl space-y-6 max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center">
+              <h3 className="font-black text-slate-800 dark:text-white text-base">
+                {editingStudent ? "Edit Student Profile" : "Add Student Profile"}
+              </h3>
+              <button
+                onClick={() => setShowStudentModal(false)}
+                className="text-slate-500 hover:text-slate-850 dark:text-slate-400 dark:hover:text-white transition-colors"
+              >
+                <FiX />
+              </button>
+            </div>
+
+            <form onSubmit={handleStudentSubmit} className="space-y-4">
+              <div>
+                <label className="text-[10px] font-bold text-slate-500 dark:text-slate-400 block mb-1">Roll Number (Unique):</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="CS-2026-001"
+                  value={studentForm.rollNumber}
+                  onChange={(e) => setStudentForm({ ...studentForm, rollNumber: e.target.value })}
+                  className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-white/5 rounded-xl px-4 py-2.5 text-xs text-slate-800 dark:text-white focus:outline-none focus:border-emerald-600 dark:focus:border-indigo-500 transition-colors font-semibold"
+                />
+              </div>
+
+              <div>
+                <label className="text-[10px] font-bold text-slate-500 dark:text-slate-400 block mb-1">Full Name:</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="John Doe"
+                  value={studentForm.fullName}
+                  onChange={(e) => setStudentForm({ ...studentForm, fullName: e.target.value })}
+                  className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-white/5 rounded-xl px-4 py-2.5 text-xs text-slate-800 dark:text-white focus:outline-none focus:border-emerald-600 dark:focus:border-indigo-500 transition-colors font-semibold"
+                />
+              </div>
+
+              <div>
+                <label className="text-[10px] font-bold text-slate-500 dark:text-slate-400 block mb-1">Email Address:</label>
+                <input
+                  type="email"
+                  required
+                  placeholder="student@codewave.com"
+                  value={studentForm.email}
+                  disabled={!!editingStudent}
+                  onChange={(e) => setStudentForm({ ...studentForm, email: e.target.value })}
+                  className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-white/5 rounded-xl px-4 py-2.5 text-xs text-slate-800 dark:text-white focus:outline-none focus:border-emerald-600 dark:focus:border-indigo-500 transition-colors font-semibold disabled:opacity-50"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-[10px] font-bold text-slate-500 dark:text-slate-400 block mb-1">Course Allocation:</label>
+                  <select
+                    value={studentForm.course}
+                    onChange={(e) => setStudentForm({ ...studentForm, course: e.target.value })}
+                    className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-white/5 rounded-xl px-3 py-2.5 text-xs text-slate-800 dark:text-white focus:outline-none focus:border-emerald-600 dark:focus:border-indigo-500 font-semibold"
+                  >
+                    <option value="">No Course</option>
+                    {coursesList.map(c => (
+                      <option key={c._id} value={c._id}>{c.courseName}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="text-[10px] font-bold text-slate-500 dark:text-slate-400 block mb-1">Batch Allocation:</label>
+                  <select
+                    value={studentForm.batch}
+                    onChange={(e) => setStudentForm({ ...studentForm, batch: e.target.value })}
+                    className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-white/5 rounded-xl px-3 py-2.5 text-xs text-slate-800 dark:text-white focus:outline-none focus:border-emerald-600 dark:focus:border-indigo-500 font-semibold"
+                  >
+                    <option value="">No Batch</option>
+                    {batchesList.map(b => (
+                      <option key={b._id} value={b._id}>{b.batchName}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-[10px] font-bold text-slate-500 dark:text-slate-400 block mb-1">Phone Number:</label>
+                  <input
+                    type="text"
+                    placeholder="9998887770"
+                    value={studentForm.phone}
+                    onChange={(e) => setStudentForm({ ...studentForm, phone: e.target.value })}
+                    className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-white/5 rounded-xl px-4 py-2.5 text-xs text-slate-800 dark:text-white focus:outline-none focus:border-emerald-600 dark:focus:border-indigo-500 transition-colors font-semibold"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-[10px] font-bold text-slate-500 dark:text-slate-400 block mb-1">Status:</label>
+                  <select
+                    value={studentForm.status}
+                    onChange={(e) => setStudentForm({ ...studentForm, status: e.target.value })}
+                    className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-white/5 rounded-xl px-3 py-2.5 text-xs text-slate-800 dark:text-white focus:outline-none focus:border-emerald-600 dark:focus:border-indigo-500 font-semibold"
+                  >
+                    <option value="active">Active</option>
+                    <option value="suspended">Suspended</option>
+                    <option value="inactive">Inactive</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label className="text-[10px] font-bold text-slate-500 dark:text-slate-400 block mb-1">Physical Address:</label>
+                <textarea
+                  rows="2"
+                  placeholder="Residential address..."
+                  value={studentForm.address}
+                  onChange={(e) => setStudentForm({ ...studentForm, address: e.target.value })}
+                  className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-white/5 rounded-xl p-4 text-xs text-slate-800 dark:text-white focus:outline-none focus:border-emerald-650 dark:focus:border-indigo-500 transition-colors font-medium"
+                ></textarea>
+              </div>
+
+              <div className="flex gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowStudentModal(false)}
+                  className="w-1/2 py-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-900 dark:hover:bg-slate-800 border border-slate-200 dark:border-white/5 text-slate-605 dark:text-slate-400 rounded-xl text-xs font-black hover:text-slate-900 dark:hover:text-white transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="w-1/2 py-2.5 bg-emerald-600 hover:bg-emerald-500 dark:bg-indigo-600 dark:hover:bg-indigo-500 text-white rounded-xl text-xs font-black transition-colors"
+                >
+                  {editingStudent ? "Save Changes" : "Create Profile"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Add/Edit Teacher Modal */}
+      {showTeacherModal && (
+        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-slate-950 border border-slate-200 dark:border-white/5 rounded-3xl p-6 max-w-md w-full shadow-2xl space-y-6 max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center">
+              <h3 className="font-black text-slate-800 dark:text-white text-base">
+                {editingTeacher ? "Edit Teacher Settings" : "Add Teacher Account"}
+              </h3>
+              <button
+                onClick={() => setShowTeacherModal(false)}
+                className="text-slate-500 hover:text-slate-850 dark:text-slate-400 dark:hover:text-white transition-colors"
+              >
+                <FiX />
+              </button>
+            </div>
+
+            <form onSubmit={handleTeacherSubmit} className="space-y-4">
+              <div>
+                <label className="text-[10px] font-bold text-slate-500 dark:text-slate-400 block mb-1">Teacher Full Name:</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="Jane Smith"
+                  value={teacherForm.name}
+                  onChange={(e) => setTeacherForm({ ...teacherForm, name: e.target.value })}
+                  className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-white/5 rounded-xl px-4 py-2.5 text-xs text-slate-800 dark:text-white focus:outline-none focus:border-emerald-600 dark:focus:border-indigo-500 transition-colors font-semibold"
+                />
+              </div>
+
+              <div>
+                <label className="text-[10px] font-bold text-slate-500 dark:text-slate-400 block mb-1">Email Address:</label>
+                <input
+                  type="email"
+                  required
+                  placeholder="teacher@codewave.com"
+                  value={teacherForm.email}
+                  disabled={!!editingTeacher}
+                  onChange={(e) => setTeacherForm({ ...teacherForm, email: e.target.value })}
+                  className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-white/5 rounded-xl px-4 py-2.5 text-xs text-slate-800 dark:text-white focus:outline-none focus:border-emerald-600 dark:focus:border-indigo-500 transition-colors font-semibold disabled:opacity-50"
+                />
+              </div>
+
+              <div>
+                <label className="text-[10px] font-bold text-slate-500 dark:text-slate-400 block mb-1">Contact Phone:</label>
+                <input
+                  type="text"
+                  placeholder="9876543210"
+                  value={teacherForm.phone}
+                  onChange={(e) => setTeacherForm({ ...teacherForm, phone: e.target.value })}
+                  className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-white/5 rounded-xl px-4 py-2.5 text-xs text-slate-800 dark:text-white focus:outline-none focus:border-emerald-600 dark:focus:border-indigo-500 transition-colors font-semibold"
+                />
+              </div>
+
+              <div>
+                <label className="text-[10px] font-bold text-slate-500 dark:text-slate-400 block mb-1">Subjects (Comma separated):</label>
+                <input
+                  type="text"
+                  placeholder="Data Structures, Java, C++"
+                  value={teacherForm.subjects}
+                  onChange={(e) => setTeacherForm({ ...teacherForm, subjects: e.target.value })}
+                  className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-white/5 rounded-xl px-4 py-2.5 text-xs text-slate-800 dark:text-white focus:outline-none focus:border-emerald-600 dark:focus:border-indigo-500 transition-colors font-semibold"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-[10px] font-bold text-slate-500 dark:text-slate-400 block mb-1">Qualification:</label>
+                  <input
+                    type="text"
+                    placeholder="M.Tech CSE"
+                    value={teacherForm.qualification}
+                    onChange={(e) => setTeacherForm({ ...teacherForm, qualification: e.target.value })}
+                    className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-white/5 rounded-xl px-4 py-2.5 text-xs text-slate-800 dark:text-white focus:outline-none focus:border-emerald-600 dark:focus:border-indigo-500 font-semibold"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-[10px] font-bold text-slate-500 dark:text-slate-400 block mb-1">Experience Years:</label>
+                  <input
+                    type="text"
+                    placeholder="5 Years"
+                    value={teacherForm.experience}
+                    onChange={(e) => setTeacherForm({ ...teacherForm, experience: e.target.value })}
+                    className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-white/5 rounded-xl px-4 py-2.5 text-xs text-slate-800 dark:text-white focus:outline-none focus:border-emerald-600 dark:focus:border-indigo-500 font-semibold"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-[10px] font-bold text-slate-500 dark:text-slate-400 block mb-1">Salary (₹):</label>
+                  <input
+                    type="number"
+                    value={teacherForm.salary}
+                    onChange={(e) => setTeacherForm({ ...teacherForm, salary: Number(e.target.value) })}
+                    className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-white/5 rounded-xl px-4 py-2.5 text-xs text-slate-800 dark:text-white focus:outline-none focus:border-emerald-600 dark:focus:border-indigo-500 font-semibold"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-[10px] font-bold text-slate-500 dark:text-slate-400 block mb-1">Status:</label>
+                  <select
+                    value={teacherForm.status}
+                    onChange={(e) => setTeacherForm({ ...teacherForm, status: e.target.value })}
+                    className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-white/5 rounded-xl px-3 py-2.5 text-xs text-slate-800 dark:text-white focus:outline-none focus:border-emerald-600 dark:focus:border-indigo-500 font-semibold"
+                  >
+                    <option value="active">Active</option>
+                    <option value="inactive">Inactive</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="flex gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowTeacherModal(false)}
+                  className="w-1/2 py-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-900 dark:hover:bg-slate-800 border border-slate-200 dark:border-white/5 text-slate-605 dark:text-slate-400 rounded-xl text-xs font-black hover:text-slate-900 dark:hover:text-white transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="w-1/2 py-2.5 bg-emerald-600 hover:bg-emerald-500 dark:bg-indigo-600 dark:hover:bg-indigo-500 text-white rounded-xl text-xs font-black transition-colors"
+                >
+                  {editingTeacher ? "Save Changes" : "Create Account"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Add/Edit Sub-Admin Modal */}
+      {showSubAdminModal && (
+        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-slate-950 border border-slate-200 dark:border-white/5 rounded-3xl p-6 max-w-md w-full shadow-2xl space-y-6 max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center">
+              <h3 className="font-black text-slate-800 dark:text-white text-base">
+                {editingSubAdmin ? "Edit Sub-Admin Permissions" : "Create Sub-Admin Account"}
+              </h3>
+              <button
+                onClick={() => setShowSubAdminModal(false)}
+                className="text-slate-500 hover:text-slate-850 dark:text-slate-400 dark:hover:text-white transition-colors"
+              >
+                <FiX />
+              </button>
+            </div>
+
+            <form onSubmit={handleSubAdminSubmit} className="space-y-4">
+              <div>
+                <label className="text-[10px] font-bold text-slate-500 dark:text-slate-400 block mb-1">Sub-Admin Name:</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="Assistant Admin"
+                  value={subAdminForm.fullName}
+                  onChange={(e) => setSubAdminForm({ ...subAdminForm, fullName: e.target.value })}
+                  className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-white/5 rounded-xl px-4 py-2.5 text-xs text-slate-800 dark:text-white focus:outline-none focus:border-emerald-600 dark:focus:border-indigo-500 transition-colors font-semibold"
+                />
+              </div>
+
+              <div>
+                <label className="text-[10px] font-bold text-slate-500 dark:text-slate-400 block mb-1">Email Address:</label>
+                <input
+                  type="email"
+                  required
+                  placeholder="subadmin@codewave.com"
+                  value={subAdminForm.email}
+                  disabled={!!editingSubAdmin}
+                  onChange={(e) => setSubAdminForm({ ...subAdminForm, email: e.target.value })}
+                  className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-white/5 rounded-xl px-4 py-2.5 text-xs text-slate-800 dark:text-white focus:outline-none focus:border-emerald-600 dark:focus:border-indigo-500 transition-colors font-semibold disabled:opacity-50"
+                />
+              </div>
+
+              {!editingSubAdmin && (
+                <div>
+                  <label className="text-[10px] font-bold text-slate-500 dark:text-slate-400 block mb-1">Password:</label>
+                  <input
+                    type="password"
+                    required
+                    placeholder="Min 6 characters..."
+                    value={subAdminForm.password}
+                    onChange={(e) => setSubAdminForm({ ...subAdminForm, password: e.target.value })}
+                    className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-white/5 rounded-xl px-4 py-2.5 text-xs text-slate-800 dark:text-white focus:outline-none focus:border-emerald-600 dark:focus:border-indigo-500 transition-colors font-semibold"
+                  />
+                </div>
+              )}
+
+              <div>
+                <label className="text-[10px] font-bold text-slate-500 dark:text-slate-400 block mb-1">Contact Phone:</label>
+                <input
+                  type="text"
+                  placeholder="7776665551"
+                  value={subAdminForm.phone}
+                  onChange={(e) => setSubAdminForm({ ...subAdminForm, phone: e.target.value })}
+                  className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-white/5 rounded-xl px-4 py-2.5 text-xs text-slate-800 dark:text-white focus:outline-none focus:border-emerald-600 dark:focus:border-indigo-500 transition-colors font-semibold"
+                />
+              </div>
+
+              {editingSubAdmin && (
+                <div>
+                  <label className="text-[10px] font-bold text-slate-500 dark:text-slate-400 block mb-1">Status:</label>
+                  <select
+                    value={subAdminForm.status}
+                    onChange={(e) => setSubAdminForm({ ...subAdminForm, status: e.target.value })}
+                    className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-white/5 rounded-xl px-3 py-2.5 text-xs text-slate-800 dark:text-white focus:outline-none focus:border-emerald-600 dark:focus:border-indigo-500 font-semibold"
+                  >
+                    <option value="active">Active</option>
+                    <option value="inactive">Inactive</option>
+                    <option value="suspended">Suspended</option>
+                  </select>
+                </div>
+              )}
+
+              <div className="space-y-2">
+                <label className="text-[10px] font-bold text-slate-500 dark:text-slate-400 block mb-1">Manage Permissions Permissions Matrix:</label>
+                <div className="grid grid-cols-2 gap-2.5 p-3.5 bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-white/5 rounded-2xl">
+                  {[
+                    { label: "Students Portal", key: "manage_students" },
+                    { label: "Teachers Portal", key: "manage_teachers" },
+                    { label: "Domain Specializations", key: "manage_courses" },
+                    { label: "Curriculum DSL Topics", key: "manage_topics" },
+                    { label: "Milestone Assessments", key: "manage_assessments" },
+                    { label: "Sub-Admins Controls", key: "manage_subadmins" }
+                  ].map((perm) => (
+                    <label key={perm.key} className="flex items-center gap-2 text-xs font-bold text-slate-700 dark:text-slate-350 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={subAdminForm.permissions.includes(perm.key)}
+                        onChange={() => togglePermissionSelection(perm.key)}
+                        className="rounded accent-emerald-600 dark:accent-indigo-500"
+                      />
+                      <span>{perm.label}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              <div className="flex gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowSubAdminModal(false)}
+                  className="w-1/2 py-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-900 dark:hover:bg-slate-800 border border-slate-200 dark:border-white/5 text-slate-605 dark:text-slate-400 rounded-xl text-xs font-black hover:text-slate-900 dark:hover:text-white transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="w-1/2 py-2.5 bg-emerald-600 hover:bg-emerald-500 dark:bg-indigo-600 dark:hover:bg-indigo-500 text-white rounded-xl text-xs font-black transition-colors"
+                >
+                  {editingSubAdmin ? "Save Settings" : "Deploy Admin"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Assign Teacher Batches/Subjects Modal */}
+      {showAssignTeacherModal && (
+        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-slate-950 border border-slate-200 dark:border-white/5 rounded-3xl p-6 max-w-md w-full shadow-2xl space-y-6">
+            <div className="flex justify-between items-center">
+              <h3 className="font-black text-slate-800 dark:text-white text-base">Assign Course Batches & Subjects</h3>
+              <button
+                onClick={() => {
+                  setShowAssignTeacherModal(false);
+                  setAssigningTeacherId('');
+                }}
+                className="text-slate-500 hover:text-slate-850 dark:text-slate-400 dark:hover:text-white transition-colors"
+              >
+                <FiX />
+              </button>
+            </div>
+
+            <form onSubmit={handleAssignTeacherSubmit} className="space-y-4">
+              <div>
+                <label className="text-[10px] font-bold text-slate-550 dark:text-slate-400 block mb-1">Subjects (Comma separated):</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="Data Structures, Java, System Design"
+                  value={assignTeacherForm.subjects}
+                  onChange={(e) => setAssignTeacherForm({ ...assignTeacherForm, subjects: e.target.value })}
+                  className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-white/5 rounded-xl px-4 py-2.5 text-xs text-slate-800 dark:text-white focus:outline-none focus:border-emerald-600 dark:focus:border-indigo-500 font-semibold"
+                />
+              </div>
+
+              <div>
+                <label className="text-[10px] font-bold text-slate-550 dark:text-slate-400 block mb-1">Assign Batches (Hold Ctrl to select multiple):</label>
+                <select
+                  multiple
+                  value={assignTeacherForm.batches}
+                  onChange={(e) => {
+                    const values = Array.from(e.target.selectedOptions, option => option.value);
+                    setAssignTeacherForm({ ...assignTeacherForm, batches: values });
+                  }}
+                  className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-white/5 rounded-xl p-3 text-xs text-slate-800 dark:text-white focus:outline-none focus:border-emerald-600 dark:focus:border-indigo-500 font-semibold h-32"
+                >
+                  {batchesList.map(b => (
+                    <option key={b._id} value={b._id}>{b.batchName}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="flex gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowAssignTeacherModal(false);
+                    setAssigningTeacherId('');
+                  }}
+                  className="w-1/2 py-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-900 dark:hover:bg-slate-800 border border-slate-200 dark:border-white/5 text-slate-605 dark:text-slate-400 rounded-xl text-xs font-black hover:text-slate-900 dark:hover:text-white transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="w-1/2 py-2.5 bg-emerald-600 hover:bg-emerald-500 dark:bg-indigo-600 dark:hover:bg-indigo-500 text-white rounded-xl text-xs font-black transition-colors"
+                >
+                  Save Assignments
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* CSV Import Students Modal */}
+      {showImportModal && (
+        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-slate-950 border border-slate-200 dark:border-white/5 rounded-3xl p-6 max-w-2xl w-full shadow-2xl space-y-6 max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center">
+              <div>
+                <h3 className="font-black text-slate-800 dark:text-white text-base">Bulk Import Students (CSV)</h3>
+                <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">
+                  CSV must contain headers: <code className="bg-slate-100 dark:bg-slate-850 px-1 py-0.5 rounded font-black text-slate-700 dark:text-white">rollNumber, fullName, email, phone, address, courseName, batchName</code>
+                </p>
+              </div>
+              <button
+                onClick={() => {
+                  setShowImportModal(false);
+                  setImportedData([]);
+                  setImportErrors([]);
+                }}
+                className="text-slate-500 hover:text-slate-850 dark:text-slate-400 dark:hover:text-white transition-colors"
+              >
+                <FiX />
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <div className="p-6 bg-slate-50 dark:bg-slate-900/60 border-2 border-dashed border-slate-250 dark:border-white/5 rounded-2xl flex flex-col items-center justify-center text-center cursor-pointer relative hover:border-emerald-500 transition-colors">
+                <FiUpload size={28} className="text-slate-400 dark:text-slate-500 mb-2" />
+                <span className="text-xs font-bold text-slate-700 dark:text-slate-350">
+                  Click to select CSV File
+                </span>
+                <input
+                  type="file"
+                  accept=".csv"
+                  onChange={handleCSVFileChange}
+                  className="absolute inset-0 opacity-0 cursor-pointer"
+                />
+              </div>
+
+              {importErrors.length > 0 && (
+                <div className="p-4 bg-rose-50 border border-rose-100 dark:bg-rose-950/20 dark:border-rose-900/30 rounded-2xl space-y-1">
+                  <span className="text-[10px] font-black text-rose-600 uppercase tracking-wider block">CSV Errors & Warnings:</span>
+                  <div className="max-h-24 overflow-y-auto text-[10px] font-bold text-rose-700 dark:text-rose-450 list-disc list-inside space-y-0.5">
+                    {importErrors.map((err, i) => (
+                      <div key={i}>&bull; {err}</div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {importedData.length > 0 && (
+                <div className="space-y-3">
+                  <span className="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest block">
+                    Data Preview Grid ({importedData.length} records parsed)
+                  </span>
+                  <div className="overflow-x-auto rounded-2xl border border-slate-200 dark:border-white/5 max-h-60 bg-slate-50/50 dark:bg-slate-950/20">
+                    <table className="w-full text-left border-collapse">
+                      <thead>
+                        <tr className="border-b border-slate-200 dark:border-white/5 bg-slate-100/70 dark:bg-slate-950/40 text-[9px] font-black text-slate-550 dark:text-slate-400 uppercase tracking-widest">
+                          <th className="p-3">Roll Number</th>
+                          <th className="p-3">Full Name</th>
+                          <th className="p-3">Email</th>
+                          <th className="p-3">Phone</th>
+                          <th className="p-3">Course</th>
+                          <th className="p-3">Batch</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-150 dark:divide-white/5 text-[11px] font-bold text-slate-750 dark:text-slate-300">
+                        {importedData.map((row, idx) => (
+                          <tr key={idx} className={row.fullName && row.email && row.rollNumber ? "" : "bg-rose-500/5"}>
+                            <td className="p-3">{row.rollNumber || <span className="text-rose-500 italic">Missing</span>}</td>
+                            <td className="p-3">{row.fullName || <span className="text-rose-500 italic">Missing</span>}</td>
+                            <td className="p-3">{row.email || <span className="text-rose-500 italic">Missing</span>}</td>
+                            <td className="p-3">{row.phone || <span className="text-slate-400 italic">None</span>}</td>
+                            <td className="p-3 text-slate-500">{row.courseName || <span className="italic">None</span>}</td>
+                            <td className="p-3 text-slate-500">{row.batchName || <span className="italic">None</span>}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="flex gap-3 pt-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setShowImportModal(false);
+                  setImportedData([]);
+                  setImportErrors([]);
+                }}
+                className="w-1/2 py-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-900 dark:hover:bg-slate-800 border border-slate-200 dark:border-white/5 text-slate-605 dark:text-slate-400 rounded-xl text-xs font-black hover:text-slate-900 dark:hover:text-white transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                disabled={importedData.length === 0}
+                onClick={handleImportSubmit}
+                className="w-1/2 py-2.5 bg-emerald-600 hover:bg-emerald-500 dark:bg-indigo-600 dark:hover:bg-indigo-500 text-white rounded-xl text-xs font-black disabled:opacity-55 transition-colors"
+              >
+                Import Selected Rows
+              </button>
+            </div>
           </div>
         </div>
       )}

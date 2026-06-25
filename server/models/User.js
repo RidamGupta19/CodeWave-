@@ -62,6 +62,9 @@ const userSchema = new mongoose.Schema({
   role: { type: String, enum: ['student', 'admin', 'teacher', 'mentor'], default: 'student' },
   avatar: { type: String, default: '' },
   phone: { type: String, default: '' },
+  status: { type: String, enum: ['active', 'inactive', 'suspended'], default: 'active' },
+  permissions: [{ type: String, default: [] }],
+  isSuperAdmin: { type: Boolean, default: false },
   
   // Student profile fields
   profile: {

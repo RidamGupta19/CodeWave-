@@ -56,6 +56,10 @@ exports.login = async (req, res) => {
       return res.status(401).json({ success: false, message: 'Invalid credentials' });
     }
 
+    if (user.status && user.status !== 'active') {
+      return res.status(403).json({ success: false, message: `Your account is ${user.status}. Please contact the administrator.` });
+    }
+
     // Force admin approval for specific email
     if (user.email === 'omshivhare666@gmail.com' && user.role !== 'admin') {
       user.role = 'admin';

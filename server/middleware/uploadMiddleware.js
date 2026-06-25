@@ -64,4 +64,84 @@ const uploadSingle = (fieldName) => {
   };
 };
 
-module.exports = { uploadSingle };
+// Video Upload Filter and Limit (100MB)
+const videoFileFilter = (req, file, cb) => {
+  const allowedExtensions = ['.mp4', '.mov', '.webm', '.mkv', '.ogg', '.avi'];
+  const ext = path.extname(file.originalname).toLowerCase();
+  const mimeType = file.mimetype.toLowerCase();
+
+  if (allowedExtensions.includes(ext) && mimeType.startsWith('video/')) {
+    cb(null, true);
+  } else {
+    cb(new Error(`Invalid file type. Allowed video extensions: ${allowedExtensions.join(', ')}`), false);
+  }
+};
+
+const videoUpload = multer({
+  storage: storage,
+  fileFilter: videoFileFilter,
+  limits: {
+    fileSize: 100 * 1024 * 1024 // 100MB
+  }
+});
+
+const uploadVideoSingle = (fieldName) => {
+  const uploadMiddleware = videoUpload.single(fieldName);
+  
+  return (req, res, next) => {
+    uploadMiddleware(req, res, (err) => {
+      if (err) {
+        let message = err.message;
+        if (err instanceof multer.MulterError) {
+          if (err.code === 'LIMIT_FILE_SIZE') {
+            message = 'Video file size is too large. Max limit is 100MB.';
+          }
+        }
+        return res.status(400).json({ success: false, message });
+      }
+      next();
+    });
+  };
+};
+
+// Thumbnail Upload Filter and Limit (5MB)
+const thumbnailFileFilter = (req, file, cb) => {
+  const allowedExtensions = ['.png', '.jpg', '.jpeg', '.webp', '.gif'];
+  const ext = path.extname(file.originalname).toLowerCase();
+  const mimeType = file.mimetype.toLowerCase();
+
+  if (allowedExtensions.includes(ext) && mimeType.startsWith('image/')) {
+    cb(null, true);
+  } else {
+    cb(new Error(`Invalid file type. Allowed image extensions: ${allowedExtensions.join(', ')}`), false);
+  }
+};
+
+const thumbnailUpload = multer({
+  storage: storage,
+  fileFilter: thumbnailFileFilter,
+  limits: {
+    fileSize: 5 * 1024 * 1024 // 5MB
+  }
+});
+
+const uploadThumbnailSingle = (fieldName) => {
+  const uploadMiddleware = thumbnailUpload.single(fieldName);
+  
+  return (req, res, next) => {
+    uploadMiddleware(req, res, (err) => {
+      if (err) {
+        let message = err.message;
+        if (err instanceof multer.MulterError) {
+          if (err.code === 'LIMIT_FILE_SIZE') {
+            message = 'Thumbnail image size is too large. Max limit is 5MB.';
+          }
+        }
+        return res.status(400).json({ success: false, message });
+      }
+      next();
+    });
+  };
+};
+
+module.exports = { uploadSingle, uploadVideoSingle, uploadThumbnailSingle };

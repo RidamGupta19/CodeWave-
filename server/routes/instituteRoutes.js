@@ -3,7 +3,7 @@ const router = express.Router();
 const c = require('../controllers/instituteController');
 const vc = require('../controllers/videoController');
 const { protect, authorize } = require('../middleware/auth');
-const { uploadSingle } = require('../middleware/uploadMiddleware');
+const { uploadSingle, uploadVideoSingle, uploadThumbnailSingle } = require('../middleware/uploadMiddleware');
 
 // Unified endpoints protected by JWT authentication
 router.use(protect);
@@ -74,6 +74,9 @@ router.put('/assignments/:id/grade', authorize('admin', 'teacher'), c.gradeAssig
 // 12. Video Lectures
 router.get('/videos', vc.getVideos);
 router.post('/videos', authorize('admin', 'teacher'), vc.createVideo);
+router.put('/videos/:id', authorize('admin', 'teacher'), vc.updateVideo);
+router.post('/videos/upload-video', authorize('admin', 'teacher'), uploadVideoSingle('video'), vc.uploadVideoFile);
+router.post('/videos/upload-thumbnail', authorize('admin', 'teacher'), uploadThumbnailSingle('thumbnail'), vc.uploadThumbnailFile);
 router.delete('/videos/:id', authorize('admin', 'teacher'), vc.deleteVideo);
 router.get('/videos/progress', vc.getVideoProgress);
 router.post('/videos/:id/progress', vc.saveVideoProgress);
