@@ -11,6 +11,8 @@ const Phase = require('../models/Phase');
 const Topic = require('../models/Topic');
 const Assessment = require('../models/Assessment');
 const Badge = require('../models/Badge');
+const Course = require('../models/Course');
+const Batch = require('../models/Batch');
 
 const domainData = {
   name: 'DSA',
@@ -61,6 +63,10 @@ async function seedDSA() {
     }
     console.log('📁 DSA Domain ready');
 
+    // Find course and batch to link to assessments
+    const courseObj = await Course.findOne({ courseName: 'Full Stack Development' });
+    const batchObj = await Batch.findOne({ batchName: 'Alpha Web Dev' });
+
     // Clear existing DSA phases, topics, badges, assessments
     await Phase.deleteMany({ domainId: domain._id });
     await Topic.deleteMany({ domainId: domain._id });
@@ -110,6 +116,9 @@ async function seedDSA() {
         difficultyRating: phase.phaseNumber <= 3 ? 'beginner' : phase.phaseNumber <= 7 ? 'intermediate' : 'advanced',
         maxAttempts: 3,
         unlocksNextPhase: true,
+        course: courseObj?._id,
+        batch: batchObj?._id,
+        isPublished: true,
         order: phase.phaseNumber
       });
 

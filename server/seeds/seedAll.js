@@ -28,6 +28,7 @@ const Schedule = require('../models/Schedule');
 const Assignment = require('../models/Assignment');
 const Video = require('../models/Video');
 const VideoProgress = require('../models/VideoProgress');
+const connectDB = require('../config/db');
 
 const domainData = require('./domainData');
 const phaseData = require('./phaseData');
@@ -49,9 +50,8 @@ const cloudCredits = [
 async function seedDB() {
   try {
     if (mongoose.connection.readyState === 0) {
-      const uri = process.env.MONGODB_URI || 'mongodb://localhost:27017/codewave';
-      await mongoose.connect(uri);
-      console.log('✅ Connected to MongoDB');
+      console.log('Connecting to database via connectDB helper...');
+      await connectDB();
     } else {
       console.log('✅ Already connected to MongoDB');
     }
@@ -401,6 +401,9 @@ async function seedDB() {
           difficultyRating: phase.phaseNumber <= 3 ? 'beginner' : phase.phaseNumber <= 7 ? 'intermediate' : 'advanced',
           maxAttempts: 3,
           unlocksNextPhase: true,
+          course: course._id,
+          batch: batch._id,
+          isPublished: true,
           order: phase.phaseNumber
         });
 

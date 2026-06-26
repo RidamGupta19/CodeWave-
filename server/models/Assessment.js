@@ -15,6 +15,10 @@ const assessmentSchema = new mongoose.Schema({
   unlocksNextPhase: { type: Boolean, default: true },
   adminEditable: { type: Boolean, default: true },
   isActive: { type: Boolean, default: true },
+  course: { type: mongoose.Schema.Types.ObjectId, ref: 'Course' },
+  batch: { type: mongoose.Schema.Types.ObjectId, ref: 'Batch' },
+  isPublished: { type: Boolean, default: true },
+  expiresAt: { type: Date },
   order: { type: Number, default: 0 }
 }, { timestamps: true });
 

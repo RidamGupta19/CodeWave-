@@ -2,6 +2,7 @@ const Assessment = require('../models/Assessment');
 const User = require('../models/User');
 const Topic = require('../models/Topic');
 const Domain = require('../models/Domain');
+const Student = require('../models/Student');
 
 const getProgressKey = (slug) => {
   if (!slug) return 'dsa';
@@ -19,7 +20,24 @@ exports.getAssessmentsByDomain = async (req, res) => {
     const domain = await Domain.findById(req.params.domainId);
     if (!domain) return res.status(404).json({ success: false, message: 'Domain not found' });
 
-    const assessments = await Assessment.find({ domainId: req.params.domainId, isActive: true })
+    let query = { domainId: req.params.domainId, isActive: true };
+
+    if (req.user.role === 'student') {
+      const student = await Student.findOne({ userId: req.user._id });
+      if (!student) {
+        return res.status(403).json({ success: false, message: 'Student profile not found. Unauthorized access.' });
+      }
+      query.isPublished = true;
+      query.course = student.course;
+      query.batch = student.batch;
+      query.$or = [
+        { expiresAt: { $exists: false } },
+        { expiresAt: null },
+        { expiresAt: { $gte: new Date() } }
+      ];
+    }
+
+    const assessments = await Assessment.find(query)
       .populate('phaseId')
       .sort('order');
 
@@ -101,6 +119,47 @@ exports.deleteAssessment = async (req, res) => {
   try {
     await Assessment.findByIdAndDelete(req.params.id);
     res.json({ success: true, message: 'Assessment deleted' });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// @desc    Launch assessment (validation and secure redirect link)
+// @route   GET /api/assessments/:id/launch
+exports.launchAssessment = async (req, res) => {
+  try {
+    const assessment = await Assessment.findById(req.params.id);
+    if (!assessment) {
+      return res.status(404).json({ success: false, message: 'Assessment not found.' });
+    }
+
+    if (!assessment.isActive || !assessment.isPublished) {
+      return res.status(400).json({ success: false, message: 'Assessment is not active or published.' });
+    }
+
+    const student = await Student.findOne({ userId: req.user._id });
+    if (!student) {
+      return res.status(403).json({ success: false, message: 'Unauthorized access. Student profile not found.' });
+    }
+
+    if (!assessment.course || assessment.course.toString() !== student.course?.toString()) {
+      return res.status(400).json({ success: false, message: 'Assessment not assigned: This assessment belongs to a different course.' });
+    }
+
+    if (!assessment.batch || assessment.batch.toString() !== student.batch?.toString()) {
+      return res.status(400).json({ success: false, message: 'Assessment not assigned: This assessment belongs to a different batch.' });
+    }
+
+    if (assessment.expiresAt && new Date() > assessment.expiresAt) {
+      return res.status(400).json({ success: false, message: 'Assessment is expired and no longer accepting launches.' });
+    }
+
+    res.json({
+      success: true,
+      data: {
+        assessmentLink: assessment.assessmentLink
+      }
+    });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }

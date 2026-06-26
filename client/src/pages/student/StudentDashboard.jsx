@@ -13,6 +13,7 @@ export default function StudentDashboard() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [launchingId, setLaunchingId] = useState(null);
 
   useEffect(() => {
     fetchDashboardData();
@@ -30,6 +31,25 @@ export default function StudentDashboard() {
       toast.error('Dashboard load failed');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleLaunch = async (assessmentId) => {
+    if (launchingId) return;
+    try {
+      setLaunchingId(assessmentId);
+      const res = await api.get(`/assessments/${assessmentId}/launch`);
+      if (res.data?.success && res.data?.data?.assessmentLink) {
+        window.open(res.data.data.assessmentLink, '_blank', 'noopener,noreferrer');
+      } else {
+        toast.error('Failed to get launch link.');
+      }
+    } catch (err) {
+      console.error('Launch error:', err);
+      const errMsg = err.response?.data?.message || 'Failed to launch assessment. Please try again.';
+      toast.error(errMsg);
+    } finally {
+      setLaunchingId(null);
     }
   };
 
@@ -300,9 +320,17 @@ export default function StudentDashboard() {
                     <h4 className="text-xs font-extrabold text-[var(--text-main)] truncate">{a.title}</h4>
                     <p className="text-[9px] text-orange-500 font-bold uppercase tracking-wide">{a.difficultyRating}</p>
                   </div>
-                  <a href={a.assessmentLink} target="_blank" rel="noreferrer" className="p-1.5 bg-white border border-[var(--border)] text-[var(--primary)] hover:bg-[var(--primary-light)] rounded-lg transition-colors shrink-0">
-                    <FiExternalLink size={12} />
-                  </a>
+                  <button
+                    onClick={() => handleLaunch(a._id)}
+                    disabled={launchingId !== null}
+                    className="p-1.5 bg-white border border-[var(--border)] text-[var(--primary)] hover:bg-[var(--primary-light)] rounded-lg transition-colors shrink-0 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+                  >
+                    {launchingId === a._id ? (
+                      <span className="animate-spin rounded-full h-3 w-3 border-2 border-[var(--primary)] border-t-transparent"></span>
+                    ) : (
+                      <FiExternalLink size={12} />
+                    )}
+                  </button>
                 </div>
               ))
             )}
