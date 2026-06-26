@@ -23,6 +23,7 @@ export default function Sidebar() {
 
   const studentLinks = [
     { name: 'Dashboard', path: '/student/dashboard', icon: <MdOutlineDashboard /> },
+    { name: 'Roadmap', path: '/student/roadmap', icon: <FiMap /> },
     { name: 'My Courses', path: '/student/courses', icon: <FiBookOpen /> },
     { name: 'Live Classes', path: '/student/live-classes', icon: <FiVideo /> },
     { name: 'Video Lectures', path: '/student/video-lectures', icon: <FiPlay /> },
@@ -69,6 +70,7 @@ export default function Sidebar() {
     { name: 'Assignments', path: '/institute/assignments', icon: <FiFileText />, roles: ['admin', 'teacher', 'student'] },
     { name: 'Fees', path: '/institute/fees', icon: <FiDollarSign />, roles: ['admin', 'student'] },
     { name: 'Students', path: '/institute/students', icon: <FiUsers />, roles: ['admin', 'teacher'] },
+    { name: 'Roadmap Monitor', path: '/institute/roadmap-progress', icon: <FiMap />, roles: ['admin', 'teacher'] },
     { name: 'Teachers', path: '/institute/teachers', icon: <MdOutlineManageAccounts />, roles: ['admin'] },
     { name: 'Courses', path: '/institute/courses', icon: <FiBookOpen />, roles: ['admin'] },
     { name: 'Batches', path: '/institute/batches', icon: <FiUsers />, roles: ['admin', 'teacher'] },

@@ -28,6 +28,8 @@ const Schedule = require('../models/Schedule');
 const Assignment = require('../models/Assignment');
 const Video = require('../models/Video');
 const VideoProgress = require('../models/VideoProgress');
+const Subject = require('../models/Subject');
+const RoadmapProgress = require('../models/RoadmapProgress');
 const connectDB = require('../config/db');
 
 const domainData = require('./domainData');
@@ -79,7 +81,9 @@ async function seedDB() {
       Schedule.deleteMany({}),
       Assignment.deleteMany({}),
       Video.deleteMany({}),
-      VideoProgress.deleteMany({})
+      VideoProgress.deleteMany({}),
+      Subject.deleteMany({}),
+      RoadmapProgress.deleteMany({})
     ]);
     console.log('🗑️  Cleared existing data (including videos)');
 
@@ -128,6 +132,19 @@ async function seedDB() {
       assignedTeacher: teacher._id
     });
     console.log('📚 Course created');
+
+    // Seed subjects
+    const sub1 = await Subject.create({ subjectName: 'HTML', subjectCode: 'HTML5', description: 'HTML5 structure, semantic tags, forms' });
+    const sub2 = await Subject.create({ subjectName: 'CSS', subjectCode: 'CSS3', description: 'Styling, Flexbox, Grid, responsive design' });
+    const sub3 = await Subject.create({ subjectName: 'JavaScript', subjectCode: 'JS6', description: 'ES6+, DOM, async/await, fetch API' });
+    const sub4 = await Subject.create({ subjectName: 'Git & GitHub', subjectCode: 'GIT', description: 'Version control, branches, PRs' });
+    const sub5 = await Subject.create({ subjectName: 'React.js', subjectCode: 'REACT', description: 'Components, hooks, state management' });
+    const sub6 = await Subject.create({ subjectName: 'Backend', subjectCode: 'NODE', description: 'Server-side development with Node.js, Express, databases, and authentication' });
+    console.log('📚 Course Subjects seeded');
+
+    // Link subjects to course
+    course.subjects = [sub1._id, sub2._id, sub3._id, sub4._id, sub5._id, sub6._id];
+    await course.save();
 
     // Seed batch
     const batch = await Batch.create({
@@ -298,6 +315,7 @@ async function seedDB() {
       course: course._id,
       batch: batch._id,
       instructor: 'John Doe',
+      subject: 'Backend',
       isActive: true
     });
 
@@ -311,6 +329,7 @@ async function seedDB() {
       course: course._id,
       batch: batch._id,
       instructor: 'John Doe',
+      subject: 'Backend',
       isActive: true
     });
 
@@ -324,6 +343,63 @@ async function seedDB() {
       course: course._id,
       batch: batch._id,
       instructor: 'John Doe',
+      subject: 'HTML',
+      isActive: true
+    });
+
+    const v5 = await Video.create({
+      title: 'CSS Styling Essentials',
+      description: 'Mastering modern styling layout techniques including CSS variables, Flexbox and Grid.',
+      videoType: 'uploaded',
+      url: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
+      thumbnailUrl: 'https://images.unsplash.com/photo-1507238691740-187a5b1d37b8?q=80&w=300&auto=format&fit=crop',
+      duration: 350,
+      course: course._id,
+      batch: batch._id,
+      instructor: 'John Doe',
+      subject: 'CSS',
+      isActive: true
+    });
+
+    const v6 = await Video.create({
+      title: 'JavaScript ES6+ and DOM Control',
+      description: 'Understanding Modern JS syntax, callbacks, promises, async await, and manipulating the browser DOM tree.',
+      videoType: 'uploaded',
+      url: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
+      thumbnailUrl: 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?q=80&w=300&auto=format&fit=crop',
+      duration: 480,
+      course: course._id,
+      batch: batch._id,
+      instructor: 'John Doe',
+      subject: 'JavaScript',
+      isActive: true
+    });
+
+    const v7 = await Video.create({
+      title: 'Git Version Control & Github Workflows',
+      description: 'Setting up Git repositories, branch branching protocols, pull requests and resolving merge conflicts.',
+      videoType: 'uploaded',
+      url: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
+      thumbnailUrl: 'https://images.unsplash.com/photo-1618401471353-b98aedd07871?q=80&w=300&auto=format&fit=crop',
+      duration: 300,
+      course: course._id,
+      batch: batch._id,
+      instructor: 'John Doe',
+      subject: 'Git & GitHub',
+      isActive: true
+    });
+
+    const v8 = await Video.create({
+      title: 'React Components, Props & Hooks',
+      description: 'Getting started with React development, understanding component lifecycles, states, and useState/useEffect hooks.',
+      videoType: 'uploaded',
+      url: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
+      thumbnailUrl: 'https://images.unsplash.com/photo-1633356122544-f134324a6cee?q=80&w=300&auto=format&fit=crop',
+      duration: 620,
+      course: course._id,
+      batch: batch._id,
+      instructor: 'John Doe',
+      subject: 'React.js',
       isActive: true
     });
 
@@ -403,6 +479,7 @@ async function seedDB() {
           unlocksNextPhase: true,
           course: course._id,
           batch: batch._id,
+          subject: phase.name,
           isPublished: true,
           order: phase.phaseNumber
         });

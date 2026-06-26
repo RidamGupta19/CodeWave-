@@ -49,6 +49,7 @@ import StudentDashboard from './pages/student/StudentDashboard';
 import StudentCourses from './pages/student/StudentCourses';
 import StudentLiveClasses from './pages/student/StudentLiveClasses';
 import StudentVideoLectures from './pages/student/StudentVideoLectures';
+import StudentRoadmap from './pages/student/StudentRoadmap';
 import StudentNotes from './pages/student/StudentNotes';
 import StudentAssignments from './pages/student/StudentAssignments';
 import StudentAssessments from './pages/student/StudentAssessments';
@@ -56,6 +57,9 @@ import StudentAttendance from './pages/student/StudentAttendance';
 import StudentResults from './pages/student/StudentResults';
 import StudentNotifications from './pages/student/StudentNotifications';
 import StudentProfile from './pages/student/StudentProfile';
+
+// Admin / Teacher Roadmap Management
+import AdminRoadmapProgress from './pages/admin/AdminRoadmapProgress';
 
 // Teacher Pages
 import TeacherDashboard from './pages/teacher/TeacherDashboard';
@@ -106,6 +110,7 @@ function App() {
               <Route path="/student/courses" element={<StudentCourses />} />
               <Route path="/student/live-classes" element={<StudentLiveClasses />} />
               <Route path="/student/video-lectures" element={<StudentVideoLectures />} />
+              <Route path="/student/roadmap" element={<StudentRoadmap />} />
               <Route path="/student/notes" element={<StudentNotes />} />
               <Route path="/student/assignments" element={<StudentAssignments />} />
               <Route path="/student/assessments" element={<StudentAssessments />} />
@@ -147,6 +152,7 @@ function App() {
               <Route path="/institute/materials" element={<StudyMaterials />} />
               <Route path="/institute/schedule" element={<ClassScheduler />} />
               <Route path="/institute/assignments" element={<AssignmentManagement />} />
+              <Route path="/institute/roadmap-progress" element={<AdminRoadmapProgress />} />
             </Route>
           </Route>
 

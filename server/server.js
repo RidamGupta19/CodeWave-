@@ -79,6 +79,7 @@ app.use('/api/problems', require('./routes/problemRoutes'));
 app.use('/api/code', require('./routes/codeRoutes'));
 app.use('/api/submissions', require('./routes/submissionRoutes'));
 app.use('/api/institute', require('./routes/instituteRoutes'));
+app.use('/api/roadmap-progress', require('./routes/roadmapProgress'));
 
 // Health check
 app.get('/api/health', (req, res) => {

@@ -45,6 +45,15 @@ exports.getAssessmentsByDomain = async (req, res) => {
     const key = getProgressKey(domain.slug);
     const completedTopicIds = user?.domainsProgress?.[key]?.completedTopics?.map(t => t.topicId.toString()) || [];
 
+    let roadmapProgress = null;
+    if (req.user.role === 'student') {
+      const student = await Student.findOne({ userId: req.user._id });
+      if (student && student.course) {
+        const { recalculateProgress } = require('./roadmapProgressController');
+        roadmapProgress = await recalculateProgress(student._id, student.course);
+      }
+    }
+
     const assessmentsWithStatus = [];
     for (const ass of assessments) {
       let isLevelCompleted = false;
@@ -66,11 +75,34 @@ exports.getAssessmentsByDomain = async (req, res) => {
         isLevelCompleted = true;
       }
 
+      let isUnlocked = true;
+      let isPassed = false;
+      let bestScore = 0;
+      let attemptsCount = 0;
+
+      if (roadmapProgress) {
+        const status = roadmapProgress.assessmentStatus.find(
+          s => s.assessmentId.toString() === ass._id.toString()
+        );
+        if (status) {
+          isUnlocked = status.isUnlocked;
+          isPassed = status.isPassed;
+          bestScore = status.bestScore;
+          attemptsCount = status.attemptsCount;
+        } else {
+          isUnlocked = false;
+        }
+      }
+
       assessmentsWithStatus.push({
         ...ass.toObject(),
         isLevelCompleted,
         totalTopics,
-        completedTopicsCount
+        completedTopicsCount,
+        isUnlocked,
+        isPassed,
+        bestScore,
+        attemptsCount
       });
     }
 
@@ -152,6 +184,20 @@ exports.launchAssessment = async (req, res) => {
 
     if (assessment.expiresAt && new Date() > assessment.expiresAt) {
       return res.status(400).json({ success: false, message: 'Assessment is expired and no longer accepting launches.' });
+    }
+
+    // Check roadmap progress locks
+    const { recalculateProgress } = require('./roadmapProgressController');
+    const roadmapProgress = await recalculateProgress(student._id, student.course);
+    const status = roadmapProgress.assessmentStatus.find(
+      s => s.assessmentId.toString() === assessment._id.toString()
+    );
+
+    if (!status || !status.isUnlocked) {
+      return res.status(400).json({
+        success: false,
+        message: 'This assessment is locked. You must complete 100% of the subject lectures first.'
+      });
     }
 
     res.json({

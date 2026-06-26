@@ -17,6 +17,7 @@ const assessmentSchema = new mongoose.Schema({
   isActive: { type: Boolean, default: true },
   course: { type: mongoose.Schema.Types.ObjectId, ref: 'Course' },
   batch: { type: mongoose.Schema.Types.ObjectId, ref: 'Batch' },
+  subject: { type: String, default: '' },
   isPublished: { type: Boolean, default: true },
   expiresAt: { type: Date },
   order: { type: Number, default: 0 }

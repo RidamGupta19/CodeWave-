@@ -3,7 +3,7 @@ import api from '../../api/axios';
 import { 
   FiPlayCircle, FiSearch, FiMonitor, FiUser, FiCalendar, 
   FiFilm, FiCheckCircle, FiClock, FiSettings, FiVolume2,
-  FiMaximize, FiRotateCcw, FiPercent, FiChevronRight, FiPlay
+  FiMaximize, FiRotateCcw, FiPercent, FiChevronRight, FiPlay, FiLock
 } from 'react-icons/fi';
 import toast from 'react-hot-toast';
 
@@ -16,6 +16,7 @@ export default function StudentVideoLectures() {
   const [selectedVideo, setSelectedVideo] = useState(null);
   const [playbackSpeed, setPlaybackSpeed] = useState(1);
   const [courses, setCourses] = useState([]);
+  const [roadmapProgress, setRoadmapProgress] = useState(null);
 
   // Refs for tracking
   const html5PlayerRef = useRef(null);
@@ -123,6 +124,16 @@ export default function StudentVideoLectures() {
   const loadLibraryData = async () => {
     try {
       setLoading(true);
+
+      let roadmapProgressData = null;
+      try {
+        const roadmapRes = await api.get('/roadmap-progress/my');
+        roadmapProgressData = roadmapRes.data.data;
+        setRoadmapProgress(roadmapProgressData);
+      } catch (err) {
+        console.error('Error fetching roadmap progress:', err);
+      }
+
       const [videoRes, progressRes] = await Promise.all([
         api.get('/institute/videos'),
         api.get('/institute/videos/progress')
@@ -167,9 +178,17 @@ export default function StudentVideoLectures() {
 
       setVideos(enriched);
       
-      // Auto-select first video if none is active
+      // Auto-select first unlocked video if none is active
       if (enriched.length > 0 && !selectedVideo) {
-        setSelectedVideo(enriched[0]);
+        const firstUnlocked = enriched.find(v => {
+          if (!roadmapProgressData) return true;
+          if (!v.subject) return true;
+          const sp = roadmapProgressData.subjectProgress.find(
+            p => p.subjectName.toLowerCase() === v.subject.toLowerCase()
+          );
+          return sp ? sp.isUnlocked : true;
+        });
+        setSelectedVideo(firstUnlocked || enriched[0]);
       } else if (selectedVideo) {
         // Sync active selected video with new progress details
         const currentActive = enriched.find(ev => ev._id === selectedVideo._id);
@@ -553,6 +572,45 @@ export default function StudentVideoLectures() {
                 </div>
 
               </div>
+
+              {/* Active Subject Progress Card */}
+              {selectedVideo?.subject && roadmapProgress && (
+                (() => {
+                  const sp = roadmapProgress.subjectProgress.find(
+                    p => p.subjectName.toLowerCase() === selectedVideo.subject.toLowerCase()
+                  );
+                  if (!sp) return null;
+                  return (
+                    <div className="card p-5 bg-gradient-to-br from-slate-900 to-indigo-950 border border-indigo-500/25 rounded-3xl shadow-md text-white space-y-3">
+                      <div className="flex justify-between items-center">
+                        <div>
+                          <span className="text-[10px] font-black uppercase text-indigo-300 tracking-wider">Active Roadmap Module</span>
+                          <h3 className="text-sm font-black text-white">{sp.subjectName}</h3>
+                        </div>
+                        <span className="text-xs font-black text-indigo-200 bg-indigo-500/20 px-3 py-1 rounded-full border border-indigo-500/30">
+                          {sp.completionPercentage}% Complete
+                        </span>
+                      </div>
+                      <div className="w-full h-2 bg-indigo-950/50 rounded-full overflow-hidden border border-indigo-500/20">
+                        <div 
+                          className="h-full bg-gradient-to-r from-cyan-400 to-indigo-400 rounded-full" 
+                          style={{ width: `${sp.completionPercentage}%` }}
+                        />
+                      </div>
+                      {sp.completionPercentage === 100 ? (
+                        <p className="text-[10px] text-emerald-300 font-extrabold flex items-center gap-1">
+                          ✨ Module complete! You are ready to take the {sp.subjectName} assessment.
+                        </p>
+                      ) : (
+                        <p className="text-[10px] text-indigo-300 font-medium">
+                          Complete all lectures in this module to unlock the assessment.
+                        </p>
+                      )}
+                    </div>
+                  );
+                })()
+              )}
+
             </div>
           ) : (
             <div className="h-full flex items-center justify-center card bg-[var(--bg-card)] border border-[var(--border)] rounded-3xl py-24 text-center">
@@ -622,14 +680,33 @@ export default function StudentVideoLectures() {
                   const isCompleted = v.progress?.isCompleted;
                   const hasProgress = v.progress?.progressPercentage > 0;
 
+                  const isSubjectUnlocked = (() => {
+                    if (!roadmapProgress) return true;
+                    if (!v.subject) return true;
+                    const sp = roadmapProgress.subjectProgress.find(
+                      p => p.subjectName.toLowerCase() === v.subject.toLowerCase()
+                    );
+                    return sp ? sp.isUnlocked : true;
+                  })();
+
+                  const handleSelect = () => {
+                    if (!isSubjectUnlocked) {
+                      toast.error(`"${v.subject}" is locked. Complete the previous module's assessment first.`);
+                      return;
+                    }
+                    resumeVideo(v);
+                  };
+
                   return (
                     <button
                       key={v._id}
-                      onClick={() => resumeVideo(v)}
+                      onClick={handleSelect}
                       className={`w-full flex gap-3 p-3.5 rounded-2xl transition-all border text-left items-start ${
                         isSelected
                           ? 'bg-[var(--primary-light)]/45 border-[var(--primary)] text-[var(--primary)]'
-                          : 'bg-[var(--bg-sub)]/15 border-[var(--border-light)] text-[var(--text-main)] hover:bg-[var(--bg-sub)]/35'
+                          : !isSubjectUnlocked
+                            ? 'bg-[var(--bg-sub)]/5 border-[var(--border-light)] text-[var(--text-muted)] opacity-55 cursor-not-allowed'
+                            : 'bg-[var(--bg-sub)]/15 border-[var(--border-light)] text-[var(--text-main)] hover:bg-[var(--bg-sub)]/35'
                       }`}
                     >
                       {/* Video Thumbnail/Icon Box */}
@@ -640,7 +717,15 @@ export default function StudentVideoLectures() {
                           className="w-full h-full object-cover opacity-75"
                         />
                         <div className="absolute inset-0 flex items-center justify-center text-white/90">
-                          {isCompleted ? <FiCheckCircle className="text-emerald-400 bg-black/60 rounded-full" size={16} /> : <FiPlayCircle size={16} />}
+                          {!isSubjectUnlocked ? (
+                            <div className="bg-black/60 inset-0 absolute flex items-center justify-center text-rose-400">
+                              <FiLock size={16} />
+                            </div>
+                          ) : isCompleted ? (
+                            <FiCheckCircle className="text-emerald-400 bg-black/60 rounded-full" size={16} />
+                          ) : (
+                            <FiPlayCircle size={16} />
+                          )}
                         </div>
                       </div>
 

@@ -248,6 +248,17 @@ exports.saveVideoProgress = async (req, res) => {
       new: true
     });
 
+    // Recalculate roadmap progress
+    try {
+      const { recalculateProgress } = require('./roadmapProgressController');
+      const student = await Student.findOne({ userId: req.user._id });
+      if (student && student.course) {
+        await recalculateProgress(student._id, student.course);
+      }
+    } catch (e) {
+      console.error('Failed to recalculate roadmap progress:', e);
+    }
+
     res.json({ success: true, data: progress });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
@@ -289,6 +300,17 @@ exports.toggleVideoComplete = async (req, res) => {
       upsert: true,
       new: true
     });
+
+    // Recalculate roadmap progress
+    try {
+      const { recalculateProgress } = require('./roadmapProgressController');
+      const student = await Student.findOne({ userId: req.user._id });
+      if (student && student.course) {
+        await recalculateProgress(student._id, student.course);
+      }
+    } catch (e) {
+      console.error('Failed to recalculate roadmap progress:', e);
+    }
 
     res.json({ success: true, data: progress });
   } catch (err) {
