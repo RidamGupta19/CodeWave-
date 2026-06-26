@@ -762,8 +762,14 @@ exports.getStudyMaterials = async (req, res) => {
     if (req.user.role === 'student') {
       const student = await Student.findOne({ userId: req.user._id });
       if (student) {
-        query.batch = student.batch;
-        query.course = student.course;
+        const batchId = student.batch ? student.batch : null;
+        const courseId = student.course ? student.course : null;
+        query.$or = [
+          { batch: batchId, course: courseId },
+          { batch: null, course: courseId },
+          { batch: batchId, course: null },
+          { batch: null, course: null }
+        ];
       }
     } else if (req.user.role === 'teacher') {
       const teacher = await Teacher.findOne({ userId: req.user._id });

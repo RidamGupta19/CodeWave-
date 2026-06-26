@@ -44,8 +44,8 @@ const checkPermission = (permission) => {
     if (!req.user) {
       return res.status(401).json({ success: false, message: 'Not authorized' });
     }
-    // Super-admins and specific seed email bypass permission checks
-    if (req.user.isSuperAdmin || req.user.email === 'omshivhare666@gmail.com') {
+    // Super-admins and specific seed/default admin emails bypass permission checks
+    if (req.user.isSuperAdmin || req.user.email === 'admin@codewavesolution.com' || req.user.email === 'omshivhare666@gmail.com') {
       return next();
     }
     // Sub-admins must have the specific permission string

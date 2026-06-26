@@ -94,7 +94,8 @@ async function seedDB() {
       fullName: 'CodeWave Admin',
       email: adminEmail,
       password: adminPassword,
-      role: 'admin'
+      role: 'admin',
+      isSuperAdmin: true
     });
     console.log('👤 Admin user created');
 

@@ -94,52 +94,102 @@ export default function Sidebar() {
       <div className="flex-1 space-y-7">
         
         {user.role === 'student' ? (
-          <div>
-            <div className="text-[10px] font-black text-[var(--text-light)] uppercase tracking-wider pl-3 mb-2.5">
-              Student Portal
+          <div className="space-y-6">
+            <div>
+              <div className="text-[10px] font-black text-[var(--text-light)] uppercase tracking-wider pl-3 mb-2.5">
+                Student Portal
+              </div>
+              <nav className="space-y-1">
+                {studentLinks.map((link) => (
+                  <NavLink
+                    key={link.name}
+                    to={link.path}
+                    className={({ isActive }) => 
+                      `flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-bold transition-all ${
+                        isActive 
+                          ? 'bg-[var(--primary)] text-white shadow-md shadow-[var(--primary)]/20' 
+                          : 'text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--bg-sub)]'
+                      }`
+                    }
+                  >
+                    <span className="text-lg">{link.icon}</span>
+                    <span>{link.name}</span>
+                  </NavLink>
+                ))}
+              </nav>
             </div>
-            <nav className="space-y-1">
-              {studentLinks.map((link) => (
-                <NavLink
-                  key={link.name}
-                  to={link.path}
-                  className={({ isActive }) => 
-                    `flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-bold transition-all ${
-                      isActive 
-                        ? 'bg-[var(--primary)] text-white shadow-md shadow-[var(--primary)]/20' 
-                        : 'text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--bg-sub)]'
-                    }`
-                  }
-                >
-                  <span className="text-lg">{link.icon}</span>
-                  <span>{link.name}</span>
-                </NavLink>
-              ))}
-            </nav>
+            <div>
+              <div className="text-[10px] font-black text-[var(--text-light)] uppercase tracking-wider pl-3 mb-2.5">
+                Career Development Hub
+              </div>
+              <nav className="space-y-1">
+                {careerLinks.filter(link => !['/dashboard', '/profile', '/assessments'].includes(link.path)).map((link) => (
+                  <NavLink
+                    key={link.name}
+                    to={link.path}
+                    className={({ isActive }) => 
+                      `flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-bold transition-all ${
+                        isActive 
+                          ? 'bg-[var(--primary)] text-white shadow-md shadow-[var(--primary)]/20' 
+                          : 'text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--bg-sub)]'
+                      }`
+                    }
+                  >
+                    <span className="text-lg">{link.icon}</span>
+                    <span>{link.name}</span>
+                  </NavLink>
+                ))}
+              </nav>
+            </div>
           </div>
         ) : user.role === 'teacher' ? (
-          <div>
-            <div className="text-[10px] font-black text-[var(--text-light)] uppercase tracking-wider pl-3 mb-2.5">
-              Teacher Portal
+          <div className="space-y-6">
+            <div>
+              <div className="text-[10px] font-black text-[var(--text-light)] uppercase tracking-wider pl-3 mb-2.5">
+                Teacher Portal
+              </div>
+              <nav className="space-y-1">
+                {teacherLinks.map((link) => (
+                  <NavLink
+                    key={link.name}
+                    to={link.path}
+                    className={({ isActive }) => 
+                      `flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-bold transition-all ${
+                        isActive 
+                          ? 'bg-[var(--primary)] text-white shadow-md shadow-[var(--primary)]/20' 
+                          : 'text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--bg-sub)]'
+                      }`
+                    }
+                  >
+                    <span className="text-lg">{link.icon}</span>
+                    <span>{link.name}</span>
+                  </NavLink>
+                ))}
+              </nav>
             </div>
-            <nav className="space-y-1">
-              {teacherLinks.map((link) => (
-                <NavLink
-                  key={link.name}
-                  to={link.path}
-                  className={({ isActive }) => 
-                    `flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-bold transition-all ${
-                      isActive 
-                        ? 'bg-[var(--primary)] text-white shadow-md shadow-[var(--primary)]/20' 
-                        : 'text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--bg-sub)]'
-                    }`
-                  }
-                >
-                  <span className="text-lg">{link.icon}</span>
-                  <span>{link.name}</span>
-                </NavLink>
-              ))}
-            </nav>
+            <div>
+              <div className="text-[10px] font-black text-[var(--text-light)] uppercase tracking-wider pl-3 mb-2.5">
+                Career Development Hub
+              </div>
+              <nav className="space-y-1">
+                {careerLinks.filter(link => !['/dashboard', '/profile', '/assessments'].includes(link.path)).map((link) => (
+                  <NavLink
+                    key={link.name}
+                    to={link.path}
+                    className={({ isActive }) => 
+                      `flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-bold transition-all ${
+                        isActive 
+                          ? 'bg-[var(--primary)] text-white shadow-md shadow-[var(--primary)]/20' 
+                          : 'text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--bg-sub)]'
+                      }`
+                    }
+                  >
+                    <span className="text-lg">{link.icon}</span>
+                    <span>{link.name}</span>
+                  </NavLink>
+                ))}
+              </nav>
+            </div>
           </div>
         ) : (
           <>

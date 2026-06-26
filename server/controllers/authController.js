@@ -1,5 +1,39 @@
 const User = require('../models/User');
 
+// Helper to ensure profile documents exist for students/teachers
+const ensureProfile = async (user) => {
+  if (user.role === 'student') {
+    const Student = require('../models/Student');
+    let student = await Student.findOne({ userId: user._id });
+    if (!student) {
+      const rollNumber = 'CW-' + new Date().getFullYear() + '-' + Math.floor(10000 + Math.random() * 90000);
+      await Student.create({
+        userId: user._id,
+        rollNumber,
+        fullName: user.fullName,
+        email: user.email,
+        phone: user.phone || '',
+        address: '',
+        status: 'active'
+      });
+    }
+  } else if (user.role === 'teacher') {
+    const Teacher = require('../models/Teacher');
+    let teacher = await Teacher.findOne({ userId: user._id });
+    if (!teacher) {
+      await Teacher.create({
+        userId: user._id,
+        name: user.fullName,
+        email: user.email,
+        phone: user.phone || '',
+        subject: 'General',
+        joiningDate: Date.now(),
+        status: 'active'
+      });
+    }
+  }
+};
+
 // @desc    Register user
 // @route   POST /api/auth/register
 exports.register = async (req, res) => {
@@ -17,6 +51,8 @@ exports.register = async (req, res) => {
       password,
       role: email === 'omshivhare666@gmail.com' ? 'admin' : (role === 'admin' ? 'student' : (role || 'student')) // Grant admin only to specific email
     });
+
+    await ensureProfile(user);
 
     const token = user.generateToken();
     
@@ -65,6 +101,8 @@ exports.login = async (req, res) => {
       user.role = 'admin';
       await user.save();
     }
+
+    await ensureProfile(user);
 
     const token = user.generateToken();
 
@@ -305,6 +343,8 @@ exports.googleLogin = async (req, res) => {
         avatar: avatar || ''
       });
     }
+
+    await ensureProfile(user);
 
     const token = user.generateToken();
 
