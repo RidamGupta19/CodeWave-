@@ -1,6 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 import api from '../api/axios';
+import problemApi from '../api/problemApi';
+import codeApi from '../api/codeApi';
+import submissionApi from '../api/submissionApi';
 import { 
   ArrowLeft, Play, RotateCcw, Check, Sparkles, HelpCircle, 
   Trophy, Terminal, Award, Zap, ChevronLeft, ChevronRight, RefreshCw, 
@@ -93,8 +96,22 @@ const ZeroToCoding = () => {
     unlockedBadges: []
   });
   
+  const [dbLoading, setDbLoading] = useState(false);
+  const [problems, setProblems] = useState([]);
+  const [selectedProblem, setSelectedProblem] = useState(null);
+  const [domains, setDomains] = useState([]);
+  const [mySubmissions, setMySubmissions] = useState([]);
+  const [filters, setFilters] = useState({
+    search: '',
+    difficulty: '',
+    domainId: '',
+    status: ''
+  });
+
+  const [viewMode, setViewMode] = useState('directory'); // 'directory' | 'workspace'
+
   const [activeLevelIndex, setActiveLevelIndex] = useState(0);
-  const activeLevel = zeroToCodingMonacoLevels[activeLevelIndex] || zeroToCodingMonacoLevels[0];
+  const activeLevel = selectedProblem || zeroToCodingMonacoLevels[activeLevelIndex] || zeroToCodingMonacoLevels[0];
   
   // Editor code states & persistence cache
   const [editorCode, setEditorCode] = useState('');
@@ -140,26 +157,52 @@ const ZeroToCoding = () => {
     }
   }, [user]);
 
+  // Load database problems, domains, and submissions
+  useEffect(() => {
+    const loadDbData = async () => {
+      setDbLoading(true);
+      try {
+        const [domsRes, probsRes, subsRes] = await Promise.all([
+          api.get('/domains'),
+          problemApi.getAll(),
+          submissionApi.getMine()
+        ]);
+        setDomains(domsRes.data.data || []);
+        setProblems(probsRes.data.data || []);
+        setMySubmissions(subsRes.data.data || []);
+      } catch (err) {
+        console.error('Failed to load database problem data:', err);
+        toast.error('Error loading problems from database');
+      } finally {
+        setDbLoading(false);
+      }
+    };
+    loadDbData();
+  }, []);
+
   // Preload code when Level or Language changes
   useEffect(() => {
     if (activeLevel) {
-      const cached = savedCodes[`${activeLevel.id}_${selectedLang}`];
+      const activeId = activeLevel._id || activeLevel.id;
+      const cached = savedCodes[`${activeId}_${selectedLang}`];
       if (cached) {
         setEditorCode(cached);
       } else {
-        setEditorCode(activeLevel.starterCodes[selectedLang] || '');
+        const starter = activeLevel.starterCode || activeLevel.starterCodes || {};
+        setEditorCode(starter[selectedLang] || '');
       }
       
       // Reset execution states
       setTerminalLogs(["// Sandbox initialized.", `Ready for compiling in ${selectedLang.toUpperCase()}...`]);
       setCompilerStatus('idle');
       setCompilationError('');
-      setTestResults(activeLevel.testCases.map(tc => ({ ...tc, status: 'pending', actual: '' })));
+      const testCases = activeLevel.visibleTestCases || activeLevel.testCases || [];
+      setTestResults(testCases.map(tc => ({ ...tc, status: 'pending', actual: '' })));
       setCustomOutput('');
       setAppreciationMsg('');
       setShowHintIndex(-1);
     }
-  }, [activeLevelIndex, selectedLang]);
+  }, [activeLevelIndex, selectedProblem, selectedLang]);
 
   // Sync to database and LocalStorage
   const saveUserState = async (updated) => {
@@ -251,9 +294,10 @@ const ZeroToCoding = () => {
   const handleEditorChange = (value) => {
     const code = value || '';
     setEditorCode(code);
+    const activeId = activeLevel._id || activeLevel.id;
     setSavedCodes(prev => ({
       ...prev,
-      [`${activeLevel.id}_${selectedLang}`]: code
+      [`${activeId}_${selectedLang}`]: code
     }));
   };
 
@@ -261,16 +305,19 @@ const ZeroToCoding = () => {
   const handleResetCode = () => {
     triggerSoundEffect('click');
     if (window.confirm(`Are you sure you want to reset your ${selectedLang.toUpperCase()} code back to the starter boilerplate?`)) {
-      const defaultCode = activeLevel.starterCodes[selectedLang] || '';
+      const starter = activeLevel.starterCode || activeLevel.starterCodes || {};
+      const defaultCode = starter[selectedLang] || '';
       setEditorCode(defaultCode);
+      const activeId = activeLevel._id || activeLevel.id;
       setSavedCodes(prev => ({
         ...prev,
-        [`${activeLevel.id}_${selectedLang}`]: defaultCode
+        [`${activeId}_${selectedLang}`]: defaultCode
       }));
       setTerminalLogs(["// Terminal reset.", "Ready for execution..."]);
       setCompilerStatus('idle');
       setCompilationError('');
-      setTestResults(activeLevel.testCases.map(tc => ({ ...tc, status: 'pending', actual: '' })));
+      const testCases = activeLevel.visibleTestCases || activeLevel.testCases || [];
+      setTestResults(testCases.map(tc => ({ ...tc, status: 'pending', actual: '' })));
       toast.success("Code reset successfully!");
     }
   };
@@ -289,16 +336,119 @@ const ZeroToCoding = () => {
   // Save code local persistence
   const handleSaveCode = () => {
     triggerSoundEffect('click');
-    localStorage.setItem(`saved_code_${activeLevel.id}_${selectedLang}`, editorCode);
+    const activeId = activeLevel._id || activeLevel.id;
+    localStorage.setItem(`saved_code_${activeId}_${selectedLang}`, editorCode);
     toast.success("Code saved successfully to local cache! 💾");
   };
 
   // Interactive mock execution compiler
-  const runCode = (isSubmit = false) => {
+  const runCode = async (isSubmit = false) => {
     if (!activeLevel) return;
 
     setCompilerStatus('compiling');
     setActiveTab('results');
+
+    // If it's a database problem, run it against the backend compiler!
+    if (selectedProblem) {
+      try {
+        setTerminalLogs([
+          `📡 Transmitting code to execution sandbox...`,
+          `⚙️ Compiling and running in ${selectedLang.toUpperCase()}...`
+        ]);
+
+        const langName = selectedLang === 'cpp' ? 'C++' : selectedLang === 'javascript' ? 'JavaScript' : selectedLang.charAt(0).toUpperCase() + selectedLang.slice(1);
+        const apiPayload = {
+          problemId: selectedProblem._id,
+          language: langName, // Java, Python, C++, JavaScript
+          code: editorCode
+        };
+
+        if (useCustomInput) {
+          apiPayload.customInput = customInput;
+        }
+
+        let res;
+        if (isSubmit) {
+          res = await codeApi.submit(apiPayload);
+        } else {
+          res = await codeApi.run(apiPayload);
+        }
+
+        const executionData = res.data.data;
+
+        // Populate terminal logs
+        const logs = [];
+        if (executionData.compile_output) {
+          logs.push(`⚙️ Compiler Output:`, executionData.compile_output);
+        }
+        if (executionData.stderr) {
+          logs.push(`❌ Runtime Stderr:`, executionData.stderr);
+        }
+        if (executionData.stdout !== undefined) {
+          logs.push(`🟢 Output:`, executionData.stdout);
+        }
+
+        const overallStatus = executionData.status || (isSubmit ? 'Accepted' : 'Finished');
+        logs.push(`📊 Execution status: ${overallStatus}`);
+        
+        if (overallStatus === 'Accepted' || (overallStatus === 'Finished' && !executionData.stderr && !executionData.compile_output)) {
+          setCompilerStatus('success');
+          triggerSoundEffect('success');
+          if (isSubmit) {
+            triggerConfetti();
+            setAppreciationMsg("Excellent! All test cases passed successfully! 🎉");
+            
+            // Mark the problem solved locally in userState
+            const freshCompleted = [...userState.completedQuestions];
+            if (!freshCompleted.includes(selectedProblem._id.toString())) {
+              freshCompleted.push(selectedProblem._id.toString());
+            }
+
+            const difficultyReward = selectedProblem.difficulty === 'Easy' ? 10 : selectedProblem.difficulty === 'Medium' ? 15 : 25;
+            const updated = {
+              ...userState,
+              xp: userState.xp + difficultyReward,
+              completedQuestions: freshCompleted
+            };
+            saveUserState(updated);
+
+            // Refetch submissions to update solved status in directory
+            submissionApi.getMine().then(r => setMySubmissions(r.data.data || []));
+
+            setShowCelebrationModal(true);
+          }
+        } else {
+          setCompilerStatus('error');
+          setCompilationError(executionData.stderr || executionData.compile_output || 'Compilation / Runtime Error');
+          triggerSoundEffect('error');
+        }
+
+        // Map individual test case results
+        const testCaseResults = executionData.testCaseResults || [];
+        setTestResults(testCaseResults.map((tr, idx) => ({
+          id: idx + 1,
+          input: tr.input,
+          expected: tr.expectedOutput,
+          actual: tr.actualOutput,
+          status: tr.passed || tr.status === 'Accepted' ? 'passed' : 'failed',
+          error: tr.status
+        })));
+
+        setTerminalLogs(logs);
+      } catch (err) {
+        console.error('Code execution failed:', err);
+        setCompilerStatus('error');
+        const errorMsg = err.response?.data?.message || err.message || 'Sandbox compilation request failed.';
+        setCompilationError(errorMsg);
+        setTerminalLogs([
+          `❌ Connection Failed.`,
+          `🛑 Error: ${errorMsg}`
+        ]);
+        triggerSoundEffect('error');
+        toast.error('Compilation sandbox connection failed');
+      }
+      return;
+    }
     
     // Choose beautiful logs depending on selected language
     let compileLogs = [];
@@ -616,25 +766,28 @@ const ZeroToCoding = () => {
       }`}>
         <div className="flex items-center gap-3">
           <button 
-            onClick={handleBackToDashboard}
+            onClick={viewMode === 'workspace' ? () => setViewMode('directory') : handleBackToDashboard}
             className={`flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-bold transition-all ${
               theme === 'dark' ? 'text-zinc-400 hover:text-white hover:bg-zinc-800' : 'text-slate-500 hover:text-slate-800 hover:bg-slate-100'
             }`}
           >
-            <ArrowLeft size={14} /> Back to Dashboard
+            <ArrowLeft size={14} /> {viewMode === 'workspace' ? 'Back to Directory' : 'Back to Dashboard'}
           </button>
           
-          <div className="h-4 w-px bg-slate-300 dark:bg-zinc-700"></div>
-
-          {/* Level Switcher */}
-          <div className="flex items-center gap-2">
-            <span className={`px-2 py-0.5 rounded text-[10px] font-bold border ${getDifficultyColor(activeLevel.difficulty)}`}>
-              Lvl {activeLevel.id}
-            </span>
-            <span className={`text-xs font-bold ${theme === 'dark' ? 'text-white' : 'text-slate-800'}`}>
-              {activeLevel.title}
-            </span>
-          </div>
+          {viewMode === 'workspace' && (
+            <>
+              <div className="h-4 w-px bg-slate-300 dark:bg-zinc-700"></div>
+              {/* Level Switcher */}
+              <div className="flex items-center gap-2">
+                <span className={`px-2 py-0.5 rounded text-[10px] font-bold border ${getDifficultyColor(activeLevel.difficulty)}`}>
+                  {activeLevel._id ? `${activeLevel.difficulty}` : `Lvl ${activeLevel.id}`}
+                </span>
+                <span className={`text-xs font-bold ${theme === 'dark' ? 'text-white' : 'text-slate-800'}`}>
+                  {activeLevel.title}
+                </span>
+              </div>
+            </>
+          )}
         </div>
 
         {/* CONTROLS: Sound, Mode, Fullscreen */}
@@ -682,6 +835,265 @@ const ZeroToCoding = () => {
 
       {/* CORE WORKSPACE PANELS */}
       <main className="flex-1 flex overflow-hidden relative">
+        {viewMode === 'directory' ? (
+          <div className="flex-1 overflow-y-auto p-8 space-y-6 max-w-7xl mx-auto w-full select-text">
+            {/* Header */}
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+              <div>
+                <h1 className={`text-3xl font-black ${theme === 'dark' ? 'text-white' : 'text-slate-800'}`}>
+                  Zero to Coding Problem Bank
+                </h1>
+                <p className={`text-sm ${theme === 'dark' ? 'text-zinc-400' : 'text-slate-500'} mt-1`}>
+                  Curated coding challenges, real-time sandboxed compilation, and user achievement metrics.
+                </p>
+              </div>
+              {/* XP and Level Info */}
+              <div className={`flex items-center gap-4 p-3 rounded-2xl border ${
+                theme === 'dark' ? 'bg-zinc-900 border-zinc-800' : 'bg-white border-slate-200'
+              } shadow-sm`}>
+                <div className="flex items-center gap-2">
+                  <Trophy className="text-amber-500" size={18} />
+                  <div>
+                    <div className="text-[10px] font-bold text-gray-400 uppercase">Your Level</div>
+                    <div className="text-xs font-black">{getRankName(userState.xp)} (Lvl {userState.level})</div>
+                  </div>
+                </div>
+                <div className="h-8 w-px bg-slate-200 dark:bg-zinc-700"></div>
+                <div>
+                  <div className="text-[10px] font-bold text-gray-400 uppercase">XP Earned</div>
+                  <div className="text-xs font-black text-indigo-500">{userState.xp} XP</div>
+                </div>
+              </div>
+            </div>
+
+            {/* Filters Bar */}
+            <div className={`p-4 rounded-3xl border flex flex-wrap gap-4 items-center ${
+              theme === 'dark' ? 'bg-zinc-900/45 border-zinc-800' : 'bg-white border-slate-200'
+            } shadow-sm`}>
+              {/* Search */}
+              <div className="flex-1 min-w-[200px] relative">
+                <input
+                  type="text"
+                  value={filters.search}
+                  onChange={e => setFilters({...filters, search: e.target.value})}
+                  placeholder="Search challenges by name or topic..."
+                  className={`w-full pl-4 pr-4 py-2 border rounded-xl text-xs outline-none transition-all ${
+                    theme === 'dark'
+                      ? 'bg-zinc-900 border-zinc-800 text-white focus:border-indigo-500'
+                      : 'bg-slate-50 border-slate-200 text-slate-800 focus:border-indigo-500'
+                  }`}
+                />
+              </div>
+              {/* Difficulty */}
+              <select
+                value={filters.difficulty}
+                onChange={e => setFilters({...filters, difficulty: e.target.value})}
+                className={`px-3 py-2 border rounded-xl text-xs outline-none ${
+                  theme === 'dark'
+                    ? 'bg-zinc-900 border-zinc-800 text-white focus:border-indigo-500'
+                    : 'bg-slate-50 border-slate-200 text-slate-800 focus:border-indigo-500'
+                }`}
+              >
+                <option value="">All Difficulties</option>
+                <option value="Easy">Easy</option>
+                <option value="Medium">Medium</option>
+                <option value="Hard">Hard</option>
+              </select>
+              {/* Domain */}
+              <select
+                value={filters.domainId}
+                onChange={e => setFilters({...filters, domainId: e.target.value})}
+                className={`px-3 py-2 border rounded-xl text-xs outline-none ${
+                  theme === 'dark'
+                    ? 'bg-zinc-900 border-zinc-800 text-white focus:border-indigo-500'
+                    : 'bg-slate-50 border-slate-200 text-slate-800 focus:border-indigo-500'
+                }`}
+              >
+                <option value="">All Domains</option>
+                {domains.map(d => (
+                  <option key={d._id} value={d._id}>{d.name}</option>
+                ))}
+              </select>
+              {/* Status */}
+              <select
+                value={filters.status}
+                onChange={e => setFilters({...filters, status: e.target.value})}
+                className={`px-3 py-2 border rounded-xl text-xs outline-none ${
+                  theme === 'dark'
+                    ? 'bg-zinc-900 border-zinc-800 text-white focus:border-indigo-500'
+                    : 'bg-slate-50 border-slate-200 text-slate-800 focus:border-indigo-500'
+                }`}
+              >
+                <option value="">All Statuses</option>
+                <option value="solved">Solved</option>
+                <option value="attempted">Attempted</option>
+                <option value="unsolved">Unsolved</option>
+              </select>
+            </div>
+
+            {/* Problems Grid / Table */}
+            {dbLoading ? (
+              <div className="flex justify-center py-20">
+                <div className="spinner" />
+              </div>
+            ) : (
+              <div className={`border rounded-3xl overflow-hidden shadow-sm ${
+                theme === 'dark' ? 'bg-zinc-900/20 border-zinc-800' : 'bg-white border-slate-200'
+              }`}>
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className={`text-[10px] font-black uppercase tracking-wider border-b ${
+                      theme === 'dark' ? 'bg-zinc-900/80 border-zinc-800 text-zinc-400' : 'bg-slate-50 border-slate-200 text-slate-500'
+                    }`}>
+                      <th className="px-6 py-4">Status</th>
+                      <th className="px-6 py-4">Challenge</th>
+                      <th className="px-6 py-4">Topic / Category</th>
+                      <th className="px-6 py-4">Difficulty</th>
+                      <th className="px-6 py-4">Complexity</th>
+                      <th className="px-6 py-4 text-right">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100 dark:divide-zinc-800">
+                    {/* Render database problems */}
+                    {problems.filter(p => {
+                      const matchesSearch = p.title.toLowerCase().includes(filters.search.toLowerCase()) ||
+                                            (p.topic || '').toLowerCase().includes(filters.search.toLowerCase());
+                      const matchesDifficulty = !filters.difficulty || p.difficulty === filters.difficulty;
+                      const matchesDomain = !filters.domainId || p.domain?._id === filters.domainId || p.domain === filters.domainId;
+                      
+                      const isSolved = mySubmissions.some(s => (s.problem?._id === p._id || s.problem === p._id) && s.status === 'Accepted');
+                      const isAttempted = mySubmissions.some(s => (s.problem?._id === p._id || s.problem === p._id));
+                      const problemStatus = isSolved ? 'solved' : isAttempted ? 'attempted' : 'unsolved';
+                      const matchesStatus = !filters.status || problemStatus === filters.status;
+                      
+                      return matchesSearch && matchesDifficulty && matchesDomain && matchesStatus;
+                    }).length === 0 ? (
+                      <tr>
+                        <td colSpan="6" className="text-center py-12 text-xs font-bold text-gray-400">
+                          No coding challenges match your search filters.
+                        </td>
+                      </tr>
+                    ) : (
+                      problems.filter(p => {
+                        const matchesSearch = p.title.toLowerCase().includes(filters.search.toLowerCase()) ||
+                                              (p.topic || '').toLowerCase().includes(filters.search.toLowerCase());
+                        const matchesDifficulty = !filters.difficulty || p.difficulty === filters.difficulty;
+                        const matchesDomain = !filters.domainId || p.domain?._id === filters.domainId || p.domain === filters.domainId;
+                        
+                        const isSolved = mySubmissions.some(s => (s.problem?._id === p._id || s.problem === p._id) && s.status === 'Accepted');
+                        const isAttempted = mySubmissions.some(s => (s.problem?._id === p._id || s.problem === p._id));
+                        const problemStatus = isSolved ? 'solved' : isAttempted ? 'attempted' : 'unsolved';
+                        const matchesStatus = !filters.status || problemStatus === filters.status;
+                        
+                        return matchesSearch && matchesDifficulty && matchesDomain && matchesStatus;
+                      }).map(p => {
+                        const isSolved = mySubmissions.some(s => (s.problem?._id === p._id || s.problem === p._id) && s.status === 'Accepted');
+                        const isAttempted = mySubmissions.some(s => (s.problem?._id === p._id || s.problem === p._id));
+                        
+                        return (
+                          <tr key={p._id} className="hover:bg-slate-50/50 dark:hover:bg-zinc-900/30 transition-colors">
+                            <td className="px-6 py-4.5">
+                              {isSolved ? (
+                                <CheckCircle2 className="text-emerald-500" size={18} />
+                              ) : isAttempted ? (
+                                <AlertCircle className="text-amber-500" size={18} />
+                              ) : (
+                                <PlayCircle className="text-gray-300 dark:text-zinc-600" size={18} />
+                              )}
+                            </td>
+                            <td className="px-6 py-4.5">
+                              <span className={`font-black text-sm block ${theme === 'dark' ? 'text-white' : 'text-slate-800'}`}>
+                                {p.title}
+                              </span>
+                              <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider block mt-0.5">
+                                {p.problemType} &bull; {p.domain?.name || 'DSA'}
+                              </span>
+                            </td>
+                            <td className="px-6 py-4.5 text-xs font-bold text-gray-500 dark:text-zinc-400">
+                              {p.topic}
+                            </td>
+                            <td className="px-6 py-4.5">
+                              <span className={`px-2 py-1 rounded-full text-[9px] font-black uppercase tracking-wider border ${
+                                p.difficulty === 'Easy'
+                                  ? 'bg-emerald-50 text-emerald-600 border-emerald-100 dark:bg-emerald-500/10 dark:border-emerald-500/20'
+                                  : p.difficulty === 'Medium'
+                                    ? 'bg-amber-50 text-amber-600 border-amber-100 dark:bg-amber-500/10 dark:border-amber-500/20'
+                                    : 'bg-rose-50 text-rose-600 border-rose-100 dark:bg-rose-500/10 dark:border-rose-500/20'
+                              }`}>
+                                {p.difficulty}
+                              </span>
+                            </td>
+                            <td className="px-6 py-4.5 text-xs font-semibold text-gray-400">
+                              {p.expectedComplexity || 'O(n)'}
+                            </td>
+                            <td className="px-6 py-4.5 text-right">
+                              <button
+                                onClick={() => {
+                                  triggerSoundEffect('click');
+                                  setSelectedProblem(p);
+                                  setViewMode('workspace');
+                                }}
+                                className="px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider bg-indigo-600 text-white shadow-sm hover:bg-indigo-700 transition-all"
+                              >
+                                Solve ⚡
+                              </button>
+                            </td>
+                          </tr>
+                        );
+                      })
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            )}
+
+            {/* Booster levels (Mock Levels) */}
+            <div className="space-y-4">
+              <h3 className={`text-sm font-black uppercase tracking-wider mt-8 ${theme === 'dark' ? 'text-white' : 'text-slate-800'}`}>
+                🚀 Beginner Arcade Boosters (Simulation Mode)
+              </h3>
+              <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+                {zeroToCodingMonacoLevels.map((lvl, index) => {
+                  const isCompleted = userState.completedQuestions.includes(lvl.id.toString());
+                  return (
+                    <div key={lvl.id} className={`p-5 rounded-3xl border flex flex-col justify-between gap-4 ${
+                      theme === 'dark' ? 'bg-zinc-900/40 border-zinc-800' : 'bg-white border-slate-200'
+                    } hover:scale-[1.01] transition-all shadow-sm`}>
+                      <div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-[9px] font-black uppercase text-gray-400">Level {lvl.id}</span>
+                          {isCompleted && <span className="text-emerald-500 text-xs">✅ Done</span>}
+                        </div>
+                        <h4 className={`font-black text-sm mt-1.5 ${theme === 'dark' ? 'text-white' : 'text-slate-800'}`}>
+                          {lvl.title}
+                        </h4>
+                        <p className="text-[11px] text-gray-400 mt-1 leading-relaxed line-clamp-2">
+                          {lvl.learningObjective}
+                        </p>
+                      </div>
+                      <button
+                        onClick={() => {
+                          triggerSoundEffect('click');
+                          setActiveLevelIndex(index);
+                          setSelectedProblem(null); // use mock levels
+                          setViewMode('workspace');
+                        }}
+                        className={`w-full py-2.5 rounded-xl text-xs font-black uppercase tracking-wider border text-center transition-all ${
+                          isCompleted
+                            ? 'border-indigo-600 text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-950/20'
+                            : 'bg-zinc-800 border-transparent text-white hover:bg-zinc-700 dark:bg-zinc-800 dark:hover:bg-zinc-700'
+                        }`}
+                      >
+                        Start Booster 🎮
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        ) : (
+          <>
         
         {/* ========================================================
             LEFT COLUMN: Problem Statement, Constraints, Examples
@@ -730,7 +1142,7 @@ const ZeroToCoding = () => {
                       {activeLevel.title}
                     </h2>
                     <p className={`text-xs ${theme === 'dark' ? 'text-zinc-500' : 'text-slate-400'}`}>
-                      Foundations of Beginner Programming
+                      {activeLevel.topic || 'Foundations of Beginner Programming'}
                     </p>
                   </div>
                   
@@ -738,7 +1150,7 @@ const ZeroToCoding = () => {
                     theme === 'dark' ? 'bg-zinc-900 border-zinc-800' : 'bg-slate-50 border-slate-200'
                   }`}>
                     <Zap size={14} className="text-violet-500 fill-violet-500 animate-pulse" />
-                    <span className="text-xs font-black">+{activeLevel.xpReward} XP</span>
+                    <span className="text-xs font-black">+{activeLevel.xpReward || (activeLevel.difficulty === 'Easy' ? 10 : activeLevel.difficulty === 'Medium' ? 15 : 25)} XP</span>
                   </div>
                 </div>
 
@@ -754,7 +1166,7 @@ const ZeroToCoding = () => {
                       Mascot Briefing
                     </div>
                     <p className={`text-xs font-medium leading-relaxed ${theme === 'dark' ? 'text-zinc-300' : 'text-slate-600'}`}>
-                      "{activeLevel.learningObjective}"
+                      "{activeLevel.learningObjective || "Practice your analytical programming skills. Analyze constraints, verify edge cases, and craft clean, optimized code."}"
                     </p>
                   </div>
                 </div>
@@ -767,7 +1179,7 @@ const ZeroToCoding = () => {
                   <div className={`text-sm font-medium leading-relaxed whitespace-pre-line p-5 rounded-xl border ${
                     theme === 'dark' ? 'bg-zinc-900/30 border-zinc-800 text-zinc-300' : 'bg-slate-50/50 border-slate-200 text-slate-600'
                   }`}>
-                    {activeLevel.problemStatement}
+                    {activeLevel.description || activeLevel.problemStatement}
                   </div>
                 </div>
               </div>
@@ -1446,6 +1858,7 @@ const ZeroToCoding = () => {
             </motion.button>
           )}
         </AnimatePresence>
+      </>)}
       </main>
 
       {/* CELEBRATION MODAL COMPONENT */}
@@ -1475,7 +1888,7 @@ const ZeroToCoding = () => {
                   "MISSION COMPLETED"
                 </h3>
                 <p className={`text-xs font-semibold leading-relaxed px-4 ${theme === 'dark' ? 'text-zinc-400' : 'text-slate-500'}`}>
-                  Outstanding solution! Your program compiled, executed, and validated successfully against all expected test cases. You've earned <span className="text-indigo-600 font-extrabold">+{activeLevel.xpReward} XP</span> and strengthened your algorithms muscle memory!
+                  Outstanding solution! Your program compiled, executed, and validated successfully against all expected test cases. You've earned <span className="text-indigo-600 font-extrabold">+{activeLevel.xpReward || (activeLevel.difficulty === 'Easy' ? 10 : activeLevel.difficulty === 'Medium' ? 15 : 25)} XP</span> and strengthened your algorithms muscle memory!
                 </p>
               </div>
 
@@ -1507,16 +1920,21 @@ const ZeroToCoding = () => {
                   onClick={() => {
                     setShowCelebrationModal(false);
                     triggerSoundEffect('click');
-                    if (activeLevelIndex < zeroToCodingMonacoLevels.length - 1) {
-                      setActiveLevelIndex(p => p + 1);
+                    if (selectedProblem) {
+                      setViewMode('directory');
+                      setSelectedProblem(null);
                     } else {
-                      handleBackToDashboard();
-                      toast.success("🎮 SPECTACULAR! You completed the Zero to Coding arcade!");
+                      if (activeLevelIndex < zeroToCodingMonacoLevels.length - 1) {
+                        setActiveLevelIndex(p => p + 1);
+                      } else {
+                        handleBackToDashboard();
+                        toast.success("🎮 SPECTACULAR! You completed the Zero to Coding arcade!");
+                      }
                     }
                   }}
                   className="flex-1 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-black uppercase tracking-wider shadow-lg shadow-indigo-600/10 flex items-center justify-center gap-1.5 hover:-translate-y-0.5 active:translate-y-0 transition-all"
                 >
-                  Next Level <ChevronRight size={14} />
+                  {selectedProblem ? 'Back to Directory' : 'Next Level'} <ChevronRight size={14} />
                 </button>
               </div>
 
