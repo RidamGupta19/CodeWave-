@@ -163,4 +163,50 @@ const uploadThumbnailSingle = (fieldName) => {
   };
 };
 
-module.exports = { uploadSingle, uploadVideoSingle, uploadThumbnailSingle };
+// Avatar Upload Filter and Limit (3MB)
+const avatarFileFilter = (req, file, cb) => {
+  const allowedExtensions = ['.png', '.jpg', '.jpeg', '.webp'];
+  const ext = path.extname(file.originalname).toLowerCase();
+  const mimeType = file.mimetype.toLowerCase();
+  const allowedMimeTypes = ['image/png', 'image/jpg', 'image/jpeg', 'image/webp'];
+
+  if (allowedExtensions.includes(ext) && allowedMimeTypes.includes(mimeType)) {
+    cb(null, true);
+  } else {
+    cb(new Error('Invalid file type. Only PNG, JPG, JPEG, and WEBP images are allowed.'), false);
+  }
+};
+
+const avatarUpload = multer({
+  storage: storage,
+  fileFilter: avatarFileFilter,
+  limits: {
+    fileSize: 3 * 1024 * 1024 // 3MB limit
+  }
+});
+
+const uploadAvatarSingle = (fieldName) => {
+  const uploadMiddleware = avatarUpload.single(fieldName);
+  
+  return (req, res, next) => {
+    uploadMiddleware(req, res, (err) => {
+      if (err) {
+        let message = err.message;
+        if (err instanceof multer.MulterError) {
+          if (err.code === 'LIMIT_FILE_SIZE') {
+            message = 'Image size is too large. Max limit is 3MB.';
+          }
+        }
+        return res.status(400).json({ success: false, message });
+      }
+      next();
+    });
+  };
+};
+
+module.exports = { 
+  uploadSingle, 
+  uploadVideoSingle, 
+  uploadThumbnailSingle, 
+  uploadAvatarSingle 
+};

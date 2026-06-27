@@ -70,25 +70,91 @@ export default function TeacherProfile() {
     }
   };
 
-  // Base64 file uploader logic
-  const handleFileChange = (e) => {
+  // Canvas-based image compressor and uploader
+  const compressAndUploadImage = async (file) => {
+    // 1. Validate size and type
+    const validExtensions = ['image/png', 'image/jpeg', 'image/jpg', 'image/webp'];
+    if (!validExtensions.includes(file.type)) {
+      toast.error('Invalid format. Allowed formats: JPG, JPEG, PNG, WEBP');
+      return null;
+    }
+    if (file.size > 3 * 1024 * 1024) {
+      toast.error('Image size must be less than 3 MB');
+      return null;
+    }
+
+    // 2. Compress image using Canvas
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = (event) => {
+        const img = new Image();
+        img.src = event.target.result;
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          const max_size = 800; // max width or height
+          let width = img.width;
+          let height = img.height;
+
+          if (width > height) {
+            if (width > max_size) {
+              height *= max_size / width;
+              width = max_size;
+            }
+          } else {
+            if (height > max_size) {
+              width *= max_size / height;
+              height = max_size;
+            }
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, width, height);
+
+          // Compress to WebP with 0.85 quality
+          canvas.toBlob(
+            async (blob) => {
+              if (!blob) {
+                toast.error('Image compression failed');
+                resolve(null);
+                return;
+              }
+
+              // Create FormData and upload
+              const formData = new FormData();
+              formData.append('avatar', blob, 'avatar.webp');
+
+              const loadingToast = toast.loading('Uploading avatar...');
+              try {
+                const uploadRes = await api.post('/auth/upload-avatar', formData, {
+                  headers: { 'Content-Type': 'multipart/form-data' }
+                });
+                toast.success('Avatar uploaded successfully!', { id: loadingToast });
+                resolve(uploadRes.data.avatarUrl);
+              } catch (err) {
+                toast.error(err.response?.data?.message || 'Failed to upload avatar', { id: loadingToast });
+                resolve(null);
+              }
+            },
+            'image/webp',
+            0.85
+          );
+        };
+      };
+    });
+  };
+
+  const handleFileChange = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
 
-    if (!file.type.startsWith('image/')) {
-      return toast.error('Please upload an image file (PNG/JPG)');
+    const uploadedUrl = await compressAndUploadImage(file);
+    if (uploadedUrl) {
+      setPersonalForm(prev => ({ ...prev, avatar: uploadedUrl }));
+      await refreshUser();
     }
-
-    if (file.size > 2 * 1024 * 1024) {
-      return toast.error('Image size must be less than 2MB');
-    }
-
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setPersonalForm(prev => ({ ...prev, avatar: reader.result }));
-      toast.success('Image uploaded! Click Save to apply.');
-    };
-    reader.readAsDataURL(file);
   };
 
   const handlePersonalSubmit = async (e) => {
@@ -161,6 +227,15 @@ export default function TeacherProfile() {
     }
   };
 
+  const getAvatarUrl = (avatarPath) => {
+    if (!avatarPath) return '';
+    if (avatarPath.startsWith('http://') || avatarPath.startsWith('https://') || avatarPath.startsWith('data:')) {
+      return avatarPath;
+    }
+    const serverUrl = api.defaults.baseURL.replace('/api', '');
+    return `${serverUrl}${avatarPath}`;
+  };
+
   if (loading) {
     return (
       <div className="space-y-6 animate-pulse p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto">
@@ -214,7 +289,7 @@ export default function TeacherProfile() {
           <div className="bg-[var(--bg-card)] border border-[var(--border)] rounded-2xl p-6 shadow-sm text-center space-y-4">
             <div className="relative w-24 h-24 rounded-2xl bg-[var(--primary-light)] text-[var(--primary)] border border-[var(--border)] flex items-center justify-center text-4xl font-black overflow-hidden mx-auto">
               {personalForm.avatar ? (
-                <img src={personalForm.avatar} alt="Profile" className="w-full h-full object-cover" />
+                <img src={getAvatarUrl(personalForm.avatar)} alt="Profile" className="w-full h-full object-cover" />
               ) : (
                 user.fullName?.charAt(0).toUpperCase()
               )}
@@ -248,7 +323,7 @@ export default function TeacherProfile() {
                 <div className="flex flex-col sm:flex-row items-center gap-6 pb-6 border-b border-[var(--border-light)]">
                   <div className="relative w-20 h-20 rounded-2xl bg-[var(--primary-light)] text-[var(--primary)] border border-[var(--border)] flex items-center justify-center text-3xl font-black overflow-hidden shrink-0">
                     {personalForm.avatar ? (
-                      <img src={personalForm.avatar} alt="Profile" className="w-full h-full object-cover" />
+                      <img src={getAvatarUrl(personalForm.avatar)} alt="Profile" className="w-full h-full object-cover" />
                     ) : (
                       user.fullName?.charAt(0).toUpperCase()
                     )}
@@ -258,7 +333,7 @@ export default function TeacherProfile() {
                       <FiUploadCloud /> Upload Avatar
                       <input type="file" accept="image/*" className="hidden" onChange={handleFileChange} />
                     </label>
-                    <p className="text-[10px] text-[var(--text-light)] font-bold">Supported formats: JPG, PNG. Max file size: 2MB.</p>
+                    <p className="text-[10px] text-[var(--text-light)] font-bold">Supported formats: JPG, JPEG, PNG, WEBP. Max file size: 3MB.</p>
                   </div>
                 </div>
 

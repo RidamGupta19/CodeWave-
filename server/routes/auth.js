@@ -10,9 +10,11 @@ const {
   updateStudentProfile,
   changePassword,
   getTeacherProfile,
-  updateTeacherProfile
+  updateTeacherProfile,
+  uploadAvatar
 } = require('../controllers/authController');
 const { protect } = require('../middleware/auth');
+const { uploadAvatarSingle } = require('../middleware/uploadMiddleware');
 
 router.post('/register', register);
 router.post('/login', login);
@@ -26,5 +28,7 @@ router.get('/teacher-profile', protect, getTeacherProfile);
 router.put('/teacher-profile', protect, updateTeacherProfile);
 router.put('/change-password', protect, changePassword);
 
+// Secure avatar upload route
+router.post('/upload-avatar', protect, uploadAvatarSingle('avatar'), uploadAvatar);
 
 module.exports = router;

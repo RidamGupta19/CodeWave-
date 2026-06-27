@@ -443,3 +443,60 @@ exports.updateTeacherProfile = async (req, res) => {
   }
 };
 
+// @desc    Upload profile avatar
+// @route   POST /api/auth/upload-avatar
+// @access  Private
+exports.uploadAvatar = async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ success: false, message: 'Please upload an image file (PNG, JPG, JPEG, WEBP) under 3MB.' });
+    }
+
+    const user = await User.findById(req.user._id);
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+
+    const fs = require('fs');
+    const path = require('path');
+
+    // Delete old avatar if it exists on disk
+    if (user.avatar) {
+      if (user.avatar.startsWith('/uploads/')) {
+        const oldFilePath = path.join(__dirname, '../', user.avatar);
+        if (fs.existsSync(oldFilePath)) {
+          try {
+            fs.unlinkSync(oldFilePath);
+          } catch (err) {
+            console.error('Failed to delete old avatar:', err);
+          }
+        }
+      }
+    }
+
+    const avatarUrl = `/uploads/${req.file.filename}`;
+    
+    // Save to user model
+    user.avatar = avatarUrl;
+    await user.save();
+
+    // Sync student profile photo if applicable
+    if (user.role === 'student') {
+      const Student = require('../models/Student');
+      const student = await Student.findOne({ userId: user._id });
+      if (student) {
+        student.profilePhoto = avatarUrl;
+        await student.save();
+      }
+    }
+
+    res.json({
+      success: true,
+      message: 'Avatar uploaded and updated successfully',
+      avatarUrl
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
