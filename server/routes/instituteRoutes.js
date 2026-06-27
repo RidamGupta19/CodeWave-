@@ -81,6 +81,7 @@ router.delete('/videos/:id', authorize('admin', 'teacher'), vc.deleteVideo);
 router.get('/videos/progress', vc.getVideoProgress);
 router.post('/videos/:id/progress', vc.saveVideoProgress);
 router.post('/videos/:id/complete', vc.toggleVideoComplete);
+router.get('/videos/:id/stream', vc.streamVideoFile);
 
 // 13. Teacher Results
 router.get('/results/teacher', authorize('teacher'), c.getTeacherStudentResults);

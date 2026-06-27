@@ -77,8 +77,27 @@ const videoFileFilter = (req, file, cb) => {
   }
 };
 
+// Ensure secure upload directory exists
+const secureUploadDir = path.join(__dirname, '../secure_uploads');
+if (!fs.existsSync(secureUploadDir)) {
+  fs.mkdirSync(secureUploadDir, { recursive: true });
+}
+
+// Private Storage for video uploads
+const videoStorage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, secureUploadDir);
+  },
+  filename: (req, file, cb) => {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    const ext = path.extname(file.originalname);
+    const name = path.basename(file.originalname, ext).replace(/[^a-zA-Z0-9]/g, '_');
+    cb(null, `${name}-${uniqueSuffix}${ext}`);
+  }
+});
+
 const videoUpload = multer({
-  storage: storage,
+  storage: videoStorage,
   fileFilter: videoFileFilter,
   limits: {
     fileSize: 100 * 1024 * 1024 // 100MB

@@ -40,6 +40,8 @@ export default function TeacherVideoLectures() {
     batch: '',
     instructor: '',
     subject: '',
+    playlistName: '',
+    order: '',
     isActive: true
   });
 
@@ -177,6 +179,8 @@ export default function TeacherVideoLectures() {
       batch: video.batch?._id || video.batch || '',
       instructor: video.instructor || '',
       subject: video.subject || '',
+      playlistName: video.playlistName || '',
+      order: video.order !== undefined ? video.order : '',
       isActive: video.isActive !== undefined ? video.isActive : true
     });
     setIsModalOpen(true);
@@ -196,6 +200,8 @@ export default function TeacherVideoLectures() {
       batch: '',
       instructor: '',
       subject: '',
+      playlistName: '',
+      order: '',
       isActive: true
     });
     setIsModalOpen(true);
@@ -211,7 +217,8 @@ export default function TeacherVideoLectures() {
     try {
       const payload = {
         ...form,
-        duration: Number(form.duration) || 0
+        duration: Number(form.duration) || 0,
+        order: Number(form.order) || 0
       };
 
       if (modalType === 'edit') {
@@ -364,7 +371,7 @@ export default function TeacherVideoLectures() {
                           )}
                         </h4>
                         <span className="text-[9px] font-bold text-[var(--text-light)] block mt-1">
-                          ⏰ {formatDuration(v.duration)} &bull; <span className="uppercase">{v.videoType}</span>
+                          ⏰ {formatDuration(v.duration)} &bull; <span className="uppercase">{v.videoType}</span> &bull; {v.playlistName || 'General'} #{v.order || 0}
                         </span>
                       </div>
                       
@@ -690,6 +697,31 @@ export default function TeacherVideoLectures() {
                     onChange={(e) => setForm({...form, subject: e.target.value})}
                     className="w-full px-3 py-2.5 bg-[var(--bg-sub)]/40 border border-[var(--border)] text-xs text-[var(--text-main)] rounded-xl outline-none focus:border-[var(--primary)] font-semibold"
                     placeholder="e.g. Flexbox, Graph Theory"
+                  />
+                </div>
+              </div>
+
+              {/* Playlist & Order Select */}
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <label className="text-[9px] font-black uppercase text-[var(--text-light)] tracking-wider">Playlist Name</label>
+                  <input
+                    type="text"
+                    value={form.playlistName}
+                    onChange={(e) => setForm({...form, playlistName: e.target.value})}
+                    className="w-full px-3 py-2.5 bg-[var(--bg-sub)]/40 border border-[var(--border)] text-xs text-[var(--text-main)] rounded-xl outline-none focus:border-[var(--primary)] font-semibold"
+                    placeholder="e.g. React Basics"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-[9px] font-black uppercase text-[var(--text-light)] tracking-wider">Lecture Sequence Order</label>
+                  <input
+                    type="number"
+                    value={form.order}
+                    onChange={(e) => setForm({...form, order: e.target.value})}
+                    className="w-full px-3 py-2.5 bg-[var(--bg-sub)]/40 border border-[var(--border)] text-xs text-[var(--text-main)] rounded-xl outline-none focus:border-[var(--primary)] font-semibold"
+                    placeholder="e.g. 1"
                   />
                 </div>
               </div>

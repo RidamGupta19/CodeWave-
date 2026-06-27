@@ -36,6 +36,14 @@ const videoSchema = new mongoose.Schema({
     type: String,
     default: ''
   },
+  playlistName: {
+    type: String,
+    default: 'General'
+  },
+  order: {
+    type: Number,
+    default: 0
+  },
   batch: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Batch'

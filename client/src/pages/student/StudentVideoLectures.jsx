@@ -17,6 +17,7 @@ export default function StudentVideoLectures() {
   const [playbackSpeed, setPlaybackSpeed] = useState(1);
   const [courses, setCourses] = useState([]);
   const [roadmapProgress, setRoadmapProgress] = useState(null);
+  const [expandedPlaylists, setExpandedPlaylists] = useState({ 'General': true });
 
   // Refs for tracking
   const html5PlayerRef = useRef(null);
@@ -84,6 +85,9 @@ export default function StudentVideoLectures() {
                 const currentTime = event.target.getCurrentTime();
                 const duration = event.target.getDuration();
                 saveProgressToServer(selectedVideo._id, currentTime, duration, event.data === 0);
+                if (event.data === 0) {
+                  handleAutoPlayNext();
+                }
               }
             }
           }
@@ -258,6 +262,7 @@ export default function StudentVideoLectures() {
   const handleHtml5Ended = (e) => {
     const duration = e.target.duration;
     saveProgressToServer(selectedVideo._id, duration, duration, true);
+    handleAutoPlayNext();
   };
 
   const saveProgressToServer = async (videoId, watchTime, duration, isFinished) => {
@@ -337,6 +342,59 @@ export default function StudentVideoLectures() {
     return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
   };
 
+  const isLectureUnlocked = (v) => {
+    if (!v) return false;
+    if (!roadmapProgress) return true;
+    if (!v.subject) return true;
+    const sp = roadmapProgress.subjectProgress.find(
+      p => p.subjectName.toLowerCase() === v.subject.toLowerCase()
+    );
+    return sp ? sp.isUnlocked : true;
+  };
+
+  const getPrevNextLectures = () => {
+    if (!selectedVideo || filtered.length === 0) return { prev: null, next: null };
+    
+    // Sort filtered videos by playlistName and order
+    const sortedVideos = [...filtered].sort((a, b) => {
+      const playlistA = a.playlistName || 'General';
+      const playlistB = b.playlistName || 'General';
+      if (playlistA !== playlistB) {
+        return playlistA.localeCompare(playlistB);
+      }
+      return (a.order || 0) - (b.order || 0);
+    });
+
+    const index = sortedVideos.findIndex(v => v._id === selectedVideo._id);
+    if (index === -1) return { prev: null, next: null };
+
+    return {
+      prev: index > 0 ? sortedVideos[index - 1] : null,
+      next: index < sortedVideos.length - 1 ? sortedVideos[index + 1] : null
+    };
+  };
+
+  const handleAutoPlayNext = () => {
+    const { next } = getPrevNextLectures();
+    if (next) {
+      if (isLectureUnlocked(next)) {
+        toast.success(`Auto-playing next lecture: ${next.title} 🚀`);
+        resumeVideo(next);
+      } else {
+        toast.error(`Next lecture "${next.title}" is locked by roadmap progression limits.`);
+      }
+    } else {
+      toast.success('You have completed all lectures in this playlist! 🎉');
+    }
+  };
+
+  const togglePlaylist = (name) => {
+    setExpandedPlaylists(prev => ({
+      ...prev,
+      [name]: !prev[name]
+    }));
+  };
+
   // Filter and Search Logic
   const getFilteredVideos = () => {
     return videos.filter(v => {
@@ -348,6 +406,24 @@ export default function StudentVideoLectures() {
   };
 
   const filtered = getFilteredVideos();
+
+  // Group videos by playlist Name
+  const getGroupedPlaylists = () => {
+    const groups = {};
+    filtered.forEach(v => {
+      const playlist = v.playlistName || 'General';
+      if (!groups[playlist]) {
+        groups[playlist] = [];
+      }
+      groups[playlist].push(v);
+    });
+    // Sort each playlist group by order ascending
+    Object.keys(groups).forEach(playlist => {
+      groups[playlist].sort((a, b) => (a.order || 0) - (b.order || 0));
+    });
+    return groups;
+  };
+  const groupedPlaylists = getGroupedPlaylists();
 
   // shelves computation
   const continueWatchingList = videos
@@ -365,6 +441,7 @@ export default function StudentVideoLectures() {
   const totalDurationSec = videos.reduce((acc, curr) => acc + (curr.duration || 0), 0);
   const totalWatchedSec = videos.reduce((acc, curr) => acc + (curr.progress?.watchTime || 0), 0);
   const overallPercentage = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
+  const { prev: prevLecture, next: nextLecture } = getPrevNextLectures();
 
   if (loading && videos.length === 0) {
     return (
@@ -487,7 +564,7 @@ export default function StudentVideoLectures() {
                   <video
                     key={selectedVideo._id}
                     ref={html5PlayerRef}
-                    src={getFullUrl(selectedVideo.url)}
+                    src={getFullUrl('/api/institute/videos/' + selectedVideo._id + '/stream?token=' + localStorage.getItem('cw_token'))}
                     controls
                     className="w-full h-full object-contain"
                     onTimeUpdate={handleHtml5TimeUpdate}
@@ -529,6 +606,24 @@ export default function StudentVideoLectures() {
 
                 {/* Customizable Playback Player Tools */}
                 <div className="flex flex-wrap items-center justify-between gap-4 bg-[var(--bg-sub)]/35 p-3 rounded-2xl border border-[var(--border-light)]">
+                  {/* Previous / Next Buttons */}
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => resumeVideo(prevLecture)}
+                      disabled={!prevLecture}
+                      className="px-3.5 py-1.5 bg-[var(--bg-card)] border border-[var(--border)] text-[10px] font-black uppercase rounded-lg shadow-sm hover:bg-[var(--bg-sub)] disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                    >
+                      ⏮️ Prev
+                    </button>
+                    <button
+                      onClick={() => handleAutoPlayNext()}
+                      disabled={!nextLecture}
+                      className="px-3.5 py-1.5 bg-[var(--bg-card)] border border-[var(--border)] text-[10px] font-black uppercase rounded-lg shadow-sm hover:bg-[var(--bg-sub)] disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                    >
+                      Next ⏭️
+                    </button>
+                  </div>
+
                   <div className="flex items-center gap-3">
                     <span className="text-[10px] font-black uppercase text-[var(--text-light)] tracking-widest flex items-center gap-1">
                       <FiSettings /> Playback Speed
@@ -668,93 +763,123 @@ export default function StudentVideoLectures() {
               </span>
             </div>
 
-            <div className="space-y-2">
-              {filtered.length === 0 ? (
+            <div className="space-y-4">
+              {Object.keys(groupedPlaylists).length === 0 ? (
                 <div className="text-center py-12 text-[var(--text-muted)]">
                   <FiFilm className="mx-auto text-2xl opacity-40 mb-2" />
                   <p className="text-xs font-bold">No lecture videos match filters.</p>
                 </div>
               ) : (
-                filtered.map(v => {
-                  const isSelected = selectedVideo?._id === v._id;
-                  const isCompleted = v.progress?.isCompleted;
-                  const hasProgress = v.progress?.progressPercentage > 0;
-
-                  const isSubjectUnlocked = (() => {
-                    if (!roadmapProgress) return true;
-                    if (!v.subject) return true;
-                    const sp = roadmapProgress.subjectProgress.find(
-                      p => p.subjectName.toLowerCase() === v.subject.toLowerCase()
-                    );
-                    return sp ? sp.isUnlocked : true;
-                  })();
-
-                  const handleSelect = () => {
-                    if (!isSubjectUnlocked) {
-                      toast.error(`"${v.subject}" is locked. Complete the previous module's assessment first.`);
-                      return;
-                    }
-                    resumeVideo(v);
-                  };
-
+                Object.keys(groupedPlaylists).map(playlistName => {
+                  const isExpanded = expandedPlaylists[playlistName] !== false; // default true
+                  const playlistVideos = groupedPlaylists[playlistName];
+                  
                   return (
-                    <button
-                      key={v._id}
-                      onClick={handleSelect}
-                      className={`w-full flex gap-3 p-3.5 rounded-2xl transition-all border text-left items-start ${
-                        isSelected
-                          ? 'bg-[var(--primary-light)]/45 border-[var(--primary)] text-[var(--primary)]'
-                          : !isSubjectUnlocked
-                            ? 'bg-[var(--bg-sub)]/5 border-[var(--border-light)] text-[var(--text-muted)] opacity-55 cursor-not-allowed'
-                            : 'bg-[var(--bg-sub)]/15 border-[var(--border-light)] text-[var(--text-main)] hover:bg-[var(--bg-sub)]/35'
-                      }`}
-                    >
-                      {/* Video Thumbnail/Icon Box */}
-                      <div className="relative w-12 h-12 rounded-xl bg-black border border-[var(--border-light)] shrink-0 overflow-hidden">
-                        <img 
-                          src={getFullUrl(v.thumbnailUrl) || 'https://images.unsplash.com/photo-1536440136628-849c177e76a1?q=80&w=150'} 
-                          alt=""
-                          className="w-full h-full object-cover opacity-75"
-                        />
-                        <div className="absolute inset-0 flex items-center justify-center text-white/90">
-                          {!isSubjectUnlocked ? (
-                            <div className="bg-black/60 inset-0 absolute flex items-center justify-center text-rose-400">
-                              <FiLock size={16} />
-                            </div>
-                          ) : isCompleted ? (
-                            <FiCheckCircle className="text-emerald-400 bg-black/60 rounded-full" size={16} />
-                          ) : (
-                            <FiPlayCircle size={16} />
-                          )}
-                        </div>
-                      </div>
+                    <div key={playlistName} className="space-y-1.5 border-b border-[var(--border-light)] pb-3 last:border-0 last:pb-0">
+                      {/* Playlist Header (Toggle button) */}
+                      <button
+                        onClick={() => togglePlaylist(playlistName)}
+                        className="w-full flex items-center justify-between py-2 px-1 text-left font-black uppercase text-[10px] text-[var(--text-light)] hover:text-[var(--text-main)] transition-colors"
+                      >
+                        <span className="flex items-center gap-1.5">
+                          📂 {playlistName} ({playlistVideos.length})
+                        </span>
+                        <span>{isExpanded ? '▼' : '▶'}</span>
+                      </button>
 
-                      {/* Video Details */}
-                      <div className="min-w-0 flex-1">
-                        <div className="flex justify-between items-start gap-1">
-                          <h4 className="text-xs font-black truncate leading-tight pr-1">{v.title}</h4>
-                        </div>
-                        <p className="text-[9px] text-[var(--text-muted)] font-extrabold uppercase mt-1 tracking-wider truncate">{v.course?.courseName || 'General'}</p>
-                        
-                        {/* Custom video type badge */}
-                        <div className="flex items-center gap-1.5 mt-1.5">
-                          <span className="text-[8px] font-bold text-[var(--text-light)]">⏰ {formatDuration(v.duration)}</span>
-                          <span className="text-[8px] font-extrabold uppercase tracking-wide px-1.5 py-0.5 rounded bg-[var(--bg-card)] border border-[var(--border)] text-[var(--text-muted)]">
-                            {v.videoType === 'embedded' ? 'YouTube' : 'Uploaded'}
-                          </span>
-                        </div>
+                      {/* Playlist Videos List */}
+                      {isExpanded && (
+                        <div className="space-y-2 mt-1 pl-1">
+                          {playlistVideos.map(v => {
+                            const isSelected = selectedVideo?._id === v._id;
+                            const isCompleted = v.progress?.isCompleted;
+                            const hasProgress = v.progress?.progressPercentage > 0;
 
-                        {/* Progress track */}
-                        {hasProgress && !isCompleted && (
-                          <div className="mt-2.5 w-full h-1 bg-[var(--bg-sub)] rounded-full overflow-hidden">
-                            <div 
-                              className="h-full bg-[var(--primary)] rounded-full" 
-                              style={{ width: `${v.progress.progressPercentage}%` }}
-                            />
-                          </div>
-                        )}
-                      </div>
-                    </button>
+                            const isSubjectUnlocked = (() => {
+                              if (!roadmapProgress) return true;
+                              if (!v.subject) return true;
+                              const sp = roadmapProgress.subjectProgress.find(
+                                p => p.subjectName.toLowerCase() === v.subject.toLowerCase()
+                              );
+                              return sp ? sp.isUnlocked : true;
+                            })();
+
+                            const handleSelect = () => {
+                              if (!isSubjectUnlocked) {
+                                toast.error(`"${v.subject}" is locked. Complete the previous module's assessment first.`);
+                                return;
+                              }
+                              resumeVideo(v);
+                            };
+
+                            return (
+                              <button
+                                key={v._id}
+                                onClick={handleSelect}
+                                className={`w-full flex gap-3 p-3.5 rounded-2xl transition-all border text-left items-start ${
+                                  isSelected
+                                    ? 'bg-[var(--primary-light)]/45 border-[var(--primary)] text-[var(--primary)]'
+                                    : !isSubjectUnlocked
+                                      ? 'bg-[var(--bg-sub)]/5 border-[var(--border-light)] text-[var(--text-muted)] opacity-55 cursor-not-allowed'
+                                      : 'bg-[var(--bg-sub)]/15 border-[var(--border-light)] text-[var(--text-main)] hover:bg-[var(--bg-sub)]/35'
+                                }`}
+                              >
+                                {/* Video Thumbnail/Icon Box */}
+                                <div className="relative w-12 h-12 rounded-xl bg-black border border-[var(--border-light)] shrink-0 overflow-hidden">
+                                  <img 
+                                    src={getFullUrl(v.thumbnailUrl) || 'https://images.unsplash.com/photo-1536440136628-849c177e76a1?q=80&w=150'} 
+                                    alt=""
+                                    className="w-full h-full object-cover opacity-75"
+                                  />
+                                  <div className="absolute inset-0 flex items-center justify-center text-white/90">
+                                    {!isSubjectUnlocked ? (
+                                      <div className="bg-black/60 inset-0 absolute flex items-center justify-center text-rose-400">
+                                        <FiLock size={16} />
+                                      </div>
+                                    ) : isCompleted ? (
+                                      <FiCheckCircle className="text-emerald-400 bg-black/60 rounded-full" size={16} />
+                                    ) : (
+                                      <FiPlayCircle size={16} />
+                                    )}
+                                  </div>
+                                </div>
+
+                                {/* Video Details */}
+                                <div className="min-w-0 flex-1">
+                                  <div className="flex justify-between items-start gap-1">
+                                    <h4 className="text-xs font-black truncate leading-tight pr-1">
+                                      {v.order !== undefined && <span className="text-[var(--text-light)] mr-1">#{v.order}</span>}
+                                      {v.title}
+                                    </h4>
+                                  </div>
+                                  <p className="text-[9px] text-[var(--text-muted)] font-extrabold uppercase mt-1 tracking-wider truncate">
+                                    {v.course?.courseName || 'General'}
+                                  </p>
+                                  
+                                  {/* Custom video type badge */}
+                                  <div className="flex items-center gap-1.5 mt-1.5">
+                                    <span className="text-[8px] font-bold text-[var(--text-light)]">⏰ {formatDuration(v.duration)}</span>
+                                    <span className="text-[8px] font-extrabold uppercase tracking-wide px-1.5 py-0.5 rounded bg-[var(--bg-card)] border border-[var(--border)] text-[var(--text-muted)]">
+                                      {v.videoType === 'embedded' ? 'YouTube' : 'Uploaded'}
+                                    </span>
+                                  </div>
+
+                                  {/* Progress track */}
+                                  {hasProgress && !isCompleted && (
+                                    <div className="mt-2.5 w-full h-1 bg-[var(--bg-sub)] rounded-full overflow-hidden">
+                                      <div 
+                                        className="h-full bg-[var(--primary)] rounded-full" 
+                                        style={{ width: `${v.progress.progressPercentage}%` }}
+                                      />
+                                    </div>
+                                  )}
+                                </div>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
                   );
                 })
               )}

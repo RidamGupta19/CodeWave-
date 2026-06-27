@@ -302,6 +302,8 @@ async function seedDB() {
       course: course._id,
       batch: batch._id,
       instructor: 'John Doe',
+      playlistName: 'React Developer Journey',
+      order: 2,
       isActive: true
     });
 
@@ -316,6 +318,8 @@ async function seedDB() {
       batch: batch._id,
       instructor: 'John Doe',
       subject: 'Backend',
+      playlistName: 'Backend Masterclass',
+      order: 1,
       isActive: true
     });
 
@@ -330,6 +334,8 @@ async function seedDB() {
       batch: batch._id,
       instructor: 'John Doe',
       subject: 'Backend',
+      playlistName: 'Backend Masterclass',
+      order: 2,
       isActive: true
     });
 
@@ -344,6 +350,8 @@ async function seedDB() {
       batch: batch._id,
       instructor: 'John Doe',
       subject: 'HTML',
+      playlistName: 'HTML & CSS Essentials',
+      order: 1,
       isActive: true
     });
 
@@ -358,6 +366,8 @@ async function seedDB() {
       batch: batch._id,
       instructor: 'John Doe',
       subject: 'CSS',
+      playlistName: 'HTML & CSS Essentials',
+      order: 2,
       isActive: true
     });
 
@@ -372,6 +382,8 @@ async function seedDB() {
       batch: batch._id,
       instructor: 'John Doe',
       subject: 'JavaScript',
+      playlistName: 'JavaScript & Git Foundation',
+      order: 1,
       isActive: true
     });
 
@@ -386,6 +398,8 @@ async function seedDB() {
       batch: batch._id,
       instructor: 'John Doe',
       subject: 'Git & GitHub',
+      playlistName: 'JavaScript & Git Foundation',
+      order: 2,
       isActive: true
     });
 
@@ -400,6 +414,8 @@ async function seedDB() {
       batch: batch._id,
       instructor: 'John Doe',
       subject: 'React.js',
+      playlistName: 'React Developer Journey',
+      order: 1,
       isActive: true
     });
 

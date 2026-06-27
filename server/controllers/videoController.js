@@ -5,18 +5,23 @@ const fs = require('fs');
 const path = require('path');
 
 const deleteLocalFile = (fileUrl) => {
-  if (fileUrl && fileUrl.startsWith('/uploads/')) {
+  if (!fileUrl) return;
+  let filePath;
+  if (fileUrl.startsWith('/uploads/')) {
     const fileName = fileUrl.replace('/uploads/', '');
-    const filePath = path.join(__dirname, '../uploads', fileName);
-    if (fs.existsSync(filePath)) {
-      fs.unlink(filePath, (err) => {
-        if (err) {
-          console.error(`Failed to delete local file: ${filePath}`, err);
-        } else {
-          console.log(`Deleted local file: ${filePath}`);
-        }
-      });
-    }
+    filePath = path.join(__dirname, '../uploads', fileName);
+  } else if (fileUrl.startsWith('/secure_uploads/')) {
+    const fileName = fileUrl.replace('/secure_uploads/', '');
+    filePath = path.join(__dirname, '../secure_uploads', fileName);
+  }
+  if (filePath && fs.existsSync(filePath)) {
+    fs.unlink(filePath, (err) => {
+      if (err) {
+        console.error(`Failed to delete local file: ${filePath}`, err);
+      } else {
+        console.log(`Deleted local file: ${filePath}`);
+      }
+    });
   }
 };
 
@@ -47,7 +52,7 @@ exports.getVideos = async (req, res) => {
     const videos = await Video.find(query)
       .populate('course', 'courseName')
       .populate('batch', 'batchName')
-      .sort({ createdAt: -1 });
+      .sort({ playlistName: 1, order: 1 });
 
     res.json({ success: true, data: videos });
   } catch (err) {
@@ -60,7 +65,7 @@ exports.getVideos = async (req, res) => {
 // @access  Private (Admin/Teacher only)
 exports.createVideo = async (req, res) => {
   try {
-    const { title, description, videoType, url, thumbnailUrl, duration, course, batch, instructor, subject, isActive } = req.body;
+    const { title, description, videoType, url, thumbnailUrl, duration, course, batch, instructor, subject, playlistName, order, isActive } = req.body;
 
     if (!title || !videoType || !url || !course) {
       return res.status(400).json({ success: false, message: 'Please provide title, videoType, url, and course.' });
@@ -77,6 +82,8 @@ exports.createVideo = async (req, res) => {
       batch: batch || null,
       instructor: instructor || '',
       subject: subject || '',
+      playlistName: playlistName || 'General',
+      order: order !== undefined ? Number(order) : 0,
       isActive: isActive !== undefined ? isActive : true
     });
 
@@ -100,7 +107,7 @@ exports.updateVideo = async (req, res) => {
       return res.status(404).json({ success: false, message: 'Video not found' });
     }
 
-    const { title, description, videoType, url, thumbnailUrl, duration, course, batch, instructor, subject, isActive } = req.body;
+    const { title, description, videoType, url, thumbnailUrl, duration, course, batch, instructor, subject, playlistName, order, isActive } = req.body;
 
     // Clean up local files if they are replaced
     if (url && video.url && video.url !== url) {
@@ -120,6 +127,8 @@ exports.updateVideo = async (req, res) => {
     video.batch = batch !== undefined ? (batch || null) : video.batch;
     video.instructor = instructor !== undefined ? instructor : video.instructor;
     video.subject = subject !== undefined ? subject : video.subject;
+    video.playlistName = playlistName !== undefined ? playlistName : video.playlistName;
+    video.order = order !== undefined ? (Number(order) || 0) : video.order;
     video.isActive = isActive !== undefined ? isActive : video.isActive;
 
     await video.save();
@@ -166,7 +175,7 @@ exports.uploadVideoFile = async (req, res) => {
     if (!req.file) {
       return res.status(400).json({ success: false, message: 'Please upload a video file' });
     }
-    const fileUrl = `/uploads/${req.file.filename}`;
+    const fileUrl = `/secure_uploads/${req.file.filename}`;
     res.status(200).json({ success: true, fileUrl });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
@@ -313,6 +322,84 @@ exports.toggleVideoComplete = async (req, res) => {
     }
 
     res.json({ success: true, data: progress });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+// @desc    Securely stream uploaded video file with range support
+// @route   GET /api/institute/videos/stream/:id
+// @access  Private (Authorized Students, Teachers, Admins)
+exports.streamVideoFile = async (req, res) => {
+  try {
+    const video = await Video.findById(req.params.id);
+    if (!video) {
+      return res.status(404).json({ success: false, message: 'Video not found' });
+    }
+
+    if (video.videoType !== 'uploaded') {
+      return res.status(400).json({ success: false, message: 'Only uploaded video files can be streamed' });
+    }
+
+    // Role-based authorization check
+    if (req.user.role === 'student') {
+      const student = await Student.findOne({ userId: req.user._id });
+      if (!student) {
+        return res.status(403).json({ success: false, message: 'Unauthorized access. Student profile not found.' });
+      }
+
+      // Verify course enrollment
+      if (video.course.toString() !== student.course?.toString()) {
+        return res.status(403).json({ success: false, message: 'Access denied. You are not enrolled in this course.' });
+      }
+
+      // Verify batch enrollment if batch-restricted
+      if (video.batch && video.batch.toString() !== student.batch?.toString()) {
+        return res.status(403).json({ success: false, message: 'Access denied. This video is restricted to a different batch.' });
+      }
+    }
+
+    // Resolve file path
+    const filename = video.url.replace('/secure_uploads/', '');
+    const filePath = path.join(__dirname, '../secure_uploads', filename);
+
+    if (!fs.existsSync(filePath)) {
+      return res.status(404).json({ success: false, message: 'Video file not found on disk' });
+    }
+
+    const stat = fs.statSync(filePath);
+    const fileSize = stat.size;
+    const range = req.headers.range;
+
+    if (range) {
+      const parts = range.replace(/bytes=/, "").split("-");
+      const start = parseInt(parts[0], 10);
+      const end = parts[1] ? parseInt(parts[1], 10) : fileSize - 1;
+
+      if (start >= fileSize) {
+        res.status(416).send('Requested range not satisfiable\n' + start + ' >= ' + fileSize);
+        return;
+      }
+
+      const chunksize = (end - start) + 1;
+      const file = fs.createReadStream(filePath, { start, end });
+      const head = {
+        'Content-Range': `bytes ${start}-${end}/${fileSize}`,
+        'Accept-Ranges': 'bytes',
+        'Content-Length': chunksize,
+        'Content-Type': 'video/mp4',
+      };
+
+      res.writeHead(206, head);
+      file.pipe(res);
+    } else {
+      const head = {
+        'Content-Length': fileSize,
+        'Content-Type': 'video/mp4',
+      };
+      res.writeHead(200, head);
+      fs.createReadStream(filePath).pipe(res);
+    }
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }
