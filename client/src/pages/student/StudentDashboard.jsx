@@ -14,6 +14,7 @@ export default function StudentDashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [launchingId, setLaunchingId] = useState(null);
+  const [creditStats, setCreditStats] = useState({ totalCredits: 0, approvedCount: 0 });
 
   useEffect(() => {
     fetchDashboardData();
@@ -23,8 +24,15 @@ export default function StudentDashboard() {
     try {
       setLoading(true);
       setError('');
-      const res = await api.get('/institute/dashboard/student');
+      const [res, creditRes] = await Promise.all([
+        api.get('/institute/dashboard/student'),
+        api.get('/cloud-credits/my-claims').catch(err => {
+          console.warn('Failed to load credit stats in dashboard:', err);
+          return { data: { stats: { totalCredits: 0, approvedCount: 0 } } };
+        })
+      ]);
       setData(res.data.data);
+      setCreditStats(creditRes.data.stats || { totalCredits: 0, approvedCount: 0 });
     } catch (err) {
       console.error('Error loading student dashboard:', err);
       setError(err.response?.data?.message || 'Failed to retrieve dashboard details.');
@@ -106,8 +114,8 @@ export default function StudentDashboard() {
         </div>
       </div>
 
-      {/* Grid containing Profile Summary & Attendance Ring */}
-      <div className="grid md:grid-cols-3 gap-6">
+      {/* Grid containing Profile Summary, Attendance Ring, Billing, and Cloud Credits */}
+      <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
         
         {/* Profile Card */}
         <div className="card p-6 bg-[var(--bg-card)] border border-[var(--border)] rounded-2xl shadow-sm flex flex-col justify-between">
@@ -128,14 +136,14 @@ export default function StudentDashboard() {
             </div>
           </div>
           <Link to="/student/profile" className="mt-6 flex items-center justify-center gap-2 py-2 bg-[var(--bg-sub)] hover:bg-[var(--border)] text-[var(--text-main)] rounded-xl text-xs font-black transition-colors border border-[var(--border)]">
-            <FiUser size={14} /> View Full Profile
+            <FiUser size={14} /> View Profile
           </Link>
         </div>
 
         {/* Attendance Card */}
         <div className="card p-6 bg-[var(--bg-card)] border border-[var(--border)] rounded-2xl shadow-sm flex flex-col justify-between items-center text-center">
           <div className="w-full text-left flex items-center gap-2 text-xs font-black uppercase text-[var(--text-light)] tracking-widest">
-            <FiClock /> Classroom Attendance
+            <FiClock /> Attendance Rate
           </div>
           <div className="relative my-4 flex items-center justify-center">
             <svg className="w-28 h-28 transform -rotate-90">
@@ -151,11 +159,11 @@ export default function StudentDashboard() {
               {attPercentage}%
             </div>
           </div>
-          <p className="text-xs text-[var(--text-muted)] font-semibold px-2 mb-2 leading-relaxed">
-            Aim for above 85% to retain premium lab & placement assistance.
+          <p className="text-[10px] text-[var(--text-muted)] font-semibold px-2 mb-2 leading-relaxed">
+            Aim for above 85% to retain placement assistance.
           </p>
           <Link to="/student/attendance" className="w-full btn-secondary py-2 text-xs font-black uppercase">
-            Attendance Logs
+            Logs
           </Link>
         </div>
 
@@ -163,7 +171,7 @@ export default function StudentDashboard() {
         <div className="card p-6 bg-[var(--bg-card)] border border-[var(--border)] rounded-2xl shadow-sm flex flex-col justify-between">
           <div>
             <div className="flex items-center gap-2 text-xs font-black uppercase text-[var(--text-light)] tracking-widest mb-4">
-              <FiBriefcase /> Billing & Fee Ledger
+              <FiBriefcase /> Fee Ledger
             </div>
             {fees ? (
               <div className="space-y-3 pt-2">
@@ -173,23 +181,44 @@ export default function StudentDashboard() {
                 </div>
                 <div className="grid grid-cols-2 gap-3 text-xs font-bold pt-2 text-[var(--text-muted)]">
                   <div>
-                    <span className="text-[9px] uppercase tracking-wide text-[var(--text-light)]">Total Fees</span>
+                    <span className="text-[9px] uppercase tracking-wide text-[var(--text-light)]">Total</span>
                     <p className="text-[var(--text-main)] mt-0.5">₹{fees.totalFees}</p>
                   </div>
                   <div>
-                    <span className="text-[9px] uppercase tracking-wide text-[var(--text-light)]">Paid Amount</span>
+                    <span className="text-[9px] uppercase tracking-wide text-[var(--text-light)]">Paid</span>
                     <p className="text-[var(--success)] mt-0.5">₹{fees.paidAmount || 0}</p>
                   </div>
                 </div>
               </div>
             ) : (
               <div className="flex flex-col items-center justify-center py-6 text-center">
-                <p className="text-xs text-[var(--text-muted)] font-bold">No outstanding fee ledger entries.</p>
+                <p className="text-xs text-[var(--text-muted)] font-bold">No ledger entries.</p>
               </div>
             )}
           </div>
           <Link to="/student/courses" className="mt-6 flex items-center justify-center gap-2 py-2 bg-[var(--bg-sub)] hover:bg-[var(--border)] text-[var(--text-main)] rounded-xl text-xs font-black transition-colors border border-[var(--border)]">
             Ledger Details
+          </Link>
+        </div>
+
+        {/* Cloud Credits Card */}
+        <div className="card p-6 bg-[var(--bg-card)] border border-[var(--border)] rounded-2xl shadow-sm flex flex-col justify-between">
+          <div>
+            <div className="flex items-center gap-2 text-xs font-black uppercase text-[var(--text-light)] tracking-widest mb-4">
+              <FiBriefcase /> Cloud Credits
+            </div>
+            <div className="space-y-3 pt-2">
+              <div className="bg-indigo-50/50 border border-indigo-100 p-3 rounded-xl dark:bg-indigo-950/20 dark:border-indigo-900/40">
+                <span className="text-[10px] uppercase font-black tracking-widest text-indigo-500">Approved Credits</span>
+                <div className="text-xl font-black text-indigo-600 dark:text-indigo-400 mt-1">${creditStats.totalCredits || 0}</div>
+              </div>
+              <div className="text-xs text-[var(--text-muted)] font-bold">
+                Approved Perks: <span className="text-[var(--text-main)] font-black">{creditStats.approvedCount || 0} claimed</span>
+              </div>
+            </div>
+          </div>
+          <Link to="/resources" className="mt-6 flex items-center justify-center gap-2 py-2 bg-[var(--bg-sub)] hover:bg-[var(--border)] text-[var(--text-main)] rounded-xl text-xs font-black transition-colors border border-[var(--border)]">
+            Explore Perks <FiArrowRight size={14} />
           </Link>
         </div>
 

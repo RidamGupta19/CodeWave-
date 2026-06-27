@@ -40,8 +40,10 @@ const AdminDashboard = () => {
   const [domains, setDomains] = useState([]);
   const [topics, setTopics] = useState([]);
   const [assessments, setAssessments] = useState([]);
+  const [claims, setClaims] = useState([]);
+  const [claimsLoading, setClaimsLoading] = useState(false);
   
-  const [activeTab, setActiveTab] = useState('overview'); // 'overview' | 'users' | 'domains' | 'topics' | 'assessments'
+  const [activeTab, setActiveTab] = useState('overview'); // 'overview' | 'users' | 'domains' | 'topics' | 'assessments' | 'claims'
   const [loading, setLoading] = useState(true);
   
   // Search & Filter State
@@ -637,6 +639,19 @@ const AdminDashboard = () => {
     setShowAllocateSubjectsModal(true);
   };
 
+  const fetchClaims = async () => {
+    setClaimsLoading(true);
+    try {
+      const res = await api.get('/cloud-credits/admin/claims');
+      setClaims(res.data.data || []);
+    } catch (err) {
+      console.error(err);
+      toast.error('Failed to load cloud credits claims');
+    } finally {
+      setClaimsLoading(false);
+    }
+  };
+
   useEffect(() => {
     if (activeTab === 'users') {
       if (userSubTab === 'students') {
@@ -648,6 +663,8 @@ const AdminDashboard = () => {
       }
     } else if (activeTab === 'settings') {
       fetchSettings();
+    } else if (activeTab === 'claims') {
+      fetchClaims();
     }
   }, [activeTab, userSubTab]);
 
@@ -1320,6 +1337,14 @@ const AdminDashboard = () => {
               className={`px-4 py-2 rounded-lg text-xs font-black transition-all ${activeTab === 'assessments' ? 'bg-emerald-600 dark:bg-indigo-600 text-white shadow-sm' : 'text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white'}`}
             >
               📝 Assign Assessments
+            </button>
+            <button
+              onClick={() => {
+                setActiveTab('claims');
+              }}
+              className={`px-4 py-2 rounded-lg text-xs font-black transition-all ${activeTab === 'claims' ? 'bg-emerald-600 dark:bg-indigo-600 text-white shadow-sm' : 'text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white'}`}
+            >
+              ☁️ Cloud Credit Claims
             </button>
             <button
               onClick={() => {
@@ -3080,6 +3105,125 @@ const AdminDashboard = () => {
                   </div>
                 )}
               </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Cloud Credit Claims Tab Panel */}
+      {activeTab === 'claims' && (
+        <div className="admin-panel bg-white dark:bg-slate-900/40 border border-slate-150 dark:border-white/5 rounded-3xl p-6 shadow-md dark:shadow-xl space-y-6 animate-in fade-in duration-300">
+          <div>
+            <h3 className="text-lg font-black text-slate-800 dark:text-white">Cloud Credit Claims</h3>
+            <p className="text-slate-550 dark:text-slate-400 text-xs mt-0.5">Manage student requests for cloud credits and premium developer tools</p>
+          </div>
+
+          {claimsLoading ? (
+            <div className="flex justify-center py-12">
+              <div className="w-8 h-8 rounded-full border-4 border-indigo-500/30 border-t-indigo-500 animate-spin"></div>
+            </div>
+          ) : (
+            <div className="overflow-x-auto rounded-2xl border border-slate-200 dark:border-white/5 bg-slate-50/50 dark:bg-slate-950/20">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="border-b border-slate-200 dark:border-white/5 bg-slate-100/70 dark:bg-slate-950/40 text-[10px] font-black text-slate-550 dark:text-slate-400 uppercase tracking-widest">
+                    <th className="p-4">Student</th>
+                    <th className="p-4">Perk / Resource</th>
+                    <th className="p-4">Requested Value</th>
+                    <th className="p-4">Voucher Code</th>
+                    <th className="p-4">Status</th>
+                    <th className="p-4 text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100 dark:divide-white/5 text-xs">
+                  {claims.length > 0 ? (
+                    claims.map((claim) => (
+                      <tr key={claim._id} className="hover:bg-slate-100/50 dark:hover:bg-slate-900/30 transition-colors">
+                        <td className="p-4 font-semibold text-slate-800 dark:text-white">
+                          <div>{claim.user?.fullName}</div>
+                          <div className="text-[10px] text-slate-400 font-normal">{claim.user?.email}</div>
+                        </td>
+                        <td className="p-4">
+                          <div className="font-bold">{claim.cloudCredit?.title}</div>
+                          <div className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">{claim.cloudCredit?.platform}</div>
+                        </td>
+                        <td className="p-4 font-mono font-bold text-indigo-650 dark:text-indigo-400">
+                          ${claim.amount}
+                        </td>
+                        <td className="p-4 font-mono">
+                          {claim.status === 'approved' ? (
+                            <span className="bg-slate-105 dark:bg-slate-800 px-2.5 py-1 rounded-lg border border-slate-200 dark:border-white/5 font-black text-indigo-505">
+                              {claim.voucherCode}
+                            </span>
+                          ) : (
+                            <span className="text-slate-400 font-medium">Not Approved Yet</span>
+                          )}
+                        </td>
+                        <td className="p-4">
+                          <span className={`text-[8px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full border ${
+                            claim.status === 'approved'
+                              ? 'bg-emerald-50 text-emerald-750 border-emerald-100 dark:bg-emerald-950/20 dark:text-emerald-400 dark:border-emerald-900/30'
+                              : claim.status === 'rejected'
+                              ? 'bg-rose-50 text-rose-750 border-rose-100 dark:bg-rose-950/20 dark:text-rose-455 dark:border-rose-900/30'
+                              : 'bg-amber-50 text-amber-750 border-amber-100 dark:bg-amber-950/20 dark:text-amber-400 dark:border-amber-900/30'
+                          }`}>
+                            {claim.status}
+                          </span>
+                        </td>
+                        <td className="p-4 text-right">
+                          {claim.status === 'pending' ? (
+                            <div className="flex justify-end gap-2">
+                              <button
+                                onClick={async () => {
+                                  const customVoucher = prompt("Assign custom Voucher Code (Leave blank to generate automatically):", claim.voucherCode);
+                                  const payload = { status: 'approved' };
+                                  if (customVoucher) payload.voucherCode = customVoucher;
+                                  
+                                  const loadingToast = toast.loading("Approving claim...");
+                                  try {
+                                    await api.put(`/cloud-credits/admin/claims/${claim._id}`, payload);
+                                    toast.success("Claim approved successfully!", { id: loadingToast });
+                                    fetchClaims();
+                                  } catch (err) {
+                                    toast.error("Failed to approve claim", { id: loadingToast });
+                                  }
+                                }}
+                                className="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-[10px] font-black transition-all"
+                              >
+                                Approve
+                              </button>
+                              <button
+                                onClick={async () => {
+                                  if (!window.confirm("Are you sure you want to reject this claim?")) return;
+                                  const loadingToast = toast.loading("Rejecting claim...");
+                                  try {
+                                    await api.put(`/cloud-credits/admin/claims/${claim._id}`, { status: 'rejected' });
+                                    toast.success("Claim rejected successfully!", { id: loadingToast });
+                                    fetchClaims();
+                                  } catch (err) {
+                                    toast.error("Failed to reject claim", { id: loadingToast });
+                                  }
+                                }}
+                                className="px-3.5 py-1.5 bg-rose-600 hover:bg-rose-500 text-white rounded-lg text-[10px] font-black transition-all"
+                              >
+                                Reject
+                              </button>
+                            </div>
+                          ) : (
+                            <span className="text-[10px] text-slate-400 italic font-semibold">No actions needed</span>
+                          )}
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan="6" className="p-8 text-center text-slate-500 text-xs font-semibold">
+                        No credit claims found in database.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
             </div>
           )}
         </div>
