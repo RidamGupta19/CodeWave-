@@ -81,6 +81,9 @@ app.use('/api/submissions', require('./routes/submissionRoutes'));
 app.use('/api/institute', require('./routes/instituteRoutes'));
 app.use('/api/roadmap-progress', require('./routes/roadmapProgress'));
 app.use('/api', require('./routes/activity'));
+app.use('/api/leaderboard', require('./routes/leaderboard'));
+app.use('/api/admin/leaderboard', require('./routes/gamificationAdmin'));
+app.use('/api/notifications', require('./routes/notifications'));
 
 // Health check
 app.get('/api/health', (req, res) => {

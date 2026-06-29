@@ -33,6 +33,7 @@ import {
 import toast from 'react-hot-toast';
 import { useAuth } from '../../context/AuthContext';
 import AdminUserActivity from './AdminUserActivity';
+import AdminLeaderboard from './AdminLeaderboard';
 
 const AdminDashboard = () => {
   const { user } = useAuth();
@@ -1354,6 +1355,14 @@ const AdminDashboard = () => {
               className={`px-4 py-2 rounded-lg text-xs font-black transition-all ${activeTab === 'activity' ? 'bg-emerald-600 dark:bg-indigo-600 text-white shadow-sm' : 'text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white'}`}
             >
               📈 User Analytics
+            </button>
+            <button
+              onClick={() => {
+                setActiveTab('leaderboard');
+              }}
+              className={`px-4 py-2 rounded-lg text-xs font-black transition-all ${activeTab === 'leaderboard' ? 'bg-emerald-600 dark:bg-indigo-600 text-white shadow-sm' : 'text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white'}`}
+            >
+              🏆 Leaderboard Settings
             </button>
             <button
               onClick={() => {
@@ -3241,6 +3250,11 @@ const AdminDashboard = () => {
       {/* User Analytics Panel */}
       {activeTab === 'activity' && (
         <AdminUserActivity />
+      )}
+
+      {/* Leaderboard Panel */}
+      {activeTab === 'leaderboard' && (
+        <AdminLeaderboard />
       )}
 
       {/* Institute Settings Panel */}

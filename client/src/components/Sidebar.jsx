@@ -32,6 +32,7 @@ export default function Sidebar() {
     { name: 'Assessments', path: '/student/assessments', icon: <FiCheckSquare /> },
     { name: 'Attendance', path: '/student/attendance', icon: <FiClock /> },
     { name: 'Results', path: '/student/results', icon: <FiAward /> },
+    { name: 'Leaderboard', path: '/student/leaderboard', icon: <FiTrendingUp /> },
     { name: 'Notifications', path: '/student/notifications', icon: <FiBell /> },
     { name: 'Profile', path: '/student/profile', icon: <FiUsers /> },
   ];

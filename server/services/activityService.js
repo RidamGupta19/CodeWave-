@@ -101,6 +101,20 @@ const recordLogin = async (user, userAgent, ipAddress) => {
   }
 
   await activity.save();
+
+  // Award Daily Login points & Streak points
+  if (role === 'student' || (activity.role === 'student')) {
+    try {
+      const gamificationService = require('./gamificationService');
+      await gamificationService.awardPoints(userId, 'login', null, today);
+      if (activity.currentLoginStreak > 1) {
+        await gamificationService.awardPoints(userId, 'streak', null, today);
+      }
+    } catch (err) {
+      console.error('Gamification login trigger failed:', err.message);
+    }
+  }
+
   return activity;
 };
 
@@ -231,7 +245,11 @@ const trackVideoActivity = async (userId, videoId, watchTime, completionPercenta
     if (isCompleted) {
       video.isCompleted = true;
     }
-    video.lastWatched = new Date();
+  }
+
+  const wasCompletedBefore = video ? video.isCompleted : false;
+  if (isCompleted && video) {
+    video.isCompleted = true;
   }
 
   activity.videoAnalytics.totalWatchTime += timeDiff;
@@ -239,6 +257,16 @@ const trackVideoActivity = async (userId, videoId, watchTime, completionPercenta
 
   activity.markModified('videoAnalytics');
   await activity.save();
+
+  // Award points if newly completed
+  if (isCompleted && !wasCompletedBefore) {
+    try {
+      const gamificationService = require('./gamificationService');
+      await gamificationService.awardPoints(userId, 'video', videoId);
+    } catch (err) {
+      console.error('Gamification video complete trigger failed:', err.message);
+    }
+  }
 };
 
 /**
@@ -270,17 +298,38 @@ const trackAssessmentActivity = async (userId, assessmentId, score, passed, time
 
   activity.markModified('assessmentAnalytics');
   await activity.save();
+
+  // Award points on passing
+  if (passed) {
+    try {
+      const gamificationService = require('./gamificationService');
+      await gamificationService.awardPoints(userId, 'assessment', assessmentId);
+      if (score >= 90) {
+        await gamificationService.awardPoints(userId, 'assessment_bonus', assessmentId);
+      }
+    } catch (err) {
+      console.error('Gamification assessment trigger failed:', err.message);
+    }
+  }
 };
 
 /**
  * Tracks student assignment submissions count
  */
-const trackAssignmentSubmission = async (userId) => {
+const trackAssignmentSubmission = async (userId, assignmentId = null) => {
   let activity = await UserActivity.findOne({ userId });
   if (!activity) return;
 
   activity.totalAssignmentsSubmitted += 1;
   await activity.save();
+
+  // Award points for assignment submission
+  try {
+    const gamificationService = require('./gamificationService');
+    await gamificationService.awardPoints(userId, 'assignment', assignmentId);
+  } catch (err) {
+    console.error('Gamification assignment trigger failed:', err.message);
+  }
 };
 
 module.exports = {

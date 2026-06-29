@@ -57,6 +57,7 @@ import StudentAttendance from './pages/student/StudentAttendance';
 import StudentResults from './pages/student/StudentResults';
 import StudentNotifications from './pages/student/StudentNotifications';
 import StudentProfile from './pages/student/StudentProfile';
+import Leaderboard from './pages/student/Leaderboard';
 
 // Admin / Teacher Roadmap Management
 import AdminRoadmapProgress from './pages/admin/AdminRoadmapProgress';
@@ -116,6 +117,7 @@ function App() {
               <Route path="/student/assessments" element={<StudentAssessments />} />
               <Route path="/student/attendance" element={<StudentAttendance />} />
               <Route path="/student/results" element={<StudentResults />} />
+              <Route path="/student/leaderboard" element={<Leaderboard />} />
               <Route path="/student/notifications" element={<StudentNotifications />} />
               <Route path="/student/profile" element={<StudentProfile />} />
             </Route>

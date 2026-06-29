@@ -300,6 +300,13 @@ exports.completeTopic = async (req, res) => {
         domainProgress.currentPhase += 1;
         domainProgress.xp = (domainProgress.xp || 0) + 500; // Bonus XP for phase completion
         
+        try {
+          const gamificationService = require('../services/gamificationService');
+          await gamificationService.awardPoints(user._id, 'roadmap', currentPhase._id);
+        } catch (e) {
+          console.error('Failed to award roadmap points:', e);
+        }
+        
         // Award phase badge if exists
         const badge = await Badge.findOne({ phaseId: currentPhase._id });
         if (badge) {
