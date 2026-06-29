@@ -390,6 +390,14 @@ exports.submitAssessment = async (req, res) => {
     user.markModified(`domainsProgress.${key}`);
     await user.save();
 
+    // Track assessment attempt in UserActivity
+    try {
+      const { trackAssessmentActivity } = require('../services/activityService');
+      await trackAssessmentActivity(req.user._id, assessmentId, score, passed, req.body.timeSpent || 0);
+    } catch (e) {
+      console.error('Failed to track assessment activity:', e);
+    }
+
     res.json({ success: true, message: passed ? 'Assessment passed!' : 'Keep trying!', data: { passed, score } });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });

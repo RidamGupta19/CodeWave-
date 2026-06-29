@@ -32,6 +32,7 @@ import {
 } from 'recharts';
 import toast from 'react-hot-toast';
 import { useAuth } from '../../context/AuthContext';
+import AdminUserActivity from './AdminUserActivity';
 
 const AdminDashboard = () => {
   const { user } = useAuth();
@@ -1345,6 +1346,14 @@ const AdminDashboard = () => {
               className={`px-4 py-2 rounded-lg text-xs font-black transition-all ${activeTab === 'claims' ? 'bg-emerald-600 dark:bg-indigo-600 text-white shadow-sm' : 'text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white'}`}
             >
               ☁️ Cloud Credit Claims
+            </button>
+            <button
+              onClick={() => {
+                setActiveTab('activity');
+              }}
+              className={`px-4 py-2 rounded-lg text-xs font-black transition-all ${activeTab === 'activity' ? 'bg-emerald-600 dark:bg-indigo-600 text-white shadow-sm' : 'text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white'}`}
+            >
+              📈 User Analytics
             </button>
             <button
               onClick={() => {
@@ -3227,6 +3236,11 @@ const AdminDashboard = () => {
             </div>
           )}
         </div>
+      )}
+
+      {/* User Analytics Panel */}
+      {activeTab === 'activity' && (
+        <AdminUserActivity />
       )}
 
       {/* Institute Settings Panel */}

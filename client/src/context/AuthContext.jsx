@@ -38,10 +38,16 @@ export function AuthProvider({ children }) {
     return data;
   };
 
-  const logout = () => {
-    localStorage.removeItem('cw_token');
-    localStorage.removeItem('cw_user');
-    setUser(null);
+  const logout = async () => {
+    try {
+      await api.post('/activity/session/end');
+    } catch (err) {
+      console.error('Failed to end session on logout:', err);
+    } finally {
+      localStorage.removeItem('cw_token');
+      localStorage.removeItem('cw_user');
+      setUser(null);
+    }
   };
 
   const refreshUser = async () => {

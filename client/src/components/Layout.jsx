@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Outlet } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import GlobalAiChat from './GlobalAiChat';
+import ActivityTracker from './ActivityTracker';
 
 const Layout = () => {
   const [theme, setTheme] = useState(() => localStorage.getItem('codewave_theme') || 'light');
@@ -25,6 +26,7 @@ const Layout = () => {
 
   return (
     <div className="flex flex-col lg:flex-row bg-[var(--bg-main)] min-h-screen text-[var(--text-main)] transition-colors duration-300 relative">
+      <ActivityTracker />
       <Sidebar />
       <main className="flex-1 overflow-y-auto bg-[var(--bg-main)] relative p-4 sm:p-6 lg:p-8">
         <Outlet />

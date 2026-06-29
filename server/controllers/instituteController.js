@@ -1119,6 +1119,15 @@ exports.submitAssignment = async (req, res) => {
     });
 
     await assignment.save();
+
+    // Track assignment submission in UserActivity
+    try {
+      const { trackAssignmentSubmission } = require('../services/activityService');
+      await trackAssignmentSubmission(student.userId);
+    } catch (e) {
+      console.error('Failed to track assignment submission:', e);
+    }
+
     res.json({ success: true, data: assignment });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });

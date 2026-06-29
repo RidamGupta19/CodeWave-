@@ -268,6 +268,14 @@ exports.saveVideoProgress = async (req, res) => {
       console.error('Failed to recalculate roadmap progress:', e);
     }
 
+    // Track video activity in UserActivity
+    try {
+      const { trackVideoActivity } = require('../services/activityService');
+      await trackVideoActivity(req.user._id, videoId, watchTime, pct, finalIsCompleted);
+    } catch (e) {
+      console.error('Failed to track video activity:', e);
+    }
+
     res.json({ success: true, data: progress });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
@@ -319,6 +327,14 @@ exports.toggleVideoComplete = async (req, res) => {
       }
     } catch (e) {
       console.error('Failed to recalculate roadmap progress:', e);
+    }
+
+    // Track video activity in UserActivity
+    try {
+      const { trackVideoActivity } = require('../services/activityService');
+      await trackVideoActivity(req.user._id, videoId, watchTime, progressPercentage, isCompleted);
+    } catch (e) {
+      console.error('Failed to track video activity:', e);
     }
 
     res.json({ success: true, data: progress });

@@ -54,6 +54,14 @@ exports.register = async (req, res) => {
 
     await ensureProfile(user);
 
+    // Track user registration login
+    try {
+      const { recordLogin } = require('../services/activityService');
+      await recordLogin(user, req.headers['user-agent'], req.ip);
+    } catch (e) {
+      console.error('Failed to record register login activity:', e);
+    }
+
     const token = user.generateToken();
     
     res.status(201).json({
@@ -103,6 +111,14 @@ exports.login = async (req, res) => {
     }
 
     await ensureProfile(user);
+
+    // Track user login
+    try {
+      const { recordLogin } = require('../services/activityService');
+      await recordLogin(user, req.headers['user-agent'], req.ip);
+    } catch (e) {
+      console.error('Failed to record login activity:', e);
+    }
 
     const token = user.generateToken();
 
@@ -345,6 +361,14 @@ exports.googleLogin = async (req, res) => {
     }
 
     await ensureProfile(user);
+
+    // Track user Google login
+    try {
+      const { recordLogin } = require('../services/activityService');
+      await recordLogin(user, req.headers['user-agent'], req.ip);
+    } catch (e) {
+      console.error('Failed to record Google login activity:', e);
+    }
 
     const token = user.generateToken();
 

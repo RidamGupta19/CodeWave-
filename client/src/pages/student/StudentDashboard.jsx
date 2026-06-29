@@ -15,6 +15,7 @@ export default function StudentDashboard() {
   const [error, setError] = useState('');
   const [launchingId, setLaunchingId] = useState(null);
   const [creditStats, setCreditStats] = useState({ totalCredits: 0, approvedCount: 0 });
+  const [activityData, setActivityData] = useState(null);
 
   useEffect(() => {
     fetchDashboardData();
@@ -24,15 +25,20 @@ export default function StudentDashboard() {
     try {
       setLoading(true);
       setError('');
-      const [res, creditRes] = await Promise.all([
+      const [res, creditRes, activityRes] = await Promise.all([
         api.get('/institute/dashboard/student'),
         api.get('/cloud-credits/my-claims').catch(err => {
           console.warn('Failed to load credit stats in dashboard:', err);
           return { data: { stats: { totalCredits: 0, approvedCount: 0 } } };
+        }),
+        api.get('/activity/summary').catch(err => {
+          console.warn('Failed to load activity summary:', err);
+          return { data: { success: true, data: null } };
         })
       ]);
       setData(res.data.data);
       setCreditStats(creditRes.data.stats || { totalCredits: 0, approvedCount: 0 });
+      setActivityData(activityRes.data?.data);
     } catch (err) {
       console.error('Error loading student dashboard:', err);
       setError(err.response?.data?.message || 'Failed to retrieve dashboard details.');
@@ -111,6 +117,62 @@ export default function StudentDashboard() {
           <p className="text-sm md:text-base text-emerald-100 font-semibold max-w-xl">
             "Your learning curve is your greatest asset. Build things, break them, and rise as a developer."
           </p>
+        </div>
+      </div>
+
+      {/* My Activity Section */}
+      <div className="card p-6 bg-white dark:bg-slate-900 border border-slate-100 dark:border-white/5 rounded-3xl shadow-sm space-y-4 transition-all duration-300 hover:shadow-md">
+        <div className="flex justify-between items-center pb-2 border-b border-slate-50 dark:border-white/5">
+          <h3 className="text-sm font-black uppercase text-[var(--text-main)] tracking-wider flex items-center gap-2">
+            <FiActivity className="text-[var(--primary)] animate-pulse" /> My Activity Metrics
+          </h3>
+          <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest bg-slate-50 dark:bg-slate-950/60 px-3 py-1 rounded-full border border-slate-100 dark:border-white/5">
+            Real-time Tracker
+          </span>
+        </div>
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-4">
+          <div className="bg-slate-50/50 dark:bg-slate-950/20 p-4 rounded-2xl border border-slate-100/60 dark:border-white/5 text-center transition-all hover:scale-[1.02]">
+            <span className="text-[9px] uppercase font-black text-slate-400 dark:text-slate-500 tracking-wider block mb-1">Time Spent</span>
+            <div className="text-xl font-black text-slate-800 dark:text-white mt-1">
+              {activityData?.totalHours || 0} <span className="text-xs font-bold text-slate-500">hrs</span>
+            </div>
+          </div>
+          <div className="bg-slate-50/50 dark:bg-slate-950/20 p-4 rounded-2xl border border-slate-100/60 dark:border-white/5 text-center transition-all hover:scale-[1.02]">
+            <span className="text-[9px] uppercase font-black text-slate-400 dark:text-slate-500 tracking-wider block mb-1">Total Logins</span>
+            <div className="text-xl font-black text-slate-800 dark:text-white mt-1">
+              {activityData?.totalLogins || 0}
+            </div>
+          </div>
+          <div className="bg-emerald-50/20 dark:bg-emerald-950/10 p-4 rounded-2xl border border-emerald-100/40 dark:border-emerald-900/10 text-center transition-all hover:scale-[1.02]">
+            <span className="text-[9px] uppercase font-black text-emerald-600 dark:text-emerald-500 tracking-wider block mb-1">Learning Streak</span>
+            <div className="text-xl font-black text-emerald-650 dark:text-emerald-450 mt-1 flex items-center justify-center gap-1">
+              🔥 {activityData?.learningStreak || 0} <span className="text-[10px] font-bold">days</span>
+            </div>
+          </div>
+          <div className="bg-slate-50/50 dark:bg-slate-950/20 p-4 rounded-2xl border border-slate-100/60 dark:border-white/5 text-center transition-all hover:scale-[1.02]">
+            <span className="text-[9px] uppercase font-black text-slate-400 dark:text-slate-500 tracking-wider block mb-1">Videos Watched</span>
+            <div className="text-xl font-black text-slate-800 dark:text-white mt-1">
+              {activityData?.videosWatched || 0}
+            </div>
+          </div>
+          <div className="bg-slate-50/50 dark:bg-slate-950/20 p-4 rounded-2xl border border-slate-100/60 dark:border-white/5 text-center transition-all hover:scale-[1.02]">
+            <span className="text-[9px] uppercase font-black text-slate-400 dark:text-slate-500 tracking-wider block mb-1">Assessments</span>
+            <div className="text-xl font-black text-slate-800 dark:text-white mt-1">
+              {activityData?.assessmentsAttempted || 0}
+            </div>
+          </div>
+          <div className="bg-slate-50/50 dark:bg-slate-950/20 p-4 rounded-2xl border border-slate-100/60 dark:border-white/5 text-center transition-all hover:scale-[1.02]">
+            <span className="text-[9px] uppercase font-black text-slate-400 dark:text-slate-500 tracking-wider block mb-1">Spent This Week</span>
+            <div className="text-xl font-black text-slate-800 dark:text-white mt-1">
+              {activityData?.timeSpentThisWeek || 0} <span className="text-xs font-bold text-slate-500">mins</span>
+            </div>
+          </div>
+          <div className="bg-slate-50/50 dark:bg-slate-950/20 p-4 rounded-2xl border border-slate-100/60 dark:border-white/5 text-center transition-all hover:scale-[1.02]">
+            <span className="text-[9px] uppercase font-black text-slate-400 dark:text-slate-500 tracking-wider block mb-1">Spent This Month</span>
+            <div className="text-xl font-black text-slate-800 dark:text-white mt-1">
+              {activityData?.timeSpentThisMonth || 0} <span className="text-xs font-bold text-slate-500">mins</span>
+            </div>
+          </div>
         </div>
       </div>
 
