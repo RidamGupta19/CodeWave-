@@ -231,6 +231,14 @@ exports.submitAssessmentAttempt = async (req, res) => {
 
     await progress.save();
 
+    // Sync assessment result with UserRoadmap
+    try {
+      const { syncAssessmentAttempt } = require('./userRoadmapController');
+      await syncAssessmentAttempt(req.user._id, assessmentId, passed);
+    } catch (e) {
+      console.error('Failed to sync assessment with UserRoadmap:', e.message);
+    }
+
     // Recalculate progression downstream
     const updatedProgress = await recalculateProgress(student._id, student.course);
     const populatedProgress = await RoadmapProgress.findById(updatedProgress._id)

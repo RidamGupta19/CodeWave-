@@ -81,6 +81,8 @@ app.use('/api/code', require('./routes/codeRoutes'));
 app.use('/api/submissions', require('./routes/submissionRoutes'));
 app.use('/api/institute', require('./routes/instituteRoutes'));
 app.use('/api/roadmap-progress', require('./routes/roadmapProgress'));
+app.use('/api/admin/roadmap', require('./routes/adminRoadmap'));
+app.use('/api/roadmap', require('./routes/roadmap'));
 app.use('/api', require('./routes/activity'));
 app.use('/api/leaderboard', require('./routes/leaderboard'));
 app.use('/api/admin/leaderboard', require('./routes/gamificationAdmin'));
@@ -125,6 +127,14 @@ const startServer = async () => {
         }
       } catch (err) {
         console.error('❌ Auto-seed failed:', err.message);
+      }
+
+      // Run UserRoadmap migration for existing users
+      try {
+        const { migrateExistingRoadmaps } = require('./scripts/migrateRoadmaps');
+        await migrateExistingRoadmaps();
+      } catch (err) {
+        console.error('❌ UserRoadmap migration failed:', err.message);
       }
     });
   } catch (err) {

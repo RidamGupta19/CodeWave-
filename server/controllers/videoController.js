@@ -260,9 +260,11 @@ exports.saveVideoProgress = async (req, res) => {
     // Recalculate roadmap progress
     try {
       const { recalculateProgress } = require('./roadmapProgressController');
+      const { syncVideoWatch } = require('./userRoadmapController');
       const student = await Student.findOne({ userId: req.user._id });
       if (student && student.course) {
         await recalculateProgress(student._id, student.course);
+        await syncVideoWatch(req.user._id, videoId, finalIsCompleted);
       }
     } catch (e) {
       console.error('Failed to recalculate roadmap progress:', e);
@@ -321,9 +323,11 @@ exports.toggleVideoComplete = async (req, res) => {
     // Recalculate roadmap progress
     try {
       const { recalculateProgress } = require('./roadmapProgressController');
+      const { syncVideoWatch } = require('./userRoadmapController');
       const student = await Student.findOne({ userId: req.user._id });
       if (student && student.course) {
         await recalculateProgress(student._id, student.course);
+        await syncVideoWatch(req.user._id, videoId, isCompleted);
       }
     } catch (e) {
       console.error('Failed to recalculate roadmap progress:', e);

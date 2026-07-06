@@ -124,6 +124,12 @@ exports.createStudent = async (req, res) => {
           remainingAmount: courseObj.fees
         });
       }
+      try {
+        const { createRoadmapForUser } = require('./userRoadmapController');
+        await createRoadmapForUser(user._id, course, req.user._id, 'default');
+      } catch (err) {
+        console.error('Failed to auto-create user roadmap:', err.message);
+      }
     }
 
     res.status(201).json({ success: true, data: student });
@@ -148,6 +154,7 @@ exports.updateStudent = async (req, res) => {
       await Batch.findByIdAndUpdate(batch, { $addToSet: { students: student._id } });
     }
 
+    const oldCourse = student.course;
     student.fullName = fullName || student.fullName;
     student.phone = phone !== undefined ? phone : student.phone;
     student.address = address !== undefined ? address : student.address;
@@ -157,6 +164,15 @@ exports.updateStudent = async (req, res) => {
     student.profilePhoto = profilePhoto !== undefined ? profilePhoto : student.profilePhoto;
 
     await student.save();
+
+    if (course !== undefined && course !== null && (!oldCourse || oldCourse.toString() !== course.toString())) {
+      try {
+        const { createRoadmapForUser } = require('./userRoadmapController');
+        await createRoadmapForUser(student.userId, course, req.user._id, 'default');
+      } catch (err) {
+        console.error('Failed to auto-provision updated user roadmap:', err.message);
+      }
+    }
 
     // Sync user details
     await User.findByIdAndUpdate(student.userId, { fullName: student.fullName });

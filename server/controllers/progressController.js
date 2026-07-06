@@ -397,6 +397,14 @@ exports.submitAssessment = async (req, res) => {
     user.markModified(`domainsProgress.${key}`);
     await user.save();
 
+    // Sync assessment result with UserRoadmap
+    try {
+      const { syncAssessmentAttempt } = require('./userRoadmapController');
+      await syncAssessmentAttempt(req.user._id, assessmentId, passed);
+    } catch (e) {
+      console.error('Failed to sync assessment with UserRoadmap:', e.message);
+    }
+
     // Track assessment attempt in UserActivity
     try {
       const { trackAssessmentActivity } = require('../services/activityService');
