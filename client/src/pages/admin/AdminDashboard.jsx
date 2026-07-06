@@ -34,6 +34,7 @@ import toast from 'react-hot-toast';
 import { useAuth } from '../../context/AuthContext';
 import AdminUserActivity from './AdminUserActivity';
 import AdminLeaderboard from './AdminLeaderboard';
+import AdminAllocationHub from './AdminAllocationHub';
 
 const AdminDashboard = () => {
   const { user } = useAuth();
@@ -3113,6 +3114,12 @@ const AdminDashboard = () => {
               >
                 👥 Batches
               </button>
+              <button
+                onClick={() => setCourseSubTab('allocations')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${courseSubTab === 'allocations' ? 'bg-emerald-600 dark:bg-indigo-600 text-white shadow-sm' : 'text-slate-550 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white'}`}
+              >
+                👥 Allocations & Schedules
+              </button>
             </div>
           </div>
 
@@ -3483,6 +3490,10 @@ const AdminDashboard = () => {
                 )}
               </div>
             </div>
+          )}
+
+          {courseSubTab === 'allocations' && (
+            <AdminAllocationHub />
           )}
         </div>
       )}

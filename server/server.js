@@ -75,6 +75,8 @@ app.use('/api/cloud-credits', require('./routes/cloudCredits'));
 app.use('/api/certificates', require('./routes/certificates'));
 app.use('/api/ai', require('./routes/ai'));
 app.use('/api/admin', require('./routes/admin'));
+app.use('/api/admin', require('./routes/adminAllocationRoutes'));
+app.use('/api/profile', require('./routes/profileRoutes'));
 app.use('/api/admin/settings', require('./routes/settingsRoutes'));
 app.use('/api/problems', require('./routes/problemRoutes'));
 app.use('/api/code', require('./routes/codeRoutes'));

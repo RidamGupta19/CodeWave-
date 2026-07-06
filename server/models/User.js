@@ -126,7 +126,14 @@ const userSchema = new mongoose.Schema({
     specialization: [{ type: String }],
     bio: { type: String, default: '' },
     assignedStudents: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }]
-  }
+  },
+
+  // Student course & batch allocation fields
+  courseId: { type: mongoose.Schema.Types.ObjectId, ref: 'Course' },
+  batchId: { type: mongoose.Schema.Types.ObjectId, ref: 'Batch' },
+  assignedRoadmapId: { type: mongoose.Schema.Types.ObjectId, ref: 'UserRoadmap' },
+  enrollmentDate: { type: Date, default: Date.now },
+  courseStatus: { type: String, enum: ['Active', 'Completed', 'Dropped'], default: 'Active' }
 }, { timestamps: true });
 
 // Setup virtual for backward compatibility and totalXP getter

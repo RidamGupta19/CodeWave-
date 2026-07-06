@@ -41,9 +41,33 @@ export default function StudentProfile() {
   const [savingParent, setSavingParent] = useState(false);
   const [savingSecurity, setSavingSecurity] = useState(false);
 
+  const [allocatedCourse, setAllocatedCourse] = useState(null);
+  const [allocatedBatch, setAllocatedBatch] = useState(null);
+  const [allocatedSchedule, setAllocatedSchedule] = useState(null);
+  const [loadingAllocation, setLoadingAllocation] = useState(false);
+
   useEffect(() => {
     fetchStudentProfile();
   }, []);
+
+  const fetchAllocations = async () => {
+    try {
+      setLoadingAllocation(true);
+      const [courseRes, batchRes, scheduleRes] = await Promise.allSettled([
+        api.get('/profile/course'),
+        api.get('/profile/batch'),
+        api.get('/profile/schedule')
+      ]);
+
+      if (courseRes.status === 'fulfilled') setAllocatedCourse(courseRes.value.data.data);
+      if (batchRes.status === 'fulfilled') setAllocatedBatch(batchRes.value.data.data);
+      if (scheduleRes.status === 'fulfilled') setAllocatedSchedule(scheduleRes.value.data.data);
+    } catch (err) {
+      console.error('Error loading allocations:', err);
+    } finally {
+      setLoadingAllocation(false);
+    }
+  };
 
   const fetchStudentProfile = async () => {
     try {
@@ -64,6 +88,9 @@ export default function StudentProfile() {
         parentPhone: student.parentPhone || '',
         parentEmail: student.parentEmail || ''
       });
+
+      // Load course & batch allocation details
+      await fetchAllocations();
     } catch (err) {
       console.error('Error loading student profile:', err);
       toast.error('Failed to load profile details');
@@ -412,48 +439,197 @@ export default function StudentProfile() {
               </form>
             )}
 
-            {/* 3. BATCH & COURSE TAB (READ-ONLY) */}
+             {/* 3. BATCH & COURSE TAB */}
             {activeTab === 'academic' && (
               <div className="space-y-8">
-                
-                {/* Course Details */}
-                <div className="space-y-4">
-                  <h3 className="text-xs font-black uppercase text-[var(--text-light)] tracking-widest flex items-center gap-2">
-                    <FiBookOpen /> Allocated Course Details
-                  </h3>
-                  {student.course ? (
-                    <div className="bg-[var(--bg-sub)]/20 border border-[var(--border)] p-5 rounded-2xl space-y-3">
-                      <h4 className="text-base font-black text-[var(--text-main)]">{student.course.courseName}</h4>
-                      <div className="text-xs text-[var(--text-muted)] leading-relaxed font-semibold">
-                        {student.course.description || 'Course outline details has been configured by management admin.'}
-                      </div>
-                      <div className="text-[10px] font-black uppercase text-[var(--text-light)] pt-2 border-t border-[var(--border-light)]">
-                        Duration Limit: <span className="text-[var(--text-main)]">{student.course.duration}</span>
-                      </div>
-                    </div>
-                  ) : (
-                    <p className="text-xs text-[var(--text-muted)] font-bold pl-1">No course details registered yet.</p>
-                  )}
+                <div>
+                  <h3 className="text-sm font-black uppercase text-[var(--text-main)] tracking-wider mb-1">My Course & Batch Information</h3>
+                  <p className="text-[10px] text-[var(--text-muted)] font-bold">Review your allocated syllabus track, mentor assignments, timings, and class schedule pipelines.</p>
                 </div>
 
-                {/* Batch Details */}
-                <div className="space-y-4">
-                  <h3 className="text-xs font-black uppercase text-[var(--text-light)] tracking-widest flex items-center gap-2">
-                    <FiClock /> Allocated Batch Timings
-                  </h3>
-                  {student.batch ? (
-                    <div className="bg-[var(--bg-sub)]/20 border border-[var(--border)] p-5 rounded-2xl space-y-3">
-                      <h4 className="text-base font-black text-[var(--text-main)]">{student.batch.batchName}</h4>
-                      <div className="space-y-2 pt-2 text-xs text-[var(--text-muted)] font-bold">
-                        <div className="flex justify-between border-b border-[var(--border-light)] pb-2"><span>Classroom Timetable:</span> <span className="text-[var(--text-main)]">{student.batch.timing || 'To be shared'}</span></div>
-                        <div className="flex justify-between border-b border-[var(--border-light)] pb-2"><span>Commenced Date:</span> <span className="text-[var(--text-main)]">{new Date(student.batch.startDate).toLocaleDateString()}</span></div>
-                        <div className="flex justify-between"><span>Assigned Lecturer:</span> <span className="text-[var(--primary)]">{student.batch.assignedTeacher?.name || 'Class Mentor'}</span></div>
-                      </div>
+                {loadingAllocation ? (
+                  <div className="space-y-3 animate-pulse">
+                    <div className="h-20 bg-[var(--bg-sub)]/35 rounded-xl" />
+                    <div className="h-20 bg-[var(--bg-sub)]/35 rounded-xl" />
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    
+                    {/* Course Information Card */}
+                    <div className="card p-5 bg-[var(--bg-card)] border border-[var(--border)] rounded-2xl space-y-4">
+                      <h4 className="text-xs font-black uppercase text-[var(--text-light)] tracking-widest flex items-center gap-1.5 pb-2 border-b border-[var(--border-light)]">
+                        <FiBookOpen className="text-[var(--primary)]" /> Course Details
+                      </h4>
+                      {allocatedCourse ? (
+                        <div className="space-y-3 text-left">
+                          <div>
+                            <span className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-wider">Course Name</span>
+                            <p className="text-xs font-extrabold text-[var(--text-main)] mt-0.5">{allocatedCourse.courseName}</p>
+                          </div>
+                          <div>
+                            <span className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-wider">Description</span>
+                            <p className="text-[10px] text-[var(--text-muted)] mt-0.5 leading-relaxed font-semibold">{allocatedCourse.description || 'Course outline details'}</p>
+                          </div>
+                          <div className="grid grid-cols-2 gap-3 pt-2 border-t border-[var(--border-light)]">
+                            <div>
+                              <span className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-wider">Duration</span>
+                              <p className="text-[10px] font-extrabold text-[var(--text-main)] mt-0.5">{allocatedCourse.duration}</p>
+                            </div>
+                            <div>
+                              <span className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-wider">Status</span>
+                              <span className="inline-block mt-0.5 px-2 py-0.5 text-[8px] font-black uppercase rounded bg-emerald-50 text-emerald-600 border border-emerald-100 dark:bg-emerald-950/20 dark:text-emerald-400 dark:border-emerald-900/30">
+                                {allocatedCourse.courseStatus}
+                              </span>
+                            </div>
+                            <div>
+                              <span className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-wider">Start Date</span>
+                              <p className="text-[10px] font-extrabold text-[var(--text-main)] mt-0.5">{new Date(allocatedCourse.startDate).toLocaleDateString()}</p>
+                            </div>
+                            <div>
+                              <span className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-wider">End Date</span>
+                              <p className="text-[10px] font-extrabold text-[var(--text-main)] mt-0.5">{new Date(allocatedCourse.endDate).toLocaleDateString()}</p>
+                            </div>
+                          </div>
+                        </div>
+                      ) : (
+                        <p className="text-xs text-[var(--text-muted)] font-semibold">No course allocated yet.</p>
+                      )}
                     </div>
-                  ) : (
-                    <p className="text-xs text-[var(--text-muted)] font-bold pl-1">No batch allocation logged yet.</p>
-                  )}
-                </div>
+
+                    {/* Batch Information Card */}
+                    <div className="card p-5 bg-[var(--bg-card)] border border-[var(--border)] rounded-2xl space-y-4">
+                      <h4 className="text-xs font-black uppercase text-[var(--text-light)] tracking-widest flex items-center gap-1.5 pb-2 border-b border-[var(--border-light)]">
+                        <FiClock className="text-[var(--primary)]" /> Batch & Mentor
+                      </h4>
+                      {allocatedBatch ? (
+                        <div className="space-y-3 text-left">
+                          <div>
+                            <span className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-wider">Batch Name</span>
+                            <p className="text-xs font-extrabold text-[var(--text-main)] mt-0.5">{allocatedBatch.batchName}</p>
+                          </div>
+                          <div>
+                            <span className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-wider">Assigned Mentor/Teacher</span>
+                            <p className="text-xs font-extrabold text-[var(--primary)] mt-0.5">{allocatedBatch.assignedTeacher}</p>
+                          </div>
+                          <div className="grid grid-cols-2 gap-3 pt-2 border-t border-[var(--border-light)]">
+                            <div>
+                              <span className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-wider">Batch Strength</span>
+                              <p className="text-[10px] font-extrabold text-[var(--text-main)] mt-0.5">{allocatedBatch.studentsCount} students</p>
+                            </div>
+                            <div>
+                              <span className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-wider">Timings</span>
+                              <p className="text-[10px] font-extrabold text-[var(--text-main)] mt-0.5">{allocatedBatch.timing}</p>
+                            </div>
+                          </div>
+                        </div>
+                      ) : (
+                        <p className="text-xs text-[var(--text-muted)] font-semibold">No batch allocated yet.</p>
+                      )}
+                    </div>
+
+                    {/* Schedule Information Card */}
+                    <div className="card p-5 bg-[var(--bg-card)] border border-[var(--border)] rounded-2xl space-y-4 md:col-span-2">
+                      <h4 className="text-xs font-black uppercase text-[var(--text-light)] tracking-widest flex items-center gap-1.5 pb-2 border-b border-[var(--border-light)]">
+                        <FiClock className="text-[var(--primary)]" /> Class Day Schedules & Timetable
+                      </h4>
+                      {allocatedSchedule ? (
+                        <div className="grid md:grid-cols-2 gap-6 text-left">
+                          <div className="space-y-3">
+                            <span className="text-[10px] font-black text-[var(--text-light)] uppercase tracking-widest">Weekly Class Days</span>
+                            <div className="space-y-1.5">
+                              {allocatedSchedule.classDays && allocatedSchedule.classDays.length > 0 ? (
+                                allocatedSchedule.classDays.map(day => (
+                                  <div key={day} className="flex justify-between items-center text-xs font-extrabold text-[var(--text-main)] bg-[var(--bg-sub)]/35 p-2.5 rounded-xl border border-[var(--border-light)]">
+                                    <span>{day}</span>
+                                    <span className="text-[var(--text-muted)] font-bold">{allocatedSchedule.startTime} - {allocatedSchedule.endTime} ({allocatedSchedule.timezone})</span>
+                                  </div>
+                                ))
+                              ) : (
+                                <p className="text-xs text-[var(--text-muted)] font-bold">No standard schedule found.</p>
+                              )}
+                            </div>
+                          </div>
+
+                          <div className="space-y-4">
+                            {/* Upcoming Class */}
+                            <div className="p-4 bg-[var(--primary-light)]/30 border border-[var(--primary)]/20 rounded-2xl space-y-1.5">
+                              <span className="text-[9px] font-black uppercase text-[var(--primary)] tracking-widest">Next Upcoming Class</span>
+                              {allocatedSchedule.upcomingClass ? (
+                                <div>
+                                  <p className="text-xs font-extrabold text-[var(--text-main)]">
+                                    Date: {new Date(allocatedSchedule.upcomingClass.date).toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+                                  </p>
+                                  <p className="text-xs font-black text-[var(--primary)] mt-0.5">
+                                    Time: {allocatedSchedule.upcomingClass.time}
+                                  </p>
+                                  {allocatedSchedule.upcomingClass.isExtra && (
+                                    <span className="inline-block mt-1 px-1.5 py-0.5 text-[7px] font-black uppercase bg-cyan-100 text-cyan-600 rounded">
+                                      ★ Extra Class: {allocatedSchedule.upcomingClass.topic}
+                                    </span>
+                                  )}
+                                </div>
+                              ) : (
+                                <p className="text-xs text-[var(--text-muted)] font-semibold">No upcoming classes scheduled.</p>
+                              )}
+                            </div>
+
+                            {/* Holidays */}
+                            <div className="space-y-2">
+                              <span className="text-[10px] font-black uppercase tracking-wider text-[var(--text-light)]">Holiday Schedule</span>
+                              {allocatedSchedule.holidayDates && allocatedSchedule.holidayDates.length > 0 ? (
+                                <div className="space-y-1">
+                                  {allocatedSchedule.holidayDates.map((h, hIdx) => (
+                                    <div key={hIdx} className="text-xs font-semibold text-[var(--text-muted)] flex justify-between p-2.5 bg-rose-500/[0.02] border border-rose-500/10 rounded-xl">
+                                      <span>{h.name}</span>
+                                      <span className="text-rose-500 font-extrabold">{new Date(h.date).toLocaleDateString()}</span>
+                                    </div>
+                                  ))}
+                                </div>
+                              ) : (
+                                <p className="text-[10px] text-[var(--text-muted)] font-semibold">No holidays listed.</p>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      ) : (
+                        <p className="text-xs text-[var(--text-muted)] font-semibold">No schedule loaded.</p>
+                      )}
+                    </div>
+
+                    {/* Roadmap Information Card */}
+                    <div className="card p-5 bg-[var(--bg-card)] border border-[var(--border)] rounded-2xl space-y-4 md:col-span-2">
+                      <h4 className="text-xs font-black uppercase text-[var(--text-light)] tracking-widest flex items-center gap-1.5 pb-2 border-b border-[var(--border-light)]">
+                        <FiAward className="text-[var(--primary)]" /> Custom Level Roadmap Tracker
+                      </h4>
+                      {allocatedSchedule && allocatedSchedule.roadmap ? (
+                        <div className="grid md:grid-cols-2 gap-6 items-center text-left">
+                          <div className="space-y-2">
+                            <div>
+                              <span className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-wider">Current Level Target</span>
+                              <p className="text-sm font-extrabold text-[var(--text-main)] mt-0.5">{allocatedSchedule.roadmap.currentLevel === 0 ? 'Baseline' : `Level ${allocatedSchedule.roadmap.currentLevel}`}: {allocatedSchedule.roadmap.currentModule}</p>
+                            </div>
+                            <div>
+                              <span className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-wider">Progress Percentage</span>
+                              <p className="text-xs font-black text-[var(--primary)] mt-0.5">{allocatedSchedule.roadmap.progress}% Completed</p>
+                            </div>
+                          </div>
+
+                          <div>
+                            <div className="w-full h-3.5 bg-[var(--bg-sub)] rounded-full overflow-hidden border border-[var(--border-light)] p-0.5">
+                              <div
+                                className="h-full bg-gradient-to-r from-cyan-400 via-indigo-400 to-indigo-500 rounded-full transition-all duration-500"
+                                style={{ width: `${allocatedSchedule.roadmap.progress}%` }}
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      ) : (
+                        <p className="text-xs text-[var(--text-muted)] font-semibold">No level roadmap progress logged yet.</p>
+                      )}
+                    </div>
+
+                  </div>
+                )}
 
               </div>
             )}
