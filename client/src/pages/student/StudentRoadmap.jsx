@@ -355,15 +355,17 @@ export default function StudentRoadmap() {
                                 </div>
                               )}
                             </div>
+                          )}
 
-                            {!isUnlocked && (
-                              <p className="mt-3 text-[10px] text-rose-500 font-extrabold flex items-center gap-1 pl-4">
-                                🔒 Locked: Clear the previous subject's assessment first to unlock this module.
-                              </p>
-                            )}
+                          {!isUnlocked && (
+                            <p className="mt-3 text-[10px] text-rose-500 font-extrabold flex items-center gap-1 pl-4">
+                              🔒 Locked: Clear the previous subject's assessment first to unlock this module.
+                            </p>
+                          )}
                           </div>
-                        );
-                      })}
+                        </div>
+                      );
+                    })}
                     </div>
                   </div>
                 </>
