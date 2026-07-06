@@ -238,6 +238,28 @@ const AdminDashboard = () => {
   const [newHoliday, setNewHoliday] = useState({ name: '', date: '' });
   const [newSession, setNewSession] = useState('');
 
+  // Custom MERN Architect settings states
+  const [auditLogs, setAuditLogs] = useState([]);
+  const [auditPage, setAuditPage] = useState(1);
+  const [auditTotalPages, setAuditTotalPages] = useState(1);
+  const [auditSearch, setAuditSearch] = useState('');
+  const [auditAction, setAuditAction] = useState('');
+  const [activeSessions, setActiveSessions] = useState([]);
+  const [rolesList, setRolesList] = useState([]);
+  const [newRoleName, setNewRoleName] = useState('');
+  const [editingRole, setEditingRole] = useState(null);
+  const [storageAnalytics, setStorageAnalytics] = useState({
+    totalUsageMB: 0,
+    videoUsageMB: 0,
+    avatarUsageMB: 0,
+    notesUsageMB: 0,
+    assignmentsUsageMB: 0,
+    otherUsageMB: 0
+  });
+  const [testEmailRecipient, setTestEmailRecipient] = useState('');
+  const [isTestingSmtp, setIsTestingSmtp] = useState(false);
+  const [isCleaningStorage, setIsCleaningStorage] = useState(false);
+
   useEffect(() => {
     fetchInitialData();
   }, []);
@@ -529,7 +551,81 @@ const AdminDashboard = () => {
     try {
       const res = await api.get('/admin/settings');
       if (res.data.success) {
-        setSettingsForm(res.data.data);
+        const d = res.data.data;
+        setSettingsForm({
+          // profile details
+          name: d.profile?.instituteName || '',
+          logo: d.profile?.logo || '',
+          address: d.profile?.address || '',
+          contactDetails: {
+            phone: d.profile?.contactNumber || '',
+            email: d.profile?.supportEmail || '',
+            website: d.profile?.websiteUrl || ''
+          },
+          socialMediaLinks: d.profile?.socialMediaLinks || { facebook: '', twitter: '', linkedin: '', instagram: '' },
+          timezone: d.profile?.timezone || 'Asia/Kolkata',
+          language: d.profile?.language || 'en',
+          themeSettings: d.profile?.themeSettings || { primaryColor: '#0284c7', secondaryColor: '#0f172a', darkMode: true },
+
+          // academic config
+          sessions: d.academic?.sessions || d.profile?.sessions || ['2026-2027'],
+          holidays: d.academic?.holidays || [],
+          workingDays: d.academic?.workingDays || ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'],
+          timetable: {
+            startHour: d.academic?.batchTimings?.startTime || '09:00 AM',
+            endHour: d.academic?.batchTimings?.endTime || '06:00 PM'
+          },
+          attendanceRules: d.academic?.attendanceRules || { minAttendancePercentage: 75, enableAttendancePenalty: false },
+          passingPercentage: d.academic?.passingPercentage || 40,
+          assignmentSubmissionRules: d.academic?.assignmentSubmissionRules || { allowLateSubmission: true, latePenaltyPercentage: 10 },
+          assessmentConfiguration: d.academic?.assessmentConfiguration || { durationMinutes: 60, maxAttempts: 3 },
+          courseDuration: d.academic?.courseDuration || 6,
+          batchTimings: d.academic?.batchTimings || { startTime: '09:00 AM', endTime: '06:00 PM' },
+          academicYear: d.academic?.academicYear || '2026-2027',
+          sessionStartDate: d.academic?.sessionStartDate ? d.academic.sessionStartDate.split('T')[0] : '',
+          sessionEndDate: d.academic?.sessionEndDate ? d.academic.sessionEndDate.split('T')[0] : '',
+
+          // auth & security
+          passwordPolicies: {
+            minLength: d.auth?.passwordPolicy?.minLength || 6,
+            requireSpecialChar: d.auth?.passwordPolicy?.requireSpecialChar || false,
+            requireUppercase: d.auth?.passwordPolicy?.requireUppercase || false,
+            passwordExpiry: d.auth?.passwordPolicy?.passwordExpiry || 90
+          },
+          sessionTimeout: d.auth?.sessionTimeout || 60,
+          loginSecurity: d.auth?.loginSecurity || { maxLoginAttempts: 5, lockoutTime: 15, enableTwoFactor: false, forceEmailVerification: false, jwtExpiration: '30d' },
+
+          // storage allocation
+          uploadLimits: d.storage?.maxFileUploadSize || 50,
+          allowedFileTypes: d.storage?.allowedFileTypes || ['.pdf', '.csv', '.xlsx', '.png', '.jpg', '.jpeg', '.webp', '.mp4'],
+          videoLimits: d.storage?.videoStorageLimit || 500,
+          totalPlatformStorage: d.storage?.totalPlatformStorage || 100,
+          notesUploadLimit: d.storage?.notesUploadLimit || 50,
+          assignmentUploadLimit: d.storage?.assignmentUploadLimit || 20,
+          userProfileImageLimit: d.storage?.userProfileImageLimit || 3,
+          storageUsageStats: d.storage?.storageUsageStats || { videoUsage: 0, notesUsage: 0, assignmentUsage: 0, avatarUsage: 0 },
+
+          // smtp config
+          smtp: d.smtp || { host: '', port: 2525, username: '', password: '', senderEmail: '', senderName: '', sslTls: false },
+
+          // alerts config
+          alerts: d.alerts || {
+            emailAlerts: { registration: true, login: false, assignmentDue: true, assessmentResults: true },
+            pushNotifications: { newVideos: true, newNotes: true, announcements: true, roadmapUnlocks: true },
+            systemAlerts: { serverErrors: true, lowStorage: true, failedJobs: false, failedEmails: true },
+            alertFrequency: 'instant'
+          },
+
+          // system preferences
+          system: d.system || {
+            maintenanceMode: false,
+            landingPageConfig: { showTestimonials: true, showStats: true, heroTitle: '', heroSubtitle: '' },
+            featureFlags: { enableAiChat: true, enableGamification: true, enableCloudCredits: true },
+            defaultTheme: 'dark',
+            defaultUserSettings: { onboardingRequired: true, defaultRole: 'student' },
+            platformBranding: { primaryColor: '#0284c7', accentColor: '#10b981', companyName: 'CodeWave' }
+          }
+        });
       }
     } catch (err) {
       toast.error(err.response?.data?.message || "Failed to fetch settings");
@@ -537,20 +633,270 @@ const AdminDashboard = () => {
   };
 
   const handleSaveSettings = async (e) => {
-    if (e) e.preventDefault();
+    if (e && e.preventDefault) e.preventDefault();
     if (!hasPermission('manage_settings')) {
       toast.error("You do not have permission to manage settings.");
       return;
     }
     const loadingToast = toast.loading("Saving settings...");
     try {
-      const res = await api.put('/admin/settings', settingsForm);
+      let endpoint = '';
+      let payload = {};
+
+      if (settingsSubTab === 'profile') {
+        endpoint = '/admin/settings/profile';
+        payload = {
+          instituteName: settingsForm.name,
+          logo: settingsForm.logo,
+          address: settingsForm.address,
+          contactNumber: settingsForm.contactDetails?.phone,
+          supportEmail: settingsForm.contactDetails?.email,
+          websiteUrl: settingsForm.contactDetails?.website,
+          socialMediaLinks: settingsForm.socialMediaLinks,
+          timezone: settingsForm.timezone,
+          language: settingsForm.language,
+          themeSettings: settingsForm.themeSettings
+        };
+      } else if (settingsSubTab === 'academic') {
+        endpoint = '/admin/settings/academic';
+        payload = {
+          academicYear: settingsForm.academicYear,
+          sessionStartDate: settingsForm.sessionStartDate,
+          sessionEndDate: settingsForm.sessionEndDate,
+          workingDays: settingsForm.workingDays,
+          holidays: settingsForm.holidays,
+          attendanceRules: settingsForm.attendanceRules,
+          passingPercentage: settingsForm.passingPercentage,
+          assignmentSubmissionRules: settingsForm.assignmentSubmissionRules,
+          assessmentConfiguration: settingsForm.assessmentConfiguration,
+          courseDuration: settingsForm.courseDuration,
+          batchTimings: {
+            startTime: settingsForm.timetable?.startHour || settingsForm.batchTimings?.startTime,
+            endTime: settingsForm.timetable?.endHour || settingsForm.batchTimings?.endTime
+          }
+        };
+      } else if (settingsSubTab === 'security' || settingsSubTab === 'auth') {
+        endpoint = '/admin/settings/auth';
+        payload = {
+          passwordPolicy: {
+            minLength: settingsForm.passwordPolicies?.minLength,
+            requireSpecialChar: settingsForm.passwordPolicies?.requireSpecialChar,
+            requireUppercase: settingsForm.passwordPolicies?.requireUppercase,
+            passwordExpiry: settingsForm.passwordPolicies?.passwordExpiry
+          },
+          sessionTimeout: settingsForm.sessionTimeout,
+          loginSecurity: settingsForm.loginSecurity
+        };
+      } else if (settingsSubTab === 'storage') {
+        endpoint = '/admin/settings/storage';
+        payload = {
+          totalPlatformStorage: settingsForm.totalPlatformStorage,
+          videoStorageLimit: settingsForm.videoLimits,
+          notesUploadLimit: settingsForm.notesUploadLimit,
+          assignmentUploadLimit: settingsForm.assignmentUploadLimit,
+          userProfileImageLimit: settingsForm.userProfileImageLimit,
+          maxFileUploadSize: settingsForm.uploadLimits,
+          allowedFileTypes: settingsForm.allowedFileTypes
+        };
+      } else if (settingsSubTab === 'smtp') {
+        endpoint = '/admin/settings/smtp';
+        payload = settingsForm.smtp;
+      } else if (settingsSubTab === 'alerts') {
+        endpoint = '/admin/settings/alerts';
+        payload = settingsForm.alerts;
+      } else if (settingsSubTab === 'system') {
+        endpoint = '/admin/settings/system';
+        payload = settingsForm.system;
+      } else {
+        toast.error("Invalid settings action");
+        toast.dismiss(loadingToast);
+        return;
+      }
+
+      const res = await api.put(endpoint, payload);
       if (res.data.success) {
         toast.success("Settings updated successfully!", { id: loadingToast });
-        setSettingsForm(res.data.data);
+        fetchSettings();
       }
     } catch (err) {
       toast.error(err.response?.data?.message || "Failed to update settings", { id: loadingToast });
+    }
+  };
+
+  // Custom MERN Architect settings API callers
+  const fetchAuditLogs = async () => {
+    try {
+      const res = await api.get(`/admin/settings/audit-logs?page=${auditPage}&search=${auditSearch}&action=${auditAction}`);
+      if (res.data.success) {
+        setAuditLogs(res.data.data);
+        setAuditTotalPages(res.data.pagination.pages || 1);
+      }
+    } catch (err) {
+      toast.error("Failed to load audit logs");
+    }
+  };
+
+  const fetchActiveSessions = async () => {
+    try {
+      const res = await api.get('/admin/settings/sessions');
+      if (res.data.success) {
+        setActiveSessions(res.data.data);
+      }
+    } catch (err) {
+      toast.error("Failed to load active user sessions");
+    }
+  };
+
+  const fetchPermissions = async () => {
+    try {
+      const res = await api.get('/admin/settings/permissions');
+      if (res.data.success) {
+        setRolesList(res.data.data);
+      }
+    } catch (err) {
+      toast.error("Failed to load permissions config");
+    }
+  };
+
+  const fetchStorageAnalytics = async () => {
+    try {
+      const res = await api.get('/admin/settings/storage/analytics');
+      if (res.data.success) {
+        setStorageAnalytics(res.data.data);
+      }
+    } catch (err) {
+      toast.error("Failed to load storage usage analytics");
+    }
+  };
+
+  const handleTerminateSession = async (sessionId) => {
+    if (!window.confirm("Are you sure you want to terminate this login session?")) return;
+    try {
+      const res = await api.post('/admin/settings/sessions/terminate', { sessionId });
+      if (res.data.success) {
+        toast.success("Session terminated");
+        fetchActiveSessions();
+      }
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Failed to terminate session");
+    }
+  };
+
+  const handleForceLogoutAll = async (userId = null) => {
+    const msg = userId
+      ? "Force logout all active sessions for this user?"
+      : "Force logout all users globally (except your current session)?";
+    if (!window.confirm(msg)) return;
+    try {
+      const res = await api.post('/admin/settings/sessions/terminate-all', { userId });
+      if (res.data.success) {
+        toast.success("Users logged out successfully");
+        fetchActiveSessions();
+      }
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Failed to force logout");
+    }
+  };
+
+  const handleSaveRolePermissions = async (roleName, permissions, deleteRole = false) => {
+    try {
+      const res = await api.put('/admin/settings/permissions', {
+        role: roleName,
+        permissions,
+        deleteRole
+      });
+      if (res.data.success) {
+        toast.success(deleteRole ? "Role deleted" : "Role permissions updated");
+        setEditingRole(null);
+        fetchPermissions();
+      }
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Failed to update role permissions");
+    }
+  };
+
+  const handleCreateRole = async (e) => {
+    e.preventDefault();
+    if (!newRoleName.trim()) {
+      toast.error("Enter a role name");
+      return;
+    }
+    await handleSaveRolePermissions(newRoleName.trim(), []);
+    setNewRoleName('');
+  };
+
+  const handleTogglePermission = (roleObj, perm) => {
+    let updatedPerms = [...(roleObj.permissions || [])];
+    if (updatedPerms.includes(perm)) {
+      updatedPerms = updatedPerms.filter(p => p !== perm);
+    } else {
+      updatedPerms.push(perm);
+    }
+    handleSaveRolePermissions(roleObj.role, updatedPerms);
+  };
+
+  const handleRunCleanup = async () => {
+    if (!window.confirm("Scan and permanently delete orphaned uploads? This cannot be undone.")) return;
+    setIsCleaningStorage(true);
+    try {
+      const res = await api.post('/admin/settings/storage/cleanup');
+      if (res.data.success) {
+        toast.success(res.data.message);
+        fetchStorageAnalytics();
+        fetchSettings();
+      }
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Storage cleanup failed");
+    } finally {
+      setIsCleaningStorage(false);
+    }
+  };
+
+  const handleTestSmtp = async (e) => {
+    e.preventDefault();
+    if (!testEmailRecipient.trim()) {
+      toast.error("Enter recipient email address");
+      return;
+    }
+    setIsTestingSmtp(true);
+    try {
+      const res = await api.post('/admin/settings/smtp/test', {
+        ...settingsForm.smtp,
+        recipientEmail: testEmailRecipient.trim()
+      });
+      if (res.data.success) {
+        toast.success(res.data.message);
+      }
+    } catch (err) {
+      toast.error(err.response?.data?.message || "SMTP test failed");
+    } finally {
+      setIsTestingSmtp(false);
+    }
+  };
+
+  const handleExportAuditLogs = () => {
+    try {
+      const headers = ['Timestamp', 'User Email', 'Action', 'Details', 'IP Address', 'Device'];
+      const rows = auditLogs.map(log => [
+        new Date(log.timestamp || log.createdAt).toLocaleString(),
+        log.userEmail,
+        log.action,
+        log.details || '',
+        log.ipAddress || '',
+        log.deviceInfo || ''
+      ]);
+      const csvContent = "data:text/csv;charset=utf-8,"
+        + [headers.join(','), ...rows.map(e => e.map(val => `"${val.replace(/"/g, '""')}"`).join(','))].join('\n');
+
+      const encodedUri = encodeURI(csvContent);
+      const link = document.createElement("a");
+      link.setAttribute("href", encodedUri);
+      link.setAttribute("download", `codewave_audit_logs_${new Date().toISOString().split('T')[0]}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (e) {
+      toast.error("Failed to export logs");
     }
   };
 
@@ -665,10 +1011,23 @@ const AdminDashboard = () => {
       }
     } else if (activeTab === 'settings') {
       fetchSettings();
+      if (settingsSubTab === 'audit') fetchAuditLogs();
+      if (settingsSubTab === 'sessions') fetchActiveSessions();
+      if (settingsSubTab === 'permissions') fetchPermissions();
+      if (settingsSubTab === 'storage') fetchStorageAnalytics();
     } else if (activeTab === 'claims') {
       fetchClaims();
     }
-  }, [activeTab, userSubTab]);
+  }, [activeTab, userSubTab, settingsSubTab]);
+
+  useEffect(() => {
+    if (activeTab === 'settings' && settingsSubTab === 'audit') {
+      const delayDebounce = setTimeout(() => {
+        fetchAuditLogs();
+      }, 300);
+      return () => clearTimeout(delayDebounce);
+    }
+  }, [auditPage, auditSearch, auditAction, settingsSubTab, activeTab]);
 
   useEffect(() => {
     if (activeTab === 'users' && userSubTab === 'students') {
@@ -3262,31 +3621,36 @@ const AdminDashboard = () => {
         <div className="admin-panel bg-white dark:bg-slate-900/40 border border-slate-150 dark:border-white/5 rounded-3xl p-6 shadow-md dark:shadow-xl space-y-6 animate-in fade-in duration-300">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
             <div>
-              <h3 className="text-lg font-black text-slate-800 dark:text-white">Institute Settings</h3>
-              <p className="text-xs text-slate-550 mt-1">Configure global application options, profile details, safety lockouts, and SMTP notification systems.</p>
+              <h3 className="text-lg font-black text-slate-800 dark:text-white">Centralized Settings Panel</h3>
+              <p className="text-xs text-slate-550 mt-1">Configure global application options, academic parameters, safety lockouts, roles, and SMTP servers.</p>
             </div>
-            {hasPermission('manage_settings') ? (
+            {hasPermission('manage_settings') && ['profile', 'academic', 'security', 'storage', 'smtp', 'alerts', 'system'].includes(settingsSubTab) ? (
               <button
                 type="button"
                 onClick={() => handleSaveSettings()}
                 className="px-5 py-2.5 bg-emerald-605 hover:bg-emerald-700 dark:bg-indigo-600 dark:hover:bg-indigo-700 text-white rounded-xl text-xs font-black shadow-lg shadow-emerald-600/20 dark:shadow-indigo-650/20 transition-all flex items-center gap-2"
               >
-                💾 Save Settings
+                💾 Save Settings ({settingsSubTab.toUpperCase()})
               </button>
             ) : (
-              <span className="text-[10px] text-slate-405 italic bg-slate-105 dark:bg-slate-950 p-2 rounded-xl border border-slate-200 dark:border-white/5">Viewing only. No permission to edit.</span>
+              <span className="text-[10px] text-slate-405 italic bg-slate-105 dark:bg-slate-950 p-2 rounded-xl border border-slate-200 dark:border-white/5">Viewing only. Updates are saved automatically or require settings authorization.</span>
             )}
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
             {/* Sidebar Sub-tabs */}
-            <div className="flex lg:flex-col flex-row flex-wrap gap-1.5">
+            <div className="flex lg:flex-col flex-row flex-wrap gap-1.5 overflow-x-auto lg:overflow-visible pb-3 lg:pb-0">
               {[
-                { id: 'profile', label: '🏢 Profile Details', desc: 'Contact details & address' },
-                { id: 'academic', label: '🏫 Academic Config', desc: 'Holidays, working days & sessions' },
-                { id: 'security', label: '🔒 Auth & Lockout', desc: 'Passwords & session timeout' },
-                { id: 'storage', label: '💾 Storage Allocations', desc: 'Size caps & allowed file types' },
-                { id: 'notifications', label: '✉️ SMTP & Alerts', desc: 'Mail servers & announcements' }
+                { id: 'profile', label: '🏢 Profile Settings', desc: 'Institute details & branding' },
+                { id: 'academic', label: '🏫 Academic Config', desc: 'Working days, rules & holidays' },
+                { id: 'security', label: '🔒 Auth & Security', desc: 'Password strength & lockout' },
+                { id: 'storage', label: '💾 Storage Allocations', desc: 'Upload sizes & cleaner' },
+                { id: 'smtp', label: '✉️ SMTP Configuration', desc: 'Mail servers & tester' },
+                { id: 'alerts', label: '🔔 Alerts & Notifications', desc: 'Email, Push & System triggers' },
+                { id: 'system', label: '⚙️ System Preferences', desc: 'Maintenance mode & flags' },
+                { id: 'permissions', label: '🛡️ Admin Permissions', desc: 'Configure roles & capabilities' },
+                { id: 'audit', label: '📋 System Audit Logs', desc: 'Trace administrative actions' },
+                { id: 'sessions', label: '💻 Session Management', desc: 'Active logins & terminations' }
               ].map((tab) => (
                 <button
                   key={tab.id}
@@ -3306,570 +3670,1396 @@ const AdminDashboard = () => {
 
             {/* Sub-tab Content Area */}
             <div className="lg:col-span-3 bg-slate-50/50 dark:bg-slate-950/20 border border-slate-150 dark:border-white/5 rounded-2xl p-6">
-              <form onSubmit={handleSaveSettings} className="space-y-6">
-                
-                {/* Profile Tab */}
-                {settingsSubTab === 'profile' && (
-                  <div className="space-y-4">
-                    <h4 className="text-sm font-black text-slate-800 dark:text-white">Institute Profile</h4>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <label className="text-[10px] font-bold text-slate-500 block mb-1">Institute Name</label>
-                        <input
-                          type="text"
-                          value={settingsForm.name || ''}
-                          onChange={(e) => setSettingsForm({ ...settingsForm, name: e.target.value })}
-                          disabled={!hasPermission('manage_settings')}
-                          className="w-full px-3.5 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/5 rounded-xl text-xs font-medium text-slate-800 dark:text-white outline-none focus:border-indigo-500"
-                        />
-                      </div>
-                      <div>
-                        <label className="text-[10px] font-bold text-slate-500 block mb-1">Logo URL</label>
+              
+              {/* 1. Profile Settings */}
+              {settingsSubTab === 'profile' && (
+                <div className="space-y-6 animate-in fade-in duration-200">
+                  <div className="border-b border-slate-200 dark:border-white/5 pb-3">
+                    <h4 className="text-sm font-black text-slate-800 dark:text-white">Profile Settings</h4>
+                    <p className="text-[10px] text-slate-500">Configure public contact details, brand address, and social links.</p>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-[10px] font-bold text-slate-500 block mb-1">Institute Name</label>
+                      <input
+                        type="text"
+                        value={settingsForm.name || ''}
+                        onChange={(e) => setSettingsForm({ ...settingsForm, name: e.target.value })}
+                        className="w-full px-3.5 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/5 rounded-xl text-xs font-medium text-slate-800 dark:text-white outline-none focus:border-indigo-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[10px] font-bold text-slate-500 block mb-1">Institute Logo URL</label>
+                      <div className="flex gap-2">
                         <input
                           type="text"
                           value={settingsForm.logo || ''}
                           onChange={(e) => setSettingsForm({ ...settingsForm, logo: e.target.value })}
-                          disabled={!hasPermission('manage_settings')}
                           placeholder="https://example.com/logo.png"
                           className="w-full px-3.5 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/5 rounded-xl text-xs font-medium text-slate-800 dark:text-white outline-none focus:border-indigo-500"
                         />
+                        {settingsForm.logo && (
+                          <img src={settingsForm.logo} alt="Preview" className="w-10 h-10 object-contain rounded-lg border dark:border-white/5 bg-slate-100" />
+                        )}
                       </div>
-                      <div className="md:col-span-2">
-                        <label className="text-[10px] font-bold text-slate-500 block mb-1">Physical Address</label>
+                    </div>
+                    <div className="md:col-span-2">
+                      <label className="text-[10px] font-bold text-slate-500 block mb-1">Institute Physical Address</label>
+                      <input
+                        type="text"
+                        value={settingsForm.address || ''}
+                        onChange={(e) => setSettingsForm({ ...settingsForm, address: e.target.value })}
+                        className="w-full px-3.5 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/5 rounded-xl text-xs font-medium text-slate-800 dark:text-white outline-none focus:border-indigo-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[10px] font-bold text-slate-500 block mb-1">Contact Number</label>
+                      <input
+                        type="text"
+                        value={settingsForm.contactDetails?.phone || ''}
+                        onChange={(e) => setSettingsForm({
+                          ...settingsForm,
+                          contactDetails: { ...settingsForm.contactDetails, phone: e.target.value }
+                        })}
+                        className="w-full px-3.5 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/5 rounded-xl text-xs font-medium text-slate-800 dark:text-white outline-none focus:border-indigo-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[10px] font-bold text-slate-500 block mb-1">Support Email</label>
+                      <input
+                        type="email"
+                        value={settingsForm.contactDetails?.email || ''}
+                        onChange={(e) => setSettingsForm({
+                          ...settingsForm,
+                          contactDetails: { ...settingsForm.contactDetails, email: e.target.value }
+                        })}
+                        className="w-full px-3.5 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/5 rounded-xl text-xs font-medium text-slate-800 dark:text-white outline-none focus:border-indigo-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[10px] font-bold text-slate-500 block mb-1">Website URL</label>
+                      <input
+                        type="url"
+                        value={settingsForm.contactDetails?.website || ''}
+                        onChange={(e) => setSettingsForm({
+                          ...settingsForm,
+                          contactDetails: { ...settingsForm.contactDetails, website: e.target.value }
+                        })}
+                        className="w-full px-3.5 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/5 rounded-xl text-xs font-medium text-slate-800 dark:text-white outline-none focus:border-indigo-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[10px] font-bold text-slate-500 block mb-1">Time Zone</label>
+                      <select
+                        value={settingsForm.timezone || 'Asia/Kolkata'}
+                        onChange={(e) => setSettingsForm({ ...settingsForm, timezone: e.target.value })}
+                        className="w-full px-3.5 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/5 rounded-xl text-xs font-medium text-slate-800 dark:text-white outline-none focus:border-indigo-500"
+                      >
+                        <option value="Asia/Kolkata">Asia/Kolkata (IST)</option>
+                        <option value="America/New_York">America/New_York (EST)</option>
+                        <option value="Europe/London">Europe/London (GMT)</option>
+                        <option value="UTC">UTC / Coordinated Time</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="border-t border-slate-200 dark:border-white/5 pt-4">
+                    <h5 className="text-xs font-bold text-slate-800 dark:text-white mb-3">Social Media Links</h5>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {['facebook', 'twitter', 'linkedin', 'instagram'].map((platform) => (
+                        <div key={platform}>
+                          <label className="text-[9px] font-bold text-slate-400 block mb-1 capitalize">{platform}</label>
+                          <input
+                            type="url"
+                            value={settingsForm.socialMediaLinks?.[platform] || ''}
+                            onChange={(e) => setSettingsForm({
+                              ...settingsForm,
+                              socialMediaLinks: { ...settingsForm.socialMediaLinks, [platform]: e.target.value }
+                            })}
+                            className="w-full px-3.5 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/5 rounded-xl text-xs font-medium text-slate-800 dark:text-white outline-none focus:border-indigo-500"
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="border-t border-slate-200 dark:border-white/5 pt-4">
+                    <h5 className="text-xs font-bold text-slate-800 dark:text-white mb-3">Theme & Localization Preferences</h5>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div>
+                        <label className="text-[10px] font-bold text-slate-500 block mb-1">Language</label>
+                        <select
+                          value={settingsForm.language || 'en'}
+                          onChange={(e) => setSettingsForm({ ...settingsForm, language: e.target.value })}
+                          className="w-full px-3.5 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/5 rounded-xl text-xs font-medium text-slate-800 dark:text-white outline-none focus:border-indigo-500"
+                        >
+                          <option value="en">English (US)</option>
+                          <option value="es">Español</option>
+                          <option value="fr">Français</option>
+                          <option value="hi">हिन्दी</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="text-[10px] font-bold text-slate-500 block mb-1">Primary Color</label>
+                        <div className="flex gap-2 items-center">
+                          <input
+                            type="color"
+                            value={settingsForm.themeSettings?.primaryColor || '#0284c7'}
+                            onChange={(e) => setSettingsForm({
+                              ...settingsForm,
+                              themeSettings: { ...settingsForm.themeSettings, primaryColor: e.target.value }
+                            })}
+                            className="w-8 h-8 rounded-lg cursor-pointer bg-transparent border-0"
+                          />
+                          <span className="text-xs font-mono font-medium">{settingsForm.themeSettings?.primaryColor || '#0284c7'}</span>
+                        </div>
+                      </div>
+                      <div className="flex items-center pt-5">
+                        <label className="flex items-center gap-2 text-xs font-bold text-slate-700 dark:text-slate-350 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={settingsForm.themeSettings?.darkMode ?? true}
+                            onChange={(e) => setSettingsForm({
+                              ...settingsForm,
+                              themeSettings: { ...settingsForm.themeSettings, darkMode: e.target.checked }
+                            })}
+                            className="rounded accent-emerald-600 dark:accent-indigo-500"
+                          />
+                          <span>Default Dark Mode Theme</span>
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* 2. Academic Configuration */}
+              {settingsSubTab === 'academic' && (
+                <div className="space-y-6 animate-in fade-in duration-200">
+                  <div className="border-b border-slate-200 dark:border-white/5 pb-3">
+                    <h4 className="text-sm font-black text-slate-800 dark:text-white">Academic Configuration</h4>
+                    <p className="text-[10px] text-slate-500">Define session start/end timelines, operating days, holidays, and curriculum policies.</p>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                      <label className="text-[10px] font-bold text-slate-500 block mb-1">Academic Year</label>
+                      <input
+                        type="text"
+                        value={settingsForm.academicYear || ''}
+                        onChange={(e) => setSettingsForm({ ...settingsForm, academicYear: e.target.value })}
+                        placeholder="e.g. 2026-2027"
+                        className="w-full px-3.5 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/5 rounded-xl text-xs font-medium text-slate-800 dark:text-white outline-none focus:border-indigo-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[10px] font-bold text-slate-500 block mb-1">Session Start Date</label>
+                      <input
+                        type="date"
+                        value={settingsForm.sessionStartDate || ''}
+                        onChange={(e) => setSettingsForm({ ...settingsForm, sessionStartDate: e.target.value })}
+                        className="w-full px-3.5 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/5 rounded-xl text-xs font-medium text-slate-800 dark:text-white outline-none focus:border-indigo-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[10px] font-bold text-slate-500 block mb-1">Session End Date</label>
+                      <input
+                        type="date"
+                        value={settingsForm.sessionEndDate || ''}
+                        onChange={(e) => setSettingsForm({ ...settingsForm, sessionEndDate: e.target.value })}
+                        className="w-full px-3.5 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/5 rounded-xl text-xs font-medium text-slate-800 dark:text-white outline-none focus:border-indigo-500"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <h5 className="text-xs font-bold text-slate-800 dark:text-white mb-2.5">Working Days Selection</h5>
+                    <div className="flex flex-wrap gap-2">
+                      {['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'].map((day) => {
+                        const isWorking = (settingsForm.workingDays || []).includes(day);
+                        return (
+                          <button
+                            type="button"
+                            key={day}
+                            onClick={() => toggleWorkingDay(day)}
+                            className={`px-3 py-1.5 rounded-xl text-xs font-bold border transition-all ${
+                              isWorking
+                                ? 'bg-indigo-600 border-indigo-600 text-white shadow-sm'
+                                : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-white/5 text-slate-500'
+                            }`}
+                          >
+                            {day}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
+                    <div>
+                      <h5 className="text-xs font-bold text-slate-800 dark:text-white mb-3">Attendance Policies</h5>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <label className="text-[10px] font-bold text-slate-500 block mb-1">Min Required Attendance (%)</label>
+                          <input
+                            type="number"
+                            min="50"
+                            max="100"
+                            value={settingsForm.attendanceRules?.minAttendancePercentage || 75}
+                            onChange={(e) => setSettingsForm({
+                              ...settingsForm,
+                              attendanceRules: { ...settingsForm.attendanceRules, minAttendancePercentage: parseInt(e.target.value) || 75 }
+                            })}
+                            className="w-full px-3.5 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/5 rounded-xl text-xs font-medium text-slate-800 dark:text-white outline-none focus:border-indigo-500"
+                          />
+                        </div>
+                        <div className="flex items-center pt-5">
+                          <label className="flex items-center gap-2 text-xs font-bold text-slate-700 dark:text-slate-350 cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={settingsForm.attendanceRules?.enableAttendancePenalty || false}
+                              onChange={(e) => setSettingsForm({
+                                ...settingsForm,
+                                attendanceRules: { ...settingsForm.attendanceRules, enableAttendancePenalty: e.target.checked }
+                              })}
+                              className="rounded accent-indigo-500"
+                            />
+                            <span>Enable Penalty</span>
+                          </label>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div>
+                      <h5 className="text-xs font-bold text-slate-800 dark:text-white mb-3">Grading & Rules</h5>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <label className="text-[10px] font-bold text-slate-500 block mb-1">Passing Grade Score (%)</label>
+                          <input
+                            type="number"
+                            min="30"
+                            max="100"
+                            value={settingsForm.passingPercentage || 40}
+                            onChange={(e) => setSettingsForm({ ...settingsForm, passingPercentage: parseInt(e.target.value) || 40 })}
+                            className="w-full px-3.5 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/5 rounded-xl text-xs font-medium text-slate-800 dark:text-white outline-none focus:border-indigo-500"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-[10px] font-bold text-slate-500 block mb-1">Standard Course Duration (mths)</label>
+                          <input
+                            type="number"
+                            min="1"
+                            value={settingsForm.courseDuration || 6}
+                            onChange={(e) => setSettingsForm({ ...settingsForm, courseDuration: parseInt(e.target.value) || 6 })}
+                            className="w-full px-3.5 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/5 rounded-xl text-xs font-medium text-slate-800 dark:text-white outline-none focus:border-indigo-500"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
+                    <div>
+                      <h5 className="text-xs font-bold text-slate-800 dark:text-white mb-3">Assignment Rules</h5>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="flex items-center pt-5">
+                          <label className="flex items-center gap-2 text-xs font-bold text-slate-700 dark:text-slate-350 cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={settingsForm.assignmentSubmissionRules?.allowLateSubmission ?? true}
+                              onChange={(e) => setSettingsForm({
+                                ...settingsForm,
+                                assignmentSubmissionRules: { ...settingsForm.assignmentSubmissionRules, allowLateSubmission: e.target.checked }
+                              })}
+                              className="rounded accent-indigo-500"
+                            />
+                            <span>Allow Late Submission</span>
+                          </label>
+                        </div>
+                        <div>
+                          <label className="text-[10px] font-bold text-slate-500 block mb-1">Late Penalty %</label>
+                          <input
+                            type="number"
+                            min="0"
+                            max="50"
+                            value={settingsForm.assignmentSubmissionRules?.latePenaltyPercentage || 10}
+                            onChange={(e) => setSettingsForm({
+                              ...settingsForm,
+                              assignmentSubmissionRules: { ...settingsForm.assignmentSubmissionRules, latePenaltyPercentage: parseInt(e.target.value) || 10 }
+                            })}
+                            className="w-full px-3.5 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/5 rounded-xl text-xs font-medium text-slate-800 dark:text-white outline-none focus:border-indigo-500"
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    <div>
+                      <h5 className="text-xs font-bold text-slate-800 dark:text-white mb-3">Assessment Policies</h5>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <label className="text-[10px] font-bold text-slate-500 block mb-1">Duration (minutes)</label>
+                          <input
+                            type="number"
+                            min="10"
+                            value={settingsForm.assessmentConfiguration?.durationMinutes || 60}
+                            onChange={(e) => setSettingsForm({
+                              ...settingsForm,
+                              assessmentConfiguration: { ...settingsForm.assessmentConfiguration, durationMinutes: parseInt(e.target.value) || 60 }
+                            })}
+                            className="w-full px-3.5 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/5 rounded-xl text-xs font-medium text-slate-800 dark:text-white outline-none focus:border-indigo-500"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-[10px] font-bold text-slate-500 block mb-1">Max Attempts Allowed</label>
+                          <input
+                            type="number"
+                            min="1"
+                            max="10"
+                            value={settingsForm.assessmentConfiguration?.maxAttempts || 3}
+                            onChange={(e) => setSettingsForm({
+                              ...settingsForm,
+                              assessmentConfiguration: { ...settingsForm.assessmentConfiguration, maxAttempts: parseInt(e.target.value) || 3 }
+                            })}
+                            className="w-full px-3.5 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/5 rounded-xl text-xs font-medium text-slate-800 dark:text-white outline-none focus:border-indigo-500"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Holidays Subpanel */}
+                  <div className="border-t border-slate-200 dark:border-white/5 pt-4">
+                    <h5 className="text-xs font-bold text-slate-800 dark:text-white mb-3">Holiday Calendar</h5>
+                    <div className="flex flex-col md:flex-row gap-2 mb-3">
+                      <input
+                        type="text"
+                        placeholder="Holiday name (e.g. Christmas)"
+                        value={newHoliday.name}
+                        onChange={(e) => setNewHoliday({ ...newHoliday, name: e.target.value })}
+                        className="w-full md:w-1/2 px-3.5 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/5 rounded-xl text-xs font-medium text-slate-800 dark:text-white outline-none focus:border-indigo-500"
+                      />
+                      <input
+                        type="date"
+                        value={newHoliday.date}
+                        onChange={(e) => setNewHoliday({ ...newHoliday, date: e.target.value })}
+                        className="w-full md:w-1/3 px-3.5 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/5 rounded-xl text-xs font-medium text-slate-800 dark:text-white outline-none focus:border-indigo-500"
+                      />
+                      <button
+                        type="button"
+                        onClick={addHoliday}
+                        className="px-4 py-2 bg-indigo-650 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold shadow-md transition-colors"
+                      >
+                        Add Holiday
+                      </button>
+                    </div>
+                    
+                    <div className="max-h-48 overflow-y-auto border dark:border-white/5 rounded-xl bg-white dark:bg-slate-900/30">
+                      <table className="w-full text-left text-xs">
+                        <thead className="bg-slate-105 dark:bg-slate-900 text-slate-500 uppercase tracking-widest text-[9px] font-bold">
+                          <tr>
+                            <th className="px-4 py-2.5">Holiday</th>
+                            <th className="px-4 py-2.5">Date</th>
+                            <th className="px-4 py-2.5 text-right">Actions</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-150 dark:divide-white/5">
+                          {(settingsForm.holidays || []).map((holiday, idx) => (
+                            <tr key={idx} className="hover:bg-slate-50 dark:hover:bg-slate-900/30">
+                              <td className="px-4 py-2.5 font-bold text-slate-800 dark:text-slate-200">{holiday.name}</td>
+                              <td className="px-4 py-2.5 text-slate-500">{new Date(holiday.date).toLocaleDateString(undefined, { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' })}</td>
+                              <td className="px-4 py-2.5 text-right">
+                                <button
+                                  type="button"
+                                  onClick={() => removeHoliday(idx)}
+                                  className="text-red-500 hover:text-red-700 text-[10px] font-bold"
+                                >
+                                  Remove
+                                </button>
+                              </td>
+                            </tr>
+                          ))}
+                          {(settingsForm.holidays || []).length === 0 && (
+                            <tr>
+                              <td colSpan="3" className="px-4 py-4 text-center text-slate-400 italic">No holidays configured yet.</td>
+                            </tr>
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* 3. Authentication & Security */}
+              {settingsSubTab === 'security' && (
+                <div className="space-y-6 animate-in fade-in duration-200">
+                  <div className="border-b border-slate-200 dark:border-white/5 pb-3">
+                    <h4 className="text-sm font-black text-slate-800 dark:text-white">Authentication & Security</h4>
+                    <p className="text-[10px] text-slate-500">Configure authentication password strength, lockout protocols, and session timeouts.</p>
+                  </div>
+
+                  <div>
+                    <h5 className="text-xs font-bold text-slate-800 dark:text-white mb-3">Password Policies</h5>
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                      <div>
+                        <label className="text-[10px] font-bold text-slate-500 block mb-1">Min Password Length</label>
                         <input
-                          type="text"
-                          value={settingsForm.address || ''}
-                          onChange={(e) => setSettingsForm({ ...settingsForm, address: e.target.value })}
-                          disabled={!hasPermission('manage_settings')}
+                          type="number"
+                          min="6"
+                          max="32"
+                          value={settingsForm.passwordPolicies?.minLength || 6}
+                          onChange={(e) => setSettingsForm({
+                            ...settingsForm,
+                            passwordPolicies: { ...settingsForm.passwordPolicies, minLength: parseInt(e.target.value) || 6 }
+                          })}
                           className="w-full px-3.5 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/5 rounded-xl text-xs font-medium text-slate-800 dark:text-white outline-none focus:border-indigo-500"
                         />
                       </div>
                       <div>
-                        <label className="text-[10px] font-bold text-slate-500 block mb-1">Contact Phone</label>
+                        <label className="text-[10px] font-bold text-slate-500 block mb-1">Password Expiry (days)</label>
                         <input
-                          type="text"
-                          value={settingsForm.contactDetails?.phone || ''}
+                          type="number"
+                          min="0"
+                          value={settingsForm.passwordPolicies?.passwordExpiry || 90}
                           onChange={(e) => setSettingsForm({
                             ...settingsForm,
-                            contactDetails: { ...settingsForm.contactDetails, phone: e.target.value }
+                            passwordPolicies: { ...settingsForm.passwordPolicies, passwordExpiry: parseInt(e.target.value) || 90 }
                           })}
-                          disabled={!hasPermission('manage_settings')}
+                          className="w-full px-3.5 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/5 rounded-xl text-xs font-medium text-slate-800 dark:text-white outline-none focus:border-indigo-500"
+                        />
+                      </div>
+                      <div className="flex items-center pt-5">
+                        <label className="flex items-center gap-2 text-xs font-bold text-slate-700 dark:text-slate-350 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={settingsForm.passwordPolicies?.requireSpecialChar || false}
+                            onChange={(e) => setSettingsForm({
+                              ...settingsForm,
+                              passwordPolicies: { ...settingsForm.passwordPolicies, requireSpecialChar: e.target.checked }
+                            })}
+                            className="rounded accent-indigo-500"
+                          />
+                          <span>Special Character</span>
+                        </label>
+                      </div>
+                      <div className="flex items-center pt-5">
+                        <label className="flex items-center gap-2 text-xs font-bold text-slate-700 dark:text-slate-350 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={settingsForm.passwordPolicies?.requireUppercase || false}
+                            onChange={(e) => setSettingsForm({
+                              ...settingsForm,
+                              passwordPolicies: { ...settingsForm.passwordPolicies, requireUppercase: e.target.checked }
+                            })}
+                            className="rounded accent-indigo-500"
+                          />
+                          <span>Uppercase Letter</span>
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="border-t border-slate-200 dark:border-white/5 pt-4">
+                    <h5 className="text-xs font-bold text-slate-800 dark:text-white mb-3">Session & Lockout Policy</h5>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div>
+                        <label className="text-[10px] font-bold text-slate-500 block mb-1">Session Timeout (minutes)</label>
+                        <input
+                          type="number"
+                          min="5"
+                          value={settingsForm.sessionTimeout || 60}
+                          onChange={(e) => setSettingsForm({ ...settingsForm, sessionTimeout: parseInt(e.target.value) || 60 })}
                           className="w-full px-3.5 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/5 rounded-xl text-xs font-medium text-slate-800 dark:text-white outline-none focus:border-indigo-500"
                         />
                       </div>
                       <div>
-                        <label className="text-[10px] font-bold text-slate-500 block mb-1">Contact Email</label>
+                        <label className="text-[10px] font-bold text-slate-500 block mb-1">Max Login Attempts</label>
                         <input
-                          type="email"
-                          value={settingsForm.contactDetails?.email || ''}
+                          type="number"
+                          min="3"
+                          max="20"
+                          value={settingsForm.loginSecurity?.maxLoginAttempts || 5}
                           onChange={(e) => setSettingsForm({
                             ...settingsForm,
-                            contactDetails: { ...settingsForm.contactDetails, email: e.target.value }
+                            loginSecurity: { ...settingsForm.loginSecurity, maxLoginAttempts: parseInt(e.target.value) || 5 }
                           })}
-                          disabled={!hasPermission('manage_settings')}
                           className="w-full px-3.5 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/5 rounded-xl text-xs font-medium text-slate-800 dark:text-white outline-none focus:border-indigo-500"
                         />
                       </div>
-                      <div className="md:col-span-2">
-                        <label className="text-[10px] font-bold text-slate-500 block mb-1">Website URL</label>
+                      <div>
+                        <label className="text-[10px] font-bold text-slate-500 block mb-1">Lockout Time (minutes)</label>
                         <input
-                          type="url"
-                          value={settingsForm.contactDetails?.website || ''}
+                          type="number"
+                          min="5"
+                          value={settingsForm.loginSecurity?.lockoutTime || 15}
                           onChange={(e) => setSettingsForm({
                             ...settingsForm,
-                            contactDetails: { ...settingsForm.contactDetails, website: e.target.value }
+                            loginSecurity: { ...settingsForm.loginSecurity, lockoutTime: parseInt(e.target.value) || 15 }
                           })}
-                          disabled={!hasPermission('manage_settings')}
                           className="w-full px-3.5 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/5 rounded-xl text-xs font-medium text-slate-800 dark:text-white outline-none focus:border-indigo-500"
                         />
                       </div>
                     </div>
                   </div>
-                )}
 
-                {/* Academics Tab */}
-                {settingsSubTab === 'academic' && (
-                  <div className="space-y-6">
-                    <div>
-                      <h4 className="text-sm font-black text-slate-800 dark:text-white mb-4">Academic Sessions</h4>
-                      {hasPermission('manage_settings') && (
-                        <div className="flex gap-2 mb-3">
+                  <div className="border-t border-slate-200 dark:border-white/5 pt-4">
+                    <h5 className="text-xs font-bold text-slate-800 dark:text-white mb-3">Security Features</h5>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div className="flex items-center pt-2">
+                        <label className="flex items-center gap-2 text-xs font-bold text-slate-700 dark:text-slate-350 cursor-pointer">
                           <input
-                            type="text"
-                            placeholder="e.g. 2027-2028"
-                            value={newSession}
-                            onChange={(e) => setNewSession(e.target.value)}
-                            className="w-1/2 px-3.5 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/5 rounded-xl text-xs font-medium text-slate-800 dark:text-white outline-none focus:border-indigo-500"
+                            type="checkbox"
+                            checked={settingsForm.loginSecurity?.enableTwoFactor || false}
+                            onChange={(e) => setSettingsForm({
+                              ...settingsForm,
+                              loginSecurity: { ...settingsForm.loginSecurity, enableTwoFactor: e.target.checked }
+                            })}
+                            className="rounded accent-indigo-500"
                           />
-                          <button
-                            type="button"
-                            onClick={addSession}
-                            className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-black shadow-md transition-colors"
-                          >
-                            Add Session
-                          </button>
+                          <span>Enable Two-Factor Authentication</span>
+                        </label>
+                      </div>
+                      <div className="flex items-center pt-2">
+                        <label className="flex items-center gap-2 text-xs font-bold text-slate-700 dark:text-slate-350 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={settingsForm.loginSecurity?.forceEmailVerification || false}
+                            onChange={(e) => setSettingsForm({
+                              ...settingsForm,
+                              loginSecurity: { ...settingsForm.loginSecurity, forceEmailVerification: e.target.checked }
+                            })}
+                            className="rounded accent-indigo-500"
+                          />
+                          <span>Force Email Verification</span>
+                        </label>
+                      </div>
+                      <div>
+                        <label className="text-[10px] font-bold text-slate-500 block mb-1">JWT Expiration Time</label>
+                        <select
+                          value={settingsForm.loginSecurity?.jwtExpiration || '30d'}
+                          onChange={(e) => setSettingsForm({
+                            ...settingsForm,
+                            loginSecurity: { ...settingsForm.loginSecurity, jwtExpiration: e.target.value }
+                          })}
+                          className="w-full px-3.5 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/5 rounded-xl text-xs font-medium text-slate-800 dark:text-white outline-none focus:border-indigo-500"
+                        >
+                          <option value="1h">1 Hour</option>
+                          <option value="24h">24 Hours</option>
+                          <option value="7d">7 Days</option>
+                          <option value="30d">30 Days</option>
+                          <option value="90d">90 Days</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="border-t border-red-500/20 pt-4 bg-red-500/5 -mx-6 -mb-6 p-6 rounded-b-2xl space-y-3">
+                    <h5 className="text-xs font-black text-red-650 dark:text-red-400">Emergency Actions</h5>
+                    <p className="text-[10px] text-slate-500">Instantly force logout other logged-in users on all devices. Users will need to log back in.</p>
+                    <button
+                      type="button"
+                      onClick={() => handleForceLogoutAll(null)}
+                      className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-black shadow-md transition-colors"
+                    >
+                      ⚠️ Force Logout All Other Users Globally
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* 4. Storage Allocation */}
+              {settingsSubTab === 'storage' && (
+                <div className="space-y-6 animate-in fade-in duration-200">
+                  <div className="border-b border-slate-200 dark:border-white/5 pb-3">
+                    <h4 className="text-sm font-black text-slate-800 dark:text-white">Storage Allocation & Analytics</h4>
+                    <p className="text-[10px] text-slate-500">Configure upload quotas, check disk analytics, and clean up unreferenced cache assets.</p>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* Storage Limits Form */}
+                    <div className="space-y-4">
+                      <h5 className="text-xs font-bold text-slate-800 dark:text-white">Upload Quota Settings</h5>
+                      
+                      <div className="space-y-3">
+                        <div>
+                          <label className="text-[10px] font-bold text-slate-500 block mb-1">Total Platform Limit: {settingsForm.totalPlatformStorage || 100} GB</label>
+                          <input
+                            type="range"
+                            min="10"
+                            max="1000"
+                            value={settingsForm.totalPlatformStorage || 100}
+                            onChange={(e) => setSettingsForm({ ...settingsForm, totalPlatformStorage: parseInt(e.target.value) || 100 })}
+                            className="w-full accent-indigo-600"
+                          />
                         </div>
-                      )}
-                      <div className="flex flex-wrap gap-2">
-                        {(settingsForm.sessions || []).map((session, index) => (
-                          <div key={index} className="flex items-center gap-2 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-white/5 px-3 py-1.5 rounded-xl text-xs font-bold text-slate-800 dark:text-slate-200">
-                            <span>{session}</span>
-                            {hasPermission('manage_settings') && (
+                        <div>
+                          <label className="text-[10px] font-bold text-slate-500 block mb-1">Video File Size Cap: {settingsForm.videoLimits || 500} MB</label>
+                          <input
+                            type="number"
+                            min="10"
+                            max="5000"
+                            value={settingsForm.videoLimits || 500}
+                            onChange={(e) => setSettingsForm({ ...settingsForm, videoLimits: parseInt(e.target.value) || 500 })}
+                            className="w-full px-3.5 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/5 rounded-xl text-xs font-medium text-slate-800 dark:text-white outline-none focus:border-indigo-500"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-[10px] font-bold text-slate-500 block mb-1">Notes Document Cap: {settingsForm.notesUploadLimit || 50} MB</label>
+                          <input
+                            type="number"
+                            min="1"
+                            max="200"
+                            value={settingsForm.notesUploadLimit || 50}
+                            onChange={(e) => setSettingsForm({ ...settingsForm, notesUploadLimit: parseInt(e.target.value) || 50 })}
+                            className="w-full px-3.5 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/5 rounded-xl text-xs font-medium text-slate-800 dark:text-white outline-none focus:border-indigo-500"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-[10px] font-bold text-slate-500 block mb-1">Assignment Submission Cap: {settingsForm.assignmentUploadLimit || 20} MB</label>
+                          <input
+                            type="number"
+                            min="1"
+                            max="100"
+                            value={settingsForm.assignmentUploadLimit || 20}
+                            onChange={(e) => setSettingsForm({ ...settingsForm, assignmentUploadLimit: parseInt(e.target.value) || 20 })}
+                            className="w-full px-3.5 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/5 rounded-xl text-xs font-medium text-slate-800 dark:text-white outline-none focus:border-indigo-500"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-[10px] font-bold text-slate-500 block mb-1">Profile Image Upload Cap: {settingsForm.userProfileImageLimit || 3} MB</label>
+                          <input
+                            type="number"
+                            min="1"
+                            max="10"
+                            value={settingsForm.userProfileImageLimit || 3}
+                            onChange={(e) => setSettingsForm({ ...settingsForm, userProfileImageLimit: parseInt(e.target.value) || 3 })}
+                            className="w-full px-3.5 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/5 rounded-xl text-xs font-medium text-slate-800 dark:text-white outline-none focus:border-indigo-500"
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Usage Analytics */}
+                    <div className="bg-slate-100 dark:bg-slate-900/50 p-5 rounded-2xl border dark:border-white/5 flex flex-col justify-between">
+                      <div>
+                        <h5 className="text-xs font-black text-slate-850 dark:text-white mb-3">Disk Usage Analytics</h5>
+                        <div className="space-y-3.5">
+                          <div>
+                            <div className="flex justify-between text-[10px] font-bold mb-1">
+                              <span>Videos Lect. ({storageAnalytics.videoUsageMB || 0} MB)</span>
+                              <span className="opacity-70">Limit: {settingsForm.videoLimits} MB</span>
+                            </div>
+                            <div className="w-full h-2 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
+                              <div className="h-full bg-amber-500" style={{ width: `${Math.min(100, ((storageAnalytics.videoUsageMB || 0) / (settingsForm.videoLimits || 500)) * 100)}%` }}></div>
+                            </div>
+                          </div>
+                          <div>
+                            <div className="flex justify-between text-[10px] font-bold mb-1">
+                              <span>Notes Docs ({storageAnalytics.notesUsageMB || 0} MB)</span>
+                              <span className="opacity-70">Limit: {settingsForm.notesUploadLimit} MB</span>
+                            </div>
+                            <div className="w-full h-2 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
+                              <div className="h-full bg-blue-500" style={{ width: `${Math.min(100, ((storageAnalytics.notesUsageMB || 0) / (settingsForm.notesUploadLimit || 50)) * 100)}%` }}></div>
+                            </div>
+                          </div>
+                          <div>
+                            <div className="flex justify-between text-[10px] font-bold mb-1">
+                              <span>User Profiles ({storageAnalytics.avatarUsageMB || 0} MB)</span>
+                              <span className="opacity-70">Limit: {settingsForm.userProfileImageLimit} MB</span>
+                            </div>
+                            <div className="w-full h-2 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
+                              <div className="h-full bg-emerald-500" style={{ width: `${Math.min(100, ((storageAnalytics.avatarUsageMB || 0) / (settingsForm.userProfileImageLimit || 3)) * 100)}%` }}></div>
+                            </div>
+                          </div>
+                          <div>
+                            <div className="flex justify-between text-[10px] font-bold mb-1">
+                              <span>Assignments ({storageAnalytics.assignmentsUsageMB || 0} MB)</span>
+                              <span className="opacity-70">Limit: {settingsForm.assignmentUploadLimit} MB</span>
+                            </div>
+                            <div className="w-full h-2 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
+                              <div className="h-full bg-purple-500" style={{ width: `${Math.min(100, ((storageAnalytics.assignmentsUsageMB || 0) / (settingsForm.assignmentUploadLimit || 20)) * 100)}%` }}></div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="pt-5 border-t border-slate-200 dark:border-white/5 mt-4 space-y-3">
+                        <div className="text-[10px] text-slate-500">Unreferenced assets accumulate in the uploads folder. Trigger cleanup to reclaim server space.</div>
+                        <button
+                          type="button"
+                          disabled={isCleaningStorage}
+                          onClick={handleRunCleanup}
+                          className="w-full px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition-all"
+                        >
+                          {isCleaningStorage ? '🧹 Cleaning up disk...' : '🧹 Cleanup Unused Files'}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="border-t border-slate-200 dark:border-white/5 pt-4">
+                    <h5 className="text-xs font-bold text-slate-800 dark:text-white mb-3">Allowed File Types</h5>
+                    <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+                      {['.pdf', '.csv', '.xlsx', '.png', '.jpg', '.jpeg', '.webp', '.mp4', '.zip', '.txt'].map((ext) => {
+                        const isAllowed = (settingsForm.allowedFileTypes || []).includes(ext);
+                        return (
+                          <label key={ext} className="flex items-center gap-2 text-xs font-bold text-slate-700 dark:text-slate-350 cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={isAllowed}
+                              onChange={() => toggleAllowedFileType(ext)}
+                              className="rounded accent-indigo-500"
+                            />
+                            <span>{ext}</span>
+                          </label>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* 5. SMTP & Email Configuration */}
+              {settingsSubTab === 'smtp' && (
+                <div className="space-y-6 animate-in fade-in duration-200">
+                  <div className="border-b border-slate-200 dark:border-white/5 pb-3">
+                    <h4 className="text-sm font-black text-slate-800 dark:text-white">SMTP & Email Configuration</h4>
+                    <p className="text-[10px] text-slate-500">Set up server routing protocols for automated system emails and invoices.</p>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="md:col-span-2">
+                      <label className="text-[10px] font-bold text-slate-500 block mb-1">SMTP Host Server</label>
+                      <input
+                        type="text"
+                        value={settingsForm.smtp?.host || ''}
+                        onChange={(e) => setSettingsForm({
+                          ...settingsForm,
+                          smtp: { ...settingsForm.smtp, host: e.target.value }
+                        })}
+                        placeholder="e.g. smtp.mailtrap.io"
+                        className="w-full px-3.5 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/5 rounded-xl text-xs font-medium text-slate-800 dark:text-white outline-none focus:border-indigo-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[10px] font-bold text-slate-500 block mb-1">SMTP Port</label>
+                      <input
+                        type="number"
+                        value={settingsForm.smtp?.port || 2525}
+                        onChange={(e) => setSettingsForm({
+                          ...settingsForm,
+                          smtp: { ...settingsForm.smtp, port: parseInt(e.target.value) || 2525 }
+                        })}
+                        placeholder="2525"
+                        className="w-full px-3.5 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/5 rounded-xl text-xs font-medium text-slate-800 dark:text-white outline-none focus:border-indigo-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[10px] font-bold text-slate-500 block mb-1">Username / User Auth ID</label>
+                      <input
+                        type="text"
+                        value={settingsForm.smtp?.username || settingsForm.smtp?.user || ''}
+                        onChange={(e) => setSettingsForm({
+                          ...settingsForm,
+                          smtp: { ...settingsForm.smtp, username: e.target.value, user: e.target.value }
+                        })}
+                        className="w-full px-3.5 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/5 rounded-xl text-xs font-medium text-slate-800 dark:text-white outline-none focus:border-indigo-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[10px] font-bold text-slate-500 block mb-1">Password</label>
+                      <input
+                        type="password"
+                        value={settingsForm.smtp?.password || settingsForm.smtp?.pass || ''}
+                        onChange={(e) => setSettingsForm({
+                          ...settingsForm,
+                          smtp: { ...settingsForm.smtp, password: e.target.value, pass: e.target.value }
+                        })}
+                        className="w-full px-3.5 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/5 rounded-xl text-xs font-medium text-slate-800 dark:text-white outline-none focus:border-indigo-500"
+                      />
+                    </div>
+                    <div className="flex items-center pt-5">
+                      <label className="flex items-center gap-2 text-xs font-bold text-slate-700 dark:text-slate-350 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={settingsForm.smtp?.sslTls || false}
+                          onChange={(e) => setSettingsForm({
+                            ...settingsForm,
+                            smtp: { ...settingsForm.smtp, sslTls: e.target.checked }
+                          })}
+                          className="rounded accent-indigo-500"
+                        />
+                        <span>Enable SSL / TLS Security</span>
+                      </label>
+                    </div>
+                    <div>
+                      <label className="text-[10px] font-bold text-slate-500 block mb-1">Sender Email Address</label>
+                      <input
+                        type="email"
+                        value={settingsForm.smtp?.senderEmail || settingsForm.smtp?.fromEmail || ''}
+                        onChange={(e) => setSettingsForm({
+                          ...settingsForm,
+                          smtp: { ...settingsForm.smtp, senderEmail: e.target.value, fromEmail: e.target.value }
+                        })}
+                        placeholder="noreply@codewave.com"
+                        className="w-full px-3.5 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/5 rounded-xl text-xs font-medium text-slate-800 dark:text-white outline-none focus:border-indigo-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[10px] font-bold text-slate-500 block mb-1">Sender Brand Display Name</label>
+                      <input
+                        type="text"
+                        value={settingsForm.smtp?.senderName || 'CodeWave'}
+                        onChange={(e) => setSettingsForm({
+                          ...settingsForm,
+                          smtp: { ...settingsForm.smtp, senderName: e.target.value }
+                        })}
+                        placeholder="CodeWave"
+                        className="w-full px-3.5 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/5 rounded-xl text-xs font-medium text-slate-800 dark:text-white outline-none focus:border-indigo-500"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Mail Connection Tester */}
+                  <div className="border-t border-slate-200 dark:border-white/5 pt-4">
+                    <h5 className="text-xs font-bold text-slate-800 dark:text-white mb-2">Test Connection</h5>
+                    <p className="text-[10px] text-slate-500 mb-3">Send a test dispatch email to verify SMTP handshake credentials.</p>
+                    <div className="flex gap-2">
+                      <input
+                        type="email"
+                        placeholder="recipient@example.com"
+                        value={testEmailRecipient}
+                        onChange={(e) => setTestEmailRecipient(e.target.value)}
+                        className="w-full md:w-1/2 px-3.5 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/5 rounded-xl text-xs font-medium text-slate-800 dark:text-white outline-none focus:border-indigo-500"
+                      />
+                      <button
+                        type="button"
+                        disabled={isTestingSmtp}
+                        onClick={handleTestSmtp}
+                        className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold shadow-md transition-colors"
+                      >
+                        {isTestingSmtp ? 'Sending...' : '📨 Verify & Send'}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* 6. Alerts & Notifications */}
+              {settingsSubTab === 'alerts' && (
+                <div className="space-y-6 animate-in fade-in duration-200">
+                  <div className="border-b border-slate-200 dark:border-white/5 pb-3">
+                    <h4 className="text-sm font-black text-slate-800 dark:text-white">Alerts & Notifications</h4>
+                    <p className="text-[10px] text-slate-500">Configure instant notification event triggers for email dispatch, push notification gateways, and system warnings.</p>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div className="space-y-3">
+                      <h5 className="text-xs font-bold text-slate-850 dark:text-white border-b dark:border-white/5 pb-1">Email Alerts</h5>
+                      {[
+                        { key: 'registration', label: 'User Registration' },
+                        { key: 'login', label: 'Login Dispatch' },
+                        { key: 'assignmentDue', label: 'Assignment Deadlines' },
+                        { key: 'assessmentResults', label: 'Assessment Results' }
+                      ].map((item) => (
+                        <label key={item.key} className="flex items-center gap-2 text-xs font-medium text-slate-700 dark:text-slate-350 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={settingsForm.alerts?.emailAlerts?.[item.key] ?? false}
+                            onChange={(e) => setSettingsForm({
+                              ...settingsForm,
+                              alerts: {
+                                ...settingsForm.alerts,
+                                emailAlerts: { ...settingsForm.alerts?.emailAlerts, [item.key]: e.target.checked }
+                              }
+                            })}
+                            className="rounded accent-indigo-500"
+                          />
+                          <span>{item.label}</span>
+                        </label>
+                      ))}
+                    </div>
+
+                    <div className="space-y-3">
+                      <h5 className="text-xs font-bold text-slate-855 dark:text-white border-b dark:border-white/5 pb-1">Push Notifications</h5>
+                      {[
+                        { key: 'newVideos', label: 'New Video Lectures' },
+                        { key: 'newNotes', label: 'New Lecture Notes' },
+                        { key: 'announcements', label: 'Portal Announcements' },
+                        { key: 'roadmapUnlocks', label: 'Roadmap Milestone Unlock' }
+                      ].map((item) => (
+                        <label key={item.key} className="flex items-center gap-2 text-xs font-medium text-slate-700 dark:text-slate-350 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={settingsForm.alerts?.pushNotifications?.[item.key] ?? false}
+                            onChange={(e) => setSettingsForm({
+                              ...settingsForm,
+                              alerts: {
+                                ...settingsForm.alerts,
+                                pushNotifications: { ...settingsForm.alerts?.pushNotifications, [item.key]: e.target.checked }
+                              }
+                            })}
+                            className="rounded accent-indigo-500"
+                          />
+                          <span>{item.label}</span>
+                        </label>
+                      ))}
+                    </div>
+
+                    <div className="space-y-3">
+                      <h5 className="text-xs font-bold text-slate-860 dark:text-white border-b dark:border-white/5 pb-1">System Warnings</h5>
+                      {[
+                        { key: 'serverErrors', label: 'Server Internal Errors' },
+                        { key: 'lowStorage', label: 'Low Storage Warnings' },
+                        { key: 'failedJobs', label: 'Failed System Jobs' },
+                        { key: 'failedEmails', label: 'SMTP Failed dispatches' }
+                      ].map((item) => (
+                        <label key={item.key} className="flex items-center gap-2 text-xs font-medium text-slate-700 dark:text-slate-350 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={settingsForm.alerts?.systemAlerts?.[item.key] ?? false}
+                            onChange={(e) => setSettingsForm({
+                              ...settingsForm,
+                              alerts: {
+                                ...settingsForm.alerts,
+                                systemAlerts: { ...settingsForm.alerts?.systemAlerts, [item.key]: e.target.checked }
+                              }
+                            })}
+                            className="rounded accent-indigo-500"
+                          />
+                          <span>{item.label}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="border-t border-slate-200 dark:border-white/5 pt-4">
+                    <label className="text-[10px] font-bold text-slate-500 block mb-1">Notification Dispatch Frequency</label>
+                    <select
+                      value={settingsForm.alerts?.alertFrequency || 'instant'}
+                      onChange={(e) => setSettingsForm({
+                        ...settingsForm,
+                        alerts: { ...settingsForm.alerts, alertFrequency: e.target.value }
+                      })}
+                      className="w-full md:w-1/3 px-3.5 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/5 rounded-xl text-xs font-medium text-slate-800 dark:text-white outline-none focus:border-indigo-500"
+                    >
+                      <option value="instant">Real-time (Instant dispatch)</option>
+                      <option value="daily">Daily digest summary</option>
+                      <option value="weekly">Weekly digest summary</option>
+                    </select>
+                  </div>
+                </div>
+              )}
+
+              {/* 7. System Preferences */}
+              {settingsSubTab === 'system' && (
+                <div className="space-y-6 animate-in fade-in duration-200">
+                  <div className="border-b border-slate-200 dark:border-white/5 pb-3">
+                    <h4 className="text-sm font-black text-slate-800 dark:text-white">System Preferences</h4>
+                    <p className="text-[10px] text-slate-500">Configure global platform branding, landing layouts, maintenance toggles and feature flags.</p>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-4">
+                      <h5 className="text-xs font-bold text-slate-800 dark:text-white">Feature Flag Toggles</h5>
+                      <div className="space-y-3">
+                        <label className="flex items-center gap-2 text-xs font-bold text-slate-700 dark:text-slate-350 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={settingsForm.system?.featureFlags?.enableAiChat ?? true}
+                            onChange={(e) => setSettingsForm({
+                              ...settingsForm,
+                              system: {
+                                ...settingsForm.system,
+                                featureFlags: { ...settingsForm.system?.featureFlags, enableAiChat: e.target.checked }
+                              }
+                            })}
+                            className="rounded accent-indigo-500"
+                          />
+                          <span>Enable AI Code Guru chat assistant</span>
+                        </label>
+                        <label className="flex items-center gap-2 text-xs font-bold text-slate-700 dark:text-slate-350 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={settingsForm.system?.featureFlags?.enableGamification ?? true}
+                            onChange={(e) => setSettingsForm({
+                              ...settingsForm,
+                              system: {
+                                ...settingsForm.system,
+                                featureFlags: { ...settingsForm.system?.featureFlags, enableGamification: e.target.checked }
+                              }
+                            })}
+                            className="rounded accent-indigo-500"
+                          />
+                          <span>Enable Gamification (XP streaks, points, leaderboard)</span>
+                        </label>
+                        <label className="flex items-center gap-2 text-xs font-bold text-slate-700 dark:text-slate-350 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={settingsForm.system?.featureFlags?.enableCloudCredits ?? true}
+                            onChange={(e) => setSettingsForm({
+                              ...settingsForm,
+                              system: {
+                                ...settingsForm.system,
+                                featureFlags: { ...settingsForm.system?.featureFlags, enableCloudCredits: e.target.checked }
+                              }
+                            })}
+                            className="rounded accent-indigo-500"
+                          />
+                          <span>Enable Cloud Credits perks claims panel</span>
+                        </label>
+                      </div>
+                    </div>
+
+                    <div className="space-y-4">
+                      <h5 className="text-xs font-bold text-slate-800 dark:text-white">Maintenance & Security mode</h5>
+                      <div className="space-y-3">
+                        <label className="flex items-center gap-2 text-xs font-bold text-red-650 dark:text-red-400 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={settingsForm.system?.maintenanceMode || false}
+                            onChange={(e) => setSettingsForm({
+                              ...settingsForm,
+                              system: { ...settingsForm.system, maintenanceMode: e.target.checked }
+                            })}
+                            className="rounded accent-red-600"
+                          />
+                          <span>⚠️ Trigger Platform Maintenance Mode (Locks user portals)</span>
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="border-t border-slate-200 dark:border-white/5 pt-4">
+                    <h5 className="text-xs font-bold text-slate-800 dark:text-white mb-3">Landing Page Configurations</h5>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="text-[10px] font-bold text-slate-500 block mb-1">Hero Section Title</label>
+                        <input
+                          type="text"
+                          value={settingsForm.system?.landingPageConfig?.heroTitle || ''}
+                          onChange={(e) => setSettingsForm({
+                            ...settingsForm,
+                            system: {
+                              ...settingsForm.system,
+                              landingPageConfig: { ...settingsForm.system?.landingPageConfig, heroTitle: e.target.value }
+                            }
+                          })}
+                          className="w-full px-3.5 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/5 rounded-xl text-xs font-medium text-slate-800 dark:text-white outline-none focus:border-indigo-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[10px] font-bold text-slate-500 block mb-1">Hero Section Subtitle</label>
+                        <input
+                          type="text"
+                          value={settingsForm.system?.landingPageConfig?.heroSubtitle || ''}
+                          onChange={(e) => setSettingsForm({
+                            ...settingsForm,
+                            system: {
+                              ...settingsForm.system,
+                              landingPageConfig: { ...settingsForm.system?.landingPageConfig, heroSubtitle: e.target.value }
+                            }
+                          })}
+                          className="w-full px-3.5 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/5 rounded-xl text-xs font-medium text-slate-800 dark:text-white outline-none focus:border-indigo-500"
+                        />
+                      </div>
+                      <div className="flex items-center pt-2">
+                        <label className="flex items-center gap-2 text-xs font-bold text-slate-700 dark:text-slate-350 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={settingsForm.system?.landingPageConfig?.showTestimonials ?? true}
+                            onChange={(e) => setSettingsForm({
+                              ...settingsForm,
+                              system: {
+                                ...settingsForm.system,
+                                landingPageConfig: { ...settingsForm.system?.landingPageConfig, showTestimonials: e.target.checked }
+                              }
+                            })}
+                            className="rounded accent-indigo-500"
+                          />
+                          <span>Show student testimonial reviews carousel</span>
+                        </label>
+                      </div>
+                      <div className="flex items-center pt-2">
+                        <label className="flex items-center gap-2 text-xs font-bold text-slate-700 dark:text-slate-350 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={settingsForm.system?.landingPageConfig?.showStats ?? true}
+                            onChange={(e) => setSettingsForm({
+                              ...settingsForm,
+                              system: {
+                                ...settingsForm.system,
+                                landingPageConfig: { ...settingsForm.system?.landingPageConfig, showStats: e.target.checked }
+                              }
+                            })}
+                            className="rounded accent-indigo-500"
+                          />
+                          <span>Show performance/enrolled analytics counters</span>
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* 8. Admin Permissions */}
+              {settingsSubTab === 'permissions' && (
+                <div className="space-y-6 animate-in fade-in duration-200">
+                  <div className="border-b border-slate-200 dark:border-white/5 pb-3">
+                    <h4 className="text-sm font-black text-slate-800 dark:text-white">Role-Based Permission Matrix</h4>
+                    <p className="text-[10px] text-slate-500">Enable/disable authorization blocks per administrative staff role. Changes propagate in real time.</p>
+                  </div>
+
+                  <div className="space-y-4">
+                    <form onSubmit={handleCreateRole} className="flex gap-2 bg-slate-100 dark:bg-slate-900/50 p-4 rounded-2xl border dark:border-white/5 items-center">
+                      <div className="flex-1">
+                        <label className="text-[9px] font-bold text-slate-500 block mb-1">Create Custom Role</label>
+                        <input
+                          type="text"
+                          value={newRoleName}
+                          onChange={(e) => setNewRoleName(e.target.value)}
+                          placeholder="e.g. Regional Manager"
+                          className="w-full px-3.5 py-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/5 rounded-xl text-xs font-medium outline-none focus:border-indigo-500"
+                        />
+                      </div>
+                      <button
+                        type="submit"
+                        className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold shadow-md transition-colors mt-4 self-end"
+                      >
+                        Create Role
+                      </button>
+                    </form>
+
+                    <div className="space-y-4">
+                      {rolesList.map((roleObj) => (
+                        <div key={roleObj.role} className="p-5 bg-white dark:bg-slate-900 border dark:border-white/5 rounded-2xl space-y-3.5 shadow-sm">
+                          <div className="flex justify-between items-center border-b dark:border-white/5 pb-2">
+                            <div className="flex items-center gap-2">
+                              <span className="text-xs font-black text-slate-850 dark:text-white">{roleObj.role}</span>
+                              {roleObj.isCustom ? (
+                                <span className="text-[8px] bg-amber-500/10 text-amber-500 border border-amber-500/20 px-2 py-0.5 rounded-full font-black">CUSTOM</span>
+                              ) : (
+                                <span className="text-[8px] bg-slate-100 dark:bg-slate-800 text-slate-500 px-2 py-0.5 rounded-full font-bold">BUILT-IN</span>
+                              )}
+                            </div>
+                            {roleObj.isCustom && (
                               <button
                                 type="button"
-                                onClick={() => removeSession(session)}
-                                className="text-red-500 hover:text-red-700 transition-colors"
+                                onClick={() => handleSaveRolePermissions(roleObj.role, [], true)}
+                                className="text-red-500 hover:text-red-700 text-[10px] font-bold"
                               >
-                                <FiX className="text-xs" />
+                                Delete Role
                               </button>
                             )}
                           </div>
+
+                          <div className="grid grid-cols-2 md:grid-cols-3 gap-2.5">
+                            {[
+                              'Profile Settings',
+                              'Academic Settings',
+                              'Authentication Settings',
+                              'Storage Management',
+                              'SMTP Configuration',
+                              'Notifications Management',
+                              'User Management',
+                              'Content Management',
+                              'Analytics Management'
+                            ].map((perm) => {
+                              const hasPerm = (roleObj.permissions || []).includes(perm);
+                              return (
+                                <label key={perm} className="flex items-center gap-2 text-[11px] font-medium text-slate-700 dark:text-slate-350 cursor-pointer">
+                                  <input
+                                    type="checkbox"
+                                    checked={hasPerm}
+                                    onChange={() => handleTogglePermission(roleObj, perm)}
+                                    className="rounded accent-indigo-500"
+                                  />
+                                  <span>{perm}</span>
+                                </label>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* 9. Audit Logs */}
+              {settingsSubTab === 'audit' && (
+                <div className="space-y-6 animate-in fade-in duration-200">
+                  <div className="border-b border-slate-200 dark:border-white/5 pb-3">
+                    <div className="flex justify-between items-center">
+                      <div>
+                        <h4 className="text-sm font-black text-slate-800 dark:text-white">Administrative Audit Logs</h4>
+                        <p className="text-[10px] text-slate-500">Track and review administrative settings alterations and emergency logins.</p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={handleExportAuditLogs}
+                        className="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition-all shadow-sm"
+                      >
+                        📥 Export to CSV
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col md:flex-row gap-3 items-center">
+                    <div className="relative flex-1 w-full">
+                      <FiSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                      <input
+                        type="text"
+                        value={auditSearch}
+                        onChange={(e) => { setAuditSearch(e.target.value); setAuditPage(1); }}
+                        placeholder="Search logs by email or detail keys..."
+                        className="w-full pl-9 pr-3.5 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/5 rounded-xl text-xs font-medium text-slate-800 dark:text-white outline-none focus:border-indigo-500"
+                      />
+                    </div>
+                    <select
+                      value={auditAction}
+                      onChange={(e) => { setAuditAction(e.target.value); setAuditPage(1); }}
+                      className="w-full md:w-56 px-3.5 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/5 rounded-xl text-xs font-medium text-slate-800 dark:text-white outline-none focus:border-indigo-500"
+                    >
+                      <option value="">All Action Types</option>
+                      <option value="UPDATE_PROFILE_SETTINGS">Profile Details</option>
+                      <option value="UPDATE_ACADEMIC_SETTINGS">Academic Configurations</option>
+                      <option value="UPDATE_AUTH_SETTINGS">Auth Strengths</option>
+                      <option value="UPDATE_SMTP_SETTINGS">SMTP credentials</option>
+                      <option value="UPDATE_STORAGE_SETTINGS">Storage quotas</option>
+                      <option value="CLEANUP_UNUSED_FILES">Disk cleanup logs</option>
+                      <option value="TERMINATE_USER_SESSION">Session termination</option>
+                    </select>
+                  </div>
+
+                  <div className="overflow-x-auto border dark:border-white/5 rounded-2xl bg-white dark:bg-slate-900/20">
+                    <table className="w-full text-left text-xs min-w-[700px]">
+                      <thead className="bg-slate-105 dark:bg-slate-900 text-slate-500 uppercase tracking-widest text-[9px] font-bold">
+                        <tr>
+                          <th className="px-4 py-3">Timestamp</th>
+                          <th className="px-4 py-3">Administrator</th>
+                          <th className="px-4 py-3">Action</th>
+                          <th className="px-4 py-3">Details</th>
+                          <th className="px-4 py-3">IP Address</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-150 dark:divide-white/5">
+                        {auditLogs.map((log) => (
+                          <tr key={log._id} className="hover:bg-slate-50 dark:hover:bg-slate-900/40">
+                            <td className="px-4 py-3 text-slate-500 font-mono text-[10px]">{new Date(log.timestamp || log.createdAt).toLocaleString()}</td>
+                            <td className="px-4 py-3">
+                              <span className="font-bold text-slate-800 dark:text-slate-250 block">{log.userId?.fullName || 'Legacy Admin'}</span>
+                              <span className="text-[10px] text-slate-500 block">{log.userEmail}</span>
+                            </td>
+                            <td className="px-4 py-3">
+                              <span className="text-[9px] bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-350 border px-2.5 py-1 rounded-full font-black text-center inline-block">{log.action}</span>
+                            </td>
+                            <td className="px-4 py-3 text-slate-650 dark:text-slate-300 font-medium text-[11px]">{log.details}</td>
+                            <td className="px-4 py-3 text-slate-400 font-mono text-[10px]">{log.ipAddress || '127.0.0.1'}</td>
+                          </tr>
                         ))}
+                        {auditLogs.length === 0 && (
+                          <tr>
+                            <td colSpan="5" className="px-4 py-8 text-center text-slate-400 italic">No audit records found.</td>
+                          </tr>
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  {auditTotalPages > 1 && (
+                    <div className="flex justify-between items-center pt-2">
+                      <span className="text-[10px] text-slate-500">Page {auditPage} of {auditTotalPages}</span>
+                      <div className="flex gap-2">
+                        <button
+                          disabled={auditPage <= 1}
+                          onClick={() => setAuditPage(prev => Math.max(1, prev - 1))}
+                          className="px-3.5 py-1.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-xl text-xs font-bold disabled:opacity-50"
+                        >
+                          Previous
+                        </button>
+                        <button
+                          disabled={auditPage >= auditTotalPages}
+                          onClick={() => setAuditPage(prev => Math.min(auditTotalPages, prev + 1))}
+                          className="px-3.5 py-1.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-xl text-xs font-bold disabled:opacity-50"
+                        >
+                          Next
+                        </button>
                       </div>
                     </div>
+                  )}
+                </div>
+              )}
 
-                    <div>
-                      <h4 className="text-sm font-black text-slate-800 dark:text-white mb-4">Working Days</h4>
-                      <div className="flex flex-wrap gap-2">
-                        {['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'].map((day) => {
-                          const isWorking = (settingsForm.workingDays || []).includes(day);
-                          return (
+              {/* 10. Session Management */}
+              {settingsSubTab === 'sessions' && (
+                <div className="space-y-6 animate-in fade-in duration-200">
+                  <div className="border-b border-slate-200 dark:border-white/5 pb-3">
+                    <div className="flex justify-between items-center">
+                      <div>
+                        <h4 className="text-sm font-black text-slate-800 dark:text-white">Active Sessions & Device Management</h4>
+                        <p className="text-[10px] text-slate-500">Inspect concurrent logins, view browser configurations, and revoke tokens in real time.</p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => handleForceLogoutAll(null)}
+                        className="px-3.5 py-2 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-black transition-all shadow-sm"
+                      >
+                        Revoke All Other Sessions
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 gap-4">
+                    {activeSessions.map((session) => {
+                      const isCurrent = session.token === api.defaults.headers.common['Authorization']?.split(' ')[1] || false;
+                      return (
+                        <div key={session._id} className="p-4 bg-white dark:bg-slate-900 border dark:border-white/5 rounded-2xl flex justify-between items-center shadow-sm">
+                          <div className="flex gap-3 items-center">
+                            <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-500 dark:text-slate-350 text-xl font-bold">
+                              {session.userId?.avatar ? (
+                                <img src={session.userId.avatar} alt="Avatar" className="w-full h-full object-cover rounded-xl" />
+                              ) : (
+                                (session.userId?.fullName || 'U').charAt(0)
+                              )}
+                            </div>
+                            <div>
+                              <div className="flex gap-2 items-center">
+                                <span className="text-xs font-black text-slate-850 dark:text-white">{session.userId?.fullName || 'Unknown User'}</span>
+                                <span className="text-[8px] bg-slate-100 dark:bg-slate-800 text-slate-500 border dark:border-white/5 px-2 py-0.5 rounded-full font-bold uppercase">{session.userId?.role || 'student'}</span>
+                                {isCurrent && (
+                                  <span className="text-[8px] bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 px-2 py-0.5 rounded-full font-black">CURRENT SESSION</span>
+                                )}
+                              </div>
+                              <span className="text-[10px] text-slate-400 block">{session.userId?.email || 'N/A'}</span>
+                              <div className="flex gap-3 text-[9px] text-slate-500 mt-1">
+                                <span>🌐 IP: {session.ipAddress || '127.0.0.1'}</span>
+                                <span>💻 Device: {session.deviceInfo || 'Unknown'} / {session.browserInfo || 'Chrome'}</span>
+                                <span>🕒 Active: {new Date(session.lastActivityAt).toLocaleTimeString()}</span>
+                              </div>
+                            </div>
+                          </div>
+                          {!isCurrent && (
                             <button
                               type="button"
-                              key={day}
-                              disabled={!hasPermission('manage_settings')}
-                              onClick={() => toggleWorkingDay(day)}
-                              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all border ${
-                                isWorking
-                                  ? 'bg-emerald-605 dark:bg-indigo-600 border-transparent text-white shadow-sm'
-                                  : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-white/5 text-slate-500 dark:text-slate-400'
-                              }`}
+                              onClick={() => handleTerminateSession(session._id)}
+                              className="w-8 h-8 rounded-xl bg-red-500/10 hover:bg-red-500/20 border border-red-500/10 hover:border-red-500/20 flex items-center justify-center text-red-500 transition-all"
+                              title="Terminate active session"
                             >
-                              {day}
+                              <FiX />
                             </button>
-                          );
-                        })}
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <h4 className="text-sm font-black text-slate-800 dark:text-white mb-2">Operating Hours</h4>
-                        <div className="flex items-center gap-2">
-                          <div className="w-1/2">
-                            <label className="text-[9px] font-bold text-slate-500 block mb-1">Start Hour</label>
-                            <input
-                              type="text"
-                              value={settingsForm.timetable?.startHour || '09:00 AM'}
-                              onChange={(e) => setSettingsForm({
-                                ...settingsForm,
-                                timetable: { ...settingsForm.timetable, startHour: e.target.value }
-                              })}
-                              disabled={!hasPermission('manage_settings')}
-                              placeholder="09:00 AM"
-                              className="w-full px-3.5 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/5 rounded-xl text-xs font-medium text-slate-800 dark:text-white outline-none focus:border-indigo-500"
-                            />
-                          </div>
-                          <div className="w-1/2">
-                            <label className="text-[9px] font-bold text-slate-500 block mb-1">End Hour</label>
-                            <input
-                              type="text"
-                              value={settingsForm.timetable?.endHour || '06:00 PM'}
-                              onChange={(e) => setSettingsForm({
-                                ...settingsForm,
-                                timetable: { ...settingsForm.timetable, endHour: e.target.value }
-                              })}
-                              disabled={!hasPermission('manage_settings')}
-                              placeholder="06:00 PM"
-                              className="w-full px-3.5 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/5 rounded-xl text-xs font-medium text-slate-800 dark:text-white outline-none focus:border-indigo-500"
-                            />
-                          </div>
+                          )}
                         </div>
-                      </div>
-                    </div>
-
-                    <div>
-                      <h4 className="text-sm font-black text-slate-800 dark:text-white mb-4">Holiday Calendar</h4>
-                      {hasPermission('manage_settings') && (
-                        <div className="flex flex-col md:flex-row gap-2.5 mb-4">
-                          <input
-                            type="text"
-                            placeholder="Holiday Name"
-                            value={newHoliday.name}
-                            onChange={(e) => setNewHoliday({ ...newHoliday, name: e.target.value })}
-                            className="w-full md:w-1/2 px-3.5 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/5 rounded-xl text-xs font-medium text-slate-800 dark:text-white outline-none focus:border-indigo-500"
-                          />
-                          <input
-                            type="date"
-                            value={newHoliday.date}
-                            onChange={(e) => setNewHoliday({ ...newHoliday, date: e.target.value })}
-                            className="w-full md:w-1/3 px-3.5 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/5 rounded-xl text-xs font-medium text-slate-800 dark:text-white outline-none focus:border-indigo-500"
-                          />
-                          <button
-                            type="button"
-                            onClick={addHoliday}
-                            className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-black shadow-md transition-colors whitespace-nowrap"
-                          >
-                            Add Holiday
-                          </button>
-                        </div>
-                      )}
-                      
-                      <div className="max-h-48 overflow-y-auto border border-slate-200 dark:border-white/5 rounded-2xl bg-white dark:bg-slate-900/20">
-                        <table className="w-full text-left text-xs">
-                          <thead className="bg-slate-105 dark:bg-slate-900 text-slate-500 uppercase tracking-widest text-[9px] font-bold">
-                            <tr>
-                              <th className="px-4 py-3">Holiday</th>
-                              <th className="px-4 py-3">Date</th>
-                              {hasPermission('manage_settings') && <th className="px-4 py-3 text-right">Actions</th>}
-                            </tr>
-                          </thead>
-                          <tbody className="divide-y divide-slate-205 dark:divide-white/5">
-                            {(settingsForm.holidays || []).map((holiday, idx) => (
-                              <tr key={idx} className="hover:bg-slate-50 dark:hover:bg-slate-900/50">
-                                <td className="px-4 py-3 font-bold text-slate-800 dark:text-slate-100">{holiday.name}</td>
-                                <td className="px-4 py-3 text-slate-500">{new Date(holiday.date).toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</td>
-                                {hasPermission('manage_settings') && (
-                                  <td className="px-4 py-3 text-right">
-                                    <button
-                                      type="button"
-                                      onClick={() => removeHoliday(idx)}
-                                      className="text-red-500 hover:text-red-700 transition-colors font-bold text-[10px]"
-                                    >
-                                      Remove
-                                    </button>
-                                  </td>
-                                )}
-                              </tr>
-                            ))}
-                            {(settingsForm.holidays || []).length === 0 && (
-                              <tr>
-                                <td colSpan="3" className="px-4 py-6 text-center text-slate-400 italic">No holidays configured.</td>
-                              </tr>
-                            )}
-                          </tbody>
-                        </table>
-                      </div>
-                    </div>
+                      );
+                    })}
+                    {activeSessions.length === 0 && (
+                      <div className="text-center py-8 text-slate-400 italic">No active sessions tracked in database.</div>
+                    )}
                   </div>
-                )}
+                </div>
+              )}
 
-                {/* Security Tab */}
-                {settingsSubTab === 'security' && (
-                  <div className="space-y-6">
-                    <div>
-                      <h4 className="text-sm font-black text-slate-800 dark:text-white mb-4">Password Policies</h4>
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div>
-                          <label className="text-[10px] font-bold text-slate-500 block mb-1">Min Length Required</label>
-                          <input
-                            type="number"
-                            min="4"
-                            max="20"
-                            value={settingsForm.passwordPolicies?.minLength || 6}
-                            onChange={(e) => setSettingsForm({
-                              ...settingsForm,
-                              passwordPolicies: { ...settingsForm.passwordPolicies, minLength: parseInt(e.target.value) || 6 }
-                            })}
-                            disabled={!hasPermission('manage_settings')}
-                            className="w-full px-3.5 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/5 rounded-xl text-xs font-medium text-slate-800 dark:text-white outline-none focus:border-indigo-500"
-                          />
-                        </div>
-                        <div className="flex items-center pt-5">
-                          <label className="flex items-center gap-2 text-xs font-bold text-slate-700 dark:text-slate-350 cursor-pointer">
-                            <input
-                              type="checkbox"
-                              checked={settingsForm.passwordPolicies?.requireSpecialChar || false}
-                              onChange={(e) => setSettingsForm({
-                                ...settingsForm,
-                                passwordPolicies: { ...settingsForm.passwordPolicies, requireSpecialChar: e.target.checked }
-                              })}
-                              disabled={!hasPermission('manage_settings')}
-                              className="rounded accent-emerald-600 dark:accent-indigo-500"
-                            />
-                            <span>Require Special Character</span>
-                          </label>
-                        </div>
-                        <div className="flex items-center pt-5">
-                          <label className="flex items-center gap-2 text-xs font-bold text-slate-700 dark:text-slate-350 cursor-pointer">
-                            <input
-                              type="checkbox"
-                              checked={settingsForm.passwordPolicies?.requireUppercase || false}
-                              onChange={(e) => setSettingsForm({
-                                ...settingsForm,
-                                passwordPolicies: { ...settingsForm.passwordPolicies, requireUppercase: e.target.checked }
-                              })}
-                              disabled={!hasPermission('manage_settings')}
-                              className="rounded accent-emerald-600 dark:accent-indigo-500"
-                            />
-                            <span>Require Uppercase Character</span>
-                          </label>
-                        </div>
-                      </div>
-                    </div>
-
-                    <hr className="border-slate-200 dark:border-white/5" />
-
-                    <div>
-                      <h4 className="text-sm font-black text-slate-800 dark:text-white mb-4">Session Timeout & Locked Out Safety Policies</h4>
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div>
-                          <label className="text-[10px] font-bold text-slate-500 block mb-1">Session Inactivity Timeout (mins)</label>
-                          <input
-                            type="number"
-                            min="5"
-                            value={settingsForm.sessionTimeout || 60}
-                            onChange={(e) => setSettingsForm({ ...settingsForm, sessionTimeout: parseInt(e.target.value) || 60 })}
-                            disabled={!hasPermission('manage_settings')}
-                            className="w-full px-3.5 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/5 rounded-xl text-xs font-medium text-slate-800 dark:text-white outline-none focus:border-indigo-500"
-                          />
-                        </div>
-                        <div>
-                          <label className="text-[10px] font-bold text-slate-500 block mb-1">Max Login Attempts (Before lockout)</label>
-                          <input
-                            type="number"
-                            min="3"
-                            max="10"
-                            value={settingsForm.loginSecurity?.maxLoginAttempts || 5}
-                            onChange={(e) => setSettingsForm({
-                              ...settingsForm,
-                              loginSecurity: { ...settingsForm.loginSecurity, maxLoginAttempts: parseInt(e.target.value) || 5 }
-                            })}
-                            disabled={!hasPermission('manage_settings')}
-                            className="w-full px-3.5 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/5 rounded-xl text-xs font-medium text-slate-800 dark:text-white outline-none focus:border-indigo-500"
-                          />
-                        </div>
-                        <div>
-                          <label className="text-[10px] font-bold text-slate-500 block mb-1">Lockout Duration Period (mins)</label>
-                          <input
-                            type="number"
-                            min="1"
-                            value={settingsForm.loginSecurity?.lockoutTime || 15}
-                            onChange={(e) => setSettingsForm({
-                              ...settingsForm,
-                              loginSecurity: { ...settingsForm.loginSecurity, lockoutTime: parseInt(e.target.value) || 15 }
-                            })}
-                            disabled={!hasPermission('manage_settings')}
-                            className="w-full px-3.5 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/5 rounded-xl text-xs font-medium text-slate-800 dark:text-white outline-none focus:border-indigo-500"
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* Storage Tab */}
-                {settingsSubTab === 'storage' && (
-                  <div className="space-y-6">
-                    <div>
-                      <h4 className="text-sm font-black text-slate-800 dark:text-white mb-4">File Storage Threshold Limits</h4>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                          <label className="text-[10px] font-bold text-slate-500 block mb-1">Study Material Max File Size (MB)</label>
-                          <input
-                            type="number"
-                            min="1"
-                            value={settingsForm.uploadLimits || 50}
-                            onChange={(e) => setSettingsForm({ ...settingsForm, uploadLimits: parseInt(e.target.value) || 50 })}
-                            disabled={!hasPermission('manage_settings')}
-                            className="w-full px-3.5 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/5 rounded-xl text-xs font-medium text-slate-800 dark:text-white outline-none focus:border-indigo-500"
-                          />
-                        </div>
-                        <div>
-                          <label className="text-[10px] font-bold text-slate-500 block mb-1">Video Lecture Max File Size (MB)</label>
-                          <input
-                            type="number"
-                            min="1"
-                            value={settingsForm.videoLimits || 500}
-                            onChange={(e) => setSettingsForm({ ...settingsForm, videoLimits: parseInt(e.target.value) || 500 })}
-                            disabled={!hasPermission('manage_settings')}
-                            className="w-full px-3.5 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/5 rounded-xl text-xs font-medium text-slate-800 dark:text-white outline-none focus:border-indigo-500"
-                          />
-                        </div>
-                      </div>
-                    </div>
-
-                    <hr className="border-slate-200 dark:border-white/5" />
-
-                    <div>
-                      <h4 className="text-sm font-black text-slate-800 dark:text-white mb-4">Allowed File Extensions</h4>
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                        {['.pdf', '.csv', '.xlsx', '.png', '.jpg', '.mp4', '.zip', '.txt', '.doc', '.docx'].map((ext) => {
-                          const isAllowed = (settingsForm.allowedFileTypes || []).includes(ext);
-                          return (
-                            <label key={ext} className="flex items-center gap-2 text-xs font-bold text-slate-700 dark:text-slate-350 cursor-pointer">
-                              <input
-                                type="checkbox"
-                                checked={isAllowed}
-                                onChange={() => toggleAllowedFileType(ext)}
-                                disabled={!hasPermission('manage_settings')}
-                                className="rounded accent-emerald-600 dark:accent-indigo-500"
-                              />
-                              <span>{ext}</span>
-                            </label>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* SMTP & Notifications Tab */}
-                {settingsSubTab === 'notifications' && (
-                  <div className="space-y-6">
-                    <div>
-                      <h4 className="text-sm font-black text-slate-800 dark:text-white mb-4">SMTP Credentials</h4>
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div className="md:col-span-2">
-                          <label className="text-[10px] font-bold text-slate-500 block mb-1">SMTP Host Server Address</label>
-                          <input
-                            type="text"
-                            value={settingsForm.smtp?.host || ''}
-                            onChange={(e) => setSettingsForm({
-                              ...settingsForm,
-                              smtp: { ...settingsForm.smtp, host: e.target.value }
-                            })}
-                            disabled={!hasPermission('manage_settings')}
-                            placeholder="smtp.mailtrap.io"
-                            className="w-full px-3.5 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/5 rounded-xl text-xs font-medium text-slate-800 dark:text-white outline-none focus:border-indigo-500"
-                          />
-                        </div>
-                        <div>
-                          <label className="text-[10px] font-bold text-slate-500 block mb-1">SMTP Port Number</label>
-                          <input
-                            type="number"
-                            value={settingsForm.smtp?.port || 2525}
-                            onChange={(e) => setSettingsForm({
-                              ...settingsForm,
-                              smtp: { ...settingsForm.smtp, port: parseInt(e.target.value) || 2525 }
-                            })}
-                            disabled={!hasPermission('manage_settings')}
-                            placeholder="2525"
-                            className="w-full px-3.5 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/5 rounded-xl text-xs font-medium text-slate-800 dark:text-white outline-none focus:border-indigo-500"
-                          />
-                        </div>
-                        <div>
-                          <label className="text-[10px] font-bold text-slate-500 block mb-1">SMTP Username</label>
-                          <input
-                            type="text"
-                            value={settingsForm.smtp?.user || ''}
-                            onChange={(e) => setSettingsForm({
-                              ...settingsForm,
-                              smtp: { ...settingsForm.smtp, user: e.target.value }
-                            })}
-                            disabled={!hasPermission('manage_settings')}
-                            className="w-full px-3.5 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/5 rounded-xl text-xs font-medium text-slate-800 dark:text-white outline-none focus:border-indigo-500"
-                          />
-                        </div>
-                        <div>
-                          <label className="text-[10px] font-bold text-slate-500 block mb-1">SMTP Password</label>
-                          <input
-                            type="password"
-                            value={settingsForm.smtp?.pass || ''}
-                            onChange={(e) => setSettingsForm({
-                              ...settingsForm,
-                              smtp: { ...settingsForm.smtp, pass: e.target.value }
-                            })}
-                            disabled={!hasPermission('manage_settings')}
-                            className="w-full px-3.5 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/5 rounded-xl text-xs font-medium text-slate-800 dark:text-white outline-none focus:border-indigo-500"
-                          />
-                        </div>
-                        <div>
-                          <label className="text-[10px] font-bold text-slate-500 block mb-1">From Sender Address</label>
-                          <input
-                            type="email"
-                            value={settingsForm.smtp?.fromEmail || ''}
-                            onChange={(e) => setSettingsForm({
-                              ...settingsForm,
-                              smtp: { ...settingsForm.smtp, fromEmail: e.target.value }
-                            })}
-                            disabled={!hasPermission('manage_settings')}
-                            placeholder="noreply@codewave.com"
-                            className="w-full px-3.5 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/5 rounded-xl text-xs font-medium text-slate-800 dark:text-white outline-none focus:border-indigo-500"
-                          />
-                        </div>
-                      </div>
-                    </div>
-
-                    <hr className="border-slate-200 dark:border-white/5" />
-
-                    <div>
-                      <h4 className="text-sm font-black text-slate-800 dark:text-white mb-4">Push Notifications Integrations</h4>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="flex items-center pt-5">
-                          <label className="flex items-center gap-2 text-xs font-bold text-slate-700 dark:text-slate-350 cursor-pointer">
-                            <input
-                              type="checkbox"
-                              checked={settingsForm.pushNotifications?.enabled || false}
-                              onChange={(e) => setSettingsForm({
-                                ...settingsForm,
-                                pushNotifications: { ...settingsForm.pushNotifications, enabled: e.target.checked }
-                              })}
-                              disabled={!hasPermission('manage_settings')}
-                              className="rounded accent-emerald-600 dark:accent-indigo-500"
-                            />
-                            <span>Enable Global Push Notifications System</span>
-                          </label>
-                        </div>
-                        <div>
-                          <label className="text-[10px] font-bold text-slate-500 block mb-1">Notification Service Provider Name</label>
-                          <select
-                            value={settingsForm.pushNotifications?.provider || 'OneSignal'}
-                            onChange={(e) => setSettingsForm({
-                              ...settingsForm,
-                              pushNotifications: { ...settingsForm.pushNotifications, provider: e.target.value }
-                            })}
-                            disabled={!hasPermission('manage_settings')}
-                            className="w-full px-3.5 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/5 rounded-xl text-xs font-medium text-slate-800 dark:text-white outline-none focus:border-indigo-500"
-                          >
-                            <option value="OneSignal">OneSignal Gateway</option>
-                            <option value="Firebase">Firebase Cloud Messaging (FCM)</option>
-                            <option value="Pusher">Pusher Beams</option>
-                          </select>
-                        </div>
-                      </div>
-                    </div>
-
-                    <hr className="border-slate-200 dark:border-white/5" />
-
-                    <div>
-                      <h4 className="text-sm font-black text-slate-800 dark:text-white mb-4">Announcement Settings</h4>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                          <label className="text-[10px] font-bold text-slate-500 block mb-1">Default Communication Channel</label>
-                          <input
-                            type="text"
-                            value={settingsForm.announcementSettings?.defaultChannel || 'general'}
-                            onChange={(e) => setSettingsForm({
-                              ...settingsForm,
-                              announcementSettings: { ...settingsForm.announcementSettings, defaultChannel: e.target.value }
-                            })}
-                            disabled={!hasPermission('manage_settings')}
-                            placeholder="general"
-                            className="w-full px-3.5 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/5 rounded-xl text-xs font-medium text-slate-800 dark:text-white outline-none focus:border-indigo-500"
-                          />
-                        </div>
-                        <div className="flex items-center pt-5">
-                          <label className="flex items-center gap-2 text-xs font-bold text-slate-700 dark:text-slate-350 cursor-pointer">
-                            <input
-                              type="checkbox"
-                              checked={settingsForm.announcementSettings?.allowStudentReply || false}
-                              onChange={(e) => setSettingsForm({
-                                ...settingsForm,
-                                announcementSettings: { ...settingsForm.announcementSettings, allowStudentReply: e.target.checked }
-                              })}
-                              disabled={!hasPermission('manage_settings')}
-                              className="rounded accent-emerald-600 dark:accent-indigo-500"
-                            />
-                            <span>Allow Students to reply on Announcement cards</span>
-                          </label>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
-                
-              </form>
             </div>
           </div>
         </div>

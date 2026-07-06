@@ -75,6 +75,7 @@ app.use('/api/cloud-credits', require('./routes/cloudCredits'));
 app.use('/api/certificates', require('./routes/certificates'));
 app.use('/api/ai', require('./routes/ai'));
 app.use('/api/admin', require('./routes/admin'));
+app.use('/api/admin/settings', require('./routes/settingsRoutes'));
 app.use('/api/problems', require('./routes/problemRoutes'));
 app.use('/api/code', require('./routes/codeRoutes'));
 app.use('/api/submissions', require('./routes/submissionRoutes'));
@@ -103,6 +104,14 @@ const startServer = async () => {
       console.log(`\n🔥 CodeWave Solution Server running on port ${PORT}`);
       console.log(`📡 Environment: ${process.env.NODE_ENV}`);
       console.log(`🌐 Client URL: ${process.env.CLIENT_URL}\n`);
+
+      // Run Settings Migration
+      try {
+        const runSettingsMigration = require('./seeds/settingsMigration');
+        await runSettingsMigration();
+      } catch (err) {
+        console.error('❌ Settings migration failed:', err.message);
+      }
 
       // Auto-seed if empty (useful for In-Memory DB)
       try {
