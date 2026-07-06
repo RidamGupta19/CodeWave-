@@ -193,6 +193,8 @@ export default function TeacherAttendance() {
       });
 
       toast.success('Attendance records saved successfully! 📝');
+      // Automatically refresh roster and status indicators
+      await loadBatchRoster();
     } catch (err) {
       toast.error(err.response?.data?.message || 'Failed to submit attendance');
     } finally {

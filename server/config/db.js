@@ -21,12 +21,18 @@ const connectDB = async () => {
     const conn = await connectWithTimeout(uri);
     console.log(`MongoDB connected: ${conn.connection.host}`);
 
-    // Programmatically drop the old unique index to support subject-wise index updates
+    // Programmatically drop the old unique indexes to support new daily index updates
     try {
       await conn.connection.db.collection('attendances').dropIndex('studentId_1_batchId_1_date_1');
       console.log('Successfully dropped old unique index studentId_1_batchId_1_date_1');
     } catch (e) {
       // index might not exist or collection is not seeded yet, ignore safely
+    }
+    try {
+      await conn.connection.db.collection('attendances').dropIndex('studentId_1_batchId_1_date_1_courseId_1');
+      console.log('Successfully dropped old unique index studentId_1_batchId_1_date_1_courseId_1');
+    } catch (e) {
+      // ignore safely
     }
 
     return { conn, isMemory: !!mongoServer };

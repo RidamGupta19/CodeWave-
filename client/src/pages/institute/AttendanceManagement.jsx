@@ -131,6 +131,8 @@ export default function AttendanceManagement() {
       if (user.role === 'admin') {
         fetchAdminStats();
       }
+      // Automatically refresh roster and status indicators
+      await loadBatchRoster();
     } catch (err) {
       toast.error(err.response?.data?.message || 'Failed to save attendance');
     } finally {
@@ -381,9 +383,15 @@ export default function AttendanceManagement() {
                 <button 
                   onClick={handleSaveAttendance} 
                   disabled={loading}
-                  className="btn-primary py-3 px-8 text-xs font-black uppercase flex items-center gap-2 shadow-lg"
+                  className="btn-primary py-3 px-8 text-xs font-black uppercase flex items-center gap-2 shadow-lg disabled:opacity-50"
                 >
-                  <FiCheck strokeWidth={3} /> Save Marks
+                  {loading ? (
+                    <span>Saving...</span>
+                  ) : (
+                    <>
+                      <FiCheck strokeWidth={3} /> Save Marks
+                    </>
+                  )}
                 </button>
               </div>
             </div>

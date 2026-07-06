@@ -1,3 +1,4 @@
+const mongoose = require('mongoose');
 const Student = require('../models/Student');
 const Teacher = require('../models/Teacher');
 const Course = require('../models/Course');
@@ -441,9 +442,18 @@ exports.markAttendance = async (req, res) => {
     if (!batchId) {
       return res.status(400).json({ success: false, message: 'Batch ID is required' });
     }
+    if (!mongoose.Types.ObjectId.isValid(batchId)) {
+      return res.status(400).json({ success: false, message: 'Invalid Batch ID format' });
+    }
     if (!date) {
       return res.status(400).json({ success: false, message: 'Date is required' });
     }
+    
+    const parsedDate = new Date(date);
+    if (isNaN(parsedDate.getTime())) {
+      return res.status(400).json({ success: false, message: 'Invalid date format' });
+    }
+
     if (!records || !Array.isArray(records) || records.length === 0) {
       return res.status(400).json({ success: false, message: 'Records array is required and cannot be empty' });
     }
@@ -455,13 +465,26 @@ exports.markAttendance = async (req, res) => {
     }
     const teacherId = teacher ? teacher._id : req.user._id;
 
-    const formattedDate = new Date(date);
+    const formattedDate = new Date(parsedDate);
     formattedDate.setHours(0,0,0,0);
 
-    const logs = [];
+    // Deduplicate records by studentId to prevent duplicate processing/race conditions
+    const uniqueRecords = [];
+    const seenStudents = new Set();
     for (const record of records) {
+      if (record.studentId && !seenStudents.has(record.studentId.toString())) {
+        seenStudents.add(record.studentId.toString());
+        uniqueRecords.push(record);
+      }
+    }
+
+    const logs = [];
+    for (const record of uniqueRecords) {
       if (!record.studentId || !record.status) {
         return res.status(400).json({ success: false, message: 'Each record must have a studentId and status' });
+      }
+      if (!mongoose.Types.ObjectId.isValid(record.studentId)) {
+        return res.status(400).json({ success: false, message: `Invalid studentId format: ${record.studentId}` });
       }
       if (!['Present', 'Absent', 'Leave'].includes(record.status)) {
         return res.status(400).json({ success: false, message: `Invalid status '${record.status}'. Must be Present, Absent, or Leave` });
@@ -474,21 +497,36 @@ exports.markAttendance = async (req, res) => {
       }
       const finalCourseId = courseId || studentObj.course;
 
+      // Match strictly on unique index properties { studentId, date } to prevent duplicate entries
       const query = { 
         studentId: record.studentId, 
-        batchId, 
-        date: formattedDate,
-        courseId: finalCourseId
+        date: formattedDate
       };
       
       const update = { 
         status: record.status,
         teacherId,
+        batchId,
         courseId: finalCourseId
       };
       
       const attendance = await Attendance.findOneAndUpdate(query, update, { upsert: true, new: true });
       logs.push(attendance);
+    }
+
+    // Add attendance audit logs
+    const AuditLogs = require('../models/AuditLogs');
+    try {
+      await AuditLogs.create({
+        userId: req.user._id,
+        userEmail: req.user.email,
+        action: 'MARK_ATTENDANCE',
+        details: `Saved attendance for batch ${batchId} on ${formattedDate.toDateString()}. Total records: ${uniqueRecords.length}`,
+        ipAddress: req.ip || '127.0.0.1',
+        deviceInfo: req.headers['user-agent'] || 'Unknown'
+      });
+    } catch (auditErr) {
+      console.error('Failed to log attendance audit record:', auditErr.message);
     }
 
     res.json({ success: true, message: 'Attendance records saved successfully', data: logs });
