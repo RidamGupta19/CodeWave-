@@ -166,7 +166,16 @@ const awardPoints = async (userId, reason, referenceId = null, dateStr = null) =
       entry.assessmentsPassed = activity.assessmentAnalytics?.totalPassed || 0;
       entry.averageAssessmentScore = activity.assessmentAnalytics?.averageScore || 0;
       entry.assignmentsSubmitted = activity.totalAssignmentsSubmitted || 0;
-      entry.codingProblemsSolved = activity.codingProblemsSolved || 0;
+    }
+
+    // Load solved coding problems count from UserProgress
+    try {
+      const UserProgress = require('../models/UserProgress');
+      const userProgress = await UserProgress.findOne({ user: userId });
+      entry.codingProblemsSolved = userProgress?.solvedProblems?.length || 0;
+    } catch (err) {
+      console.error('Failed to sync coding problems solved count:', err.message);
+      entry.codingProblemsSolved = 0;
     }
 
     // Check and award automatic badges

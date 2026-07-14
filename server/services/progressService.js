@@ -238,6 +238,13 @@ const updateAfterSubmission = async ({ userId, problem, status }) => {
       
       user.domainsProgress[key].xp = (user.domainsProgress[key].xp || 0) + (XP_REWARDS[problem.difficulty] || 50);
       user.markModified(`domainsProgress.${key}`);
+      
+      try {
+        const gamificationService = require('./gamificationService');
+        await gamificationService.awardPoints(userId, 'problem', problem._id);
+      } catch (err) {
+        console.error('Failed to award points for problem solve:', err.message);
+      }
     }
   }
 

@@ -109,6 +109,7 @@ function App() {
               <Route path="/resources" element={<Resources />} />
               <Route path="/career-guide" element={<CareerGuide />} />
               <Route path="/zero-to-coding" element={<ZeroToCoding />} />
+              <Route path="/zero-to-coding/problem/:id" element={<ZeroToCoding />} />
               <Route path="/profile" element={<Profile />} />
             </Route>
           </Route>

@@ -14,8 +14,7 @@ const testCaseSchema = new mongoose.Schema(
     input: { type: String, default: '' },
     expectedOutput: { type: String, default: '' },
     explanation: { type: String, default: '' }
-  },
-  { _id: false }
+  }
 );
 
 const resourceSchema = new mongoose.Schema(
@@ -32,7 +31,8 @@ const codeSchema = new mongoose.Schema(
     java: { type: String, default: '' },
     python: { type: String, default: '' },
     cpp: { type: String, default: '' },
-    javascript: { type: String, default: '' }
+    javascript: { type: String, default: '' },
+    c: { type: String, default: '' }
   },
   { _id: false }
 );

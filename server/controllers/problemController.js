@@ -44,7 +44,8 @@ const cleanProblemPayload = (body = {}, { partial = false } = {}) => {
       java: body[field]?.java || '',
       python: body[field]?.python || '',
       cpp: body[field]?.cpp || '',
-      javascript: body[field]?.javascript || ''
+      javascript: body[field]?.javascript || '',
+      c: body[field]?.c || ''
     };
   };
 
@@ -193,12 +194,14 @@ exports.getProblems = async (req, res) => {
   }
 };
 
-// @desc    Get a single problem by slug
+// @desc    Get a single problem by slug or id
 // @route   GET /api/problems/:slug
 exports.getProblemBySlug = async (req, res) => {
   try {
     const isAdmin = req.user?.role === 'admin';
-    const filter = { slug: req.params.slug };
+    const mongoose = require('mongoose');
+    const isObjectId = mongoose.Types.ObjectId.isValid(req.params.slug);
+    const filter = isObjectId ? { _id: req.params.slug } : { slug: req.params.slug };
     if (!isAdmin) {
       filter.isPublished = true;
     }
@@ -308,4 +311,172 @@ exports.getProblemsByDomain = async (req, res) => {
 exports.getProblemsByTopic = async (req, res) => {
   req.query.topic = req.params.topicName;
   return exports.getProblems(req, res);
+};
+
+// @desc    Get student coding progress stats
+// @route   GET /api/problems/progress
+exports.getProgress = async (req, res) => {
+  try {
+    const progress = await UserProgress.findOne({ user: req.user._id })
+      .populate('solvedProblems', 'title slug difficulty')
+      .populate('attemptedProblems', 'title slug difficulty');
+      
+    if (!progress) {
+      return res.json({
+        success: true,
+        data: {
+          solvedCount: 0,
+          attemptedCount: 0,
+          totalSubmissions: 0,
+          acceptedSubmissions: 0,
+          successRate: 0,
+          currentStreak: 0,
+          longestStreak: 0,
+          difficultyStats: { easySolved: 0, mediumSolved: 0, hardSolved: 0 }
+        }
+      });
+    }
+
+    const successRate = progress.totalSubmissions
+      ? Math.round((progress.acceptedSubmissions / progress.totalSubmissions) * 100)
+      : 0;
+
+    res.json({
+      success: true,
+      data: {
+        solvedCount: progress.solvedProblems.length,
+        attemptedCount: progress.attemptedProblems.length,
+        solvedProblems: progress.solvedProblems,
+        attemptedProblems: progress.attemptedProblems,
+        totalSubmissions: progress.totalSubmissions,
+        acceptedSubmissions: progress.acceptedSubmissions,
+        successRate,
+        currentStreak: progress.streak?.currentStreak || 0,
+        longestStreak: progress.streak?.longestStreak || 0,
+        difficultyStats: progress.difficultyStats,
+        recentActivity: progress.recentActivity
+      }
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// @desc    Add a testcase to a problem
+// @route   POST /api/admin/testcases
+exports.addTestCase = async (req, res) => {
+  try {
+    const { problemId, input, expectedOutput, explanation, isHidden } = req.body;
+    
+    if (!problemId) {
+      return res.status(400).json({ success: false, message: 'problemId is required' });
+    }
+    
+    const problem = await Problem.findById(problemId);
+    if (!problem) {
+      return res.status(404).json({ success: false, message: 'Problem not found' });
+    }
+    
+    const newTestCase = {
+      input: input || '',
+      expectedOutput: expectedOutput || '',
+      explanation: explanation || ''
+    };
+    
+    if (isHidden === true || isHidden === 'true') {
+      problem.hiddenTestCases.push(newTestCase);
+    } else {
+      problem.visibleTestCases.push(newTestCase);
+    }
+    
+    await problem.save();
+    res.status(201).json({ success: true, data: problem });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// @desc    Update a testcase
+// @route   PUT /api/admin/testcases/:id
+exports.updateTestCase = async (req, res) => {
+  try {
+    const testCaseId = req.params.id;
+    const { input, expectedOutput, explanation, isHidden } = req.body;
+    
+    let problem = await Problem.findOne({
+      $or: [
+        { 'visibleTestCases._id': testCaseId },
+        { 'hiddenTestCases._id': testCaseId }
+      ]
+    });
+    
+    if (!problem) {
+      return res.status(404).json({ success: false, message: 'Test case not found' });
+    }
+    
+    let testCase;
+    let foundInVisible = false;
+    
+    let index = problem.visibleTestCases.findIndex(tc => tc._id.toString() === testCaseId);
+    if (index !== -1) {
+      testCase = problem.visibleTestCases[index];
+      foundInVisible = true;
+    } else {
+      index = problem.hiddenTestCases.findIndex(tc => tc._id.toString() === testCaseId);
+      if (index !== -1) {
+        testCase = problem.hiddenTestCases[index];
+      }
+    }
+    
+    if (!testCase) {
+      return res.status(404).json({ success: false, message: 'Test case not found' });
+    }
+    
+    if (input !== undefined) testCase.input = input;
+    if (expectedOutput !== undefined) testCase.expectedOutput = expectedOutput;
+    if (explanation !== undefined) testCase.explanation = explanation;
+    
+    if (isHidden !== undefined) {
+      const targetIsHidden = isHidden === true || isHidden === 'true';
+      if (targetIsHidden && foundInVisible) {
+        problem.visibleTestCases.splice(index, 1);
+        problem.hiddenTestCases.push(testCase);
+      } else if (!targetIsHidden && !foundInVisible) {
+        problem.hiddenTestCases.splice(index, 1);
+        problem.visibleTestCases.push(testCase);
+      }
+    }
+    
+    await problem.save();
+    res.json({ success: true, message: 'Test case updated', data: problem });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// @desc    Delete a testcase
+// @route   DELETE /api/admin/testcases/:id
+exports.deleteTestCase = async (req, res) => {
+  try {
+    const testCaseId = req.params.id;
+    
+    let problem = await Problem.findOne({
+      $or: [
+        { 'visibleTestCases._id': testCaseId },
+        { 'hiddenTestCases._id': testCaseId }
+      ]
+    });
+    
+    if (!problem) {
+      return res.status(404).json({ success: false, message: 'Testcase not found' });
+    }
+    
+    problem.visibleTestCases = problem.visibleTestCases.filter(tc => tc._id.toString() !== testCaseId);
+    problem.hiddenTestCases = problem.hiddenTestCases.filter(tc => tc._id.toString() !== testCaseId);
+    
+    await problem.save();
+    res.json({ success: true, message: 'Test case deleted', data: problem });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
 };

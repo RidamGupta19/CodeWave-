@@ -8,7 +8,7 @@ const submissionSchema = new mongoose.Schema(
     topic: { type: String, required: true, trim: true },
     language: {
       type: String,
-      enum: ['Java', 'Python', 'C++', 'JavaScript'],
+      enum: ['Java', 'Python', 'C++', 'JavaScript', 'C'],
       required: true
     },
     code: { type: String, required: true },

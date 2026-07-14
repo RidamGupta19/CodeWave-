@@ -67,4 +67,13 @@ router.get('/mentor/students', protect, authorize('mentor'), c.getAssignedStuden
 router.post('/mentor/feedback', protect, authorize('mentor'), c.sendFeedback);
 router.get('/feedback/my', protect, c.getMyFeedback);
 
+// Admin problem & testcase management routes
+const problemController = require('../controllers/problemController');
+router.post('/problems', protect, authorize('admin'), problemController.createProblem);
+router.put('/problems/:id', protect, authorize('admin'), problemController.updateProblem);
+router.delete('/problems/:id', protect, authorize('admin'), problemController.deleteProblem);
+router.post('/testcases', protect, authorize('admin'), problemController.addTestCase);
+router.put('/testcases/:id', protect, authorize('admin'), problemController.updateTestCase);
+router.delete('/testcases/:id', protect, authorize('admin'), problemController.deleteTestCase);
+
 module.exports = router;

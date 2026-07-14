@@ -18,6 +18,7 @@ Use these credentials to test the student, instructor, and administration workfl
 
 ## 🖥️ Local Infrastructure Ports
 
+
 * **Frontend Client (Vite)**: [http://localhost:5173](http://localhost:5173)
 * **Backend REST API (Express)**: [http://localhost:5000](http://localhost:5000)
   * Base API path: `/api` (e.g., [http://localhost:5000/api](http://localhost:5000/api))

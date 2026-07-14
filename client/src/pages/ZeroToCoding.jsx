@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import api from '../api/axios';
 import problemApi from '../api/problemApi';
@@ -70,6 +71,12 @@ const playSound = (type, isMuted) => {
 
 const ZeroToCoding = () => {
   const { user, refreshUser } = useAuth();
+  const { id } = useParams();
+  const navigate = useNavigate();
+
+  // Timer States
+  const [timerSeconds, setTimerSeconds] = useState(0);
+  const [isTimerRunning, setIsTimerRunning] = useState(true);
   
   // Custom States
   const [theme, setTheme] = useState(() => localStorage.getItem('editor_theme') || 'light');
@@ -141,6 +148,82 @@ const ZeroToCoding = () => {
   const [showCelebrationModal, setShowCelebrationModal] = useState(false);
   const [showHintIndex, setShowHintIndex] = useState(-1);
 
+  // Timer Effect
+  useEffect(() => {
+    let interval = null;
+    if (viewMode === 'workspace' && isTimerRunning) {
+      interval = setInterval(() => {
+        setTimerSeconds(prev => prev + 1);
+      }, 1000);
+    } else {
+      clearInterval(interval);
+    }
+    return () => clearInterval(interval);
+  }, [viewMode, isTimerRunning]);
+
+  const formatTime = (totalSeconds) => {
+    const hrs = Math.floor(totalSeconds / 3600);
+    const mins = Math.floor((totalSeconds % 3600) / 60);
+    const secs = totalSeconds % 60;
+    return [
+      hrs > 0 ? String(hrs).padStart(2, '0') : null,
+      String(mins).padStart(2, '0'),
+      String(secs).padStart(2, '0')
+    ].filter(Boolean).join(':');
+  };
+
+  // URL id Parameter listener
+  useEffect(() => {
+    if (id && problems.length > 0) {
+      const match = problems.find(p => p._id === id || p.slug === id);
+      if (match) {
+        setSelectedProblem(match);
+        setViewMode('workspace');
+        setTimerSeconds(0);
+        setIsTimerRunning(true);
+      } else {
+        // Fetch problem by ID if not in pre-loaded list
+        problemApi.getProblemBySlug ? problemApi.getProblemBySlug(id)
+          .then(res => {
+            if (res.data.success && res.data.data) {
+              setSelectedProblem(res.data.data);
+              setViewMode('workspace');
+              setTimerSeconds(0);
+              setIsTimerRunning(true);
+            }
+          })
+          .catch(err => {
+            console.error('Failed to fetch problem by URL parameter:', err);
+            toast.error('Problem not found');
+            navigate('/zero-to-coding');
+          }) : null;
+      }
+    } else if (!id) {
+      setViewMode('directory');
+      setSelectedProblem(null);
+    }
+  }, [id, problems, navigate]);
+
+  // Auto-save draft every 30 seconds
+  useEffect(() => {
+    if (viewMode !== 'workspace' || !activeLevel || !editorCode) return;
+    
+    const interval = setInterval(() => {
+      const activeId = activeLevel._id || activeLevel.id;
+      setSavedCodes(prev => {
+        const next = {
+          ...prev,
+          [`${activeId}_${selectedLang}`]: editorCode
+        };
+        localStorage.setItem(`saved_code_${activeId}_${selectedLang}`, editorCode);
+        return next;
+      });
+      toast.success("Draft auto-saved 💾", { id: 'autosave', duration: 1500 });
+    }, 30000);
+
+    return () => clearInterval(interval);
+  }, [viewMode, activeLevel, editorCode, selectedLang]);
+
   // Load user profile
   useEffect(() => {
     if (user?.profile?.zeroToCoding) {
@@ -184,12 +267,20 @@ const ZeroToCoding = () => {
   useEffect(() => {
     if (activeLevel) {
       const activeId = activeLevel._id || activeLevel.id;
-      const cached = savedCodes[`${activeId}_${selectedLang}`];
-      if (cached) {
-        setEditorCode(cached);
+      const cachedLocal = localStorage.getItem(`saved_code_${activeId}_${selectedLang}`);
+      const cachedState = savedCodes[`${activeId}_${selectedLang}`];
+      
+      if (cachedLocal) {
+        setEditorCode(cachedLocal);
+      } else if (cachedState) {
+        setEditorCode(cachedState);
       } else {
         const starter = activeLevel.starterCode || activeLevel.starterCodes || {};
-        setEditorCode(starter[selectedLang] || '');
+        let defaultCode = starter[selectedLang] || '';
+        if (!defaultCode && selectedLang === 'c') {
+          defaultCode = `#include <stdio.h>\n#include <stdlib.h>\n#include <string.h>\n#include <stdbool.h>\n\n// Write your solution here\n`;
+        }
+        setEditorCode(defaultCode);
       }
       
       // Reset execution states
@@ -306,7 +397,10 @@ const ZeroToCoding = () => {
     triggerSoundEffect('click');
     if (window.confirm(`Are you sure you want to reset your ${selectedLang.toUpperCase()} code back to the starter boilerplate?`)) {
       const starter = activeLevel.starterCode || activeLevel.starterCodes || {};
-      const defaultCode = starter[selectedLang] || '';
+      let defaultCode = starter[selectedLang] || '';
+      if (!defaultCode && selectedLang === 'c') {
+        defaultCode = `#include <stdio.h>\n#include <stdlib.h>\n#include <string.h>\n#include <stdbool.h>\n\n// Write your solution here\n`;
+      }
       setEditorCode(defaultCode);
       const activeId = activeLevel._id || activeLevel.id;
       setSavedCodes(prev => ({
@@ -455,6 +549,12 @@ const ZeroToCoding = () => {
     if (selectedLang === 'cpp') {
       compileLogs = [
         "⚙️ g++ -O3 -std=c++20 main.cpp -o main...",
+        "⚡ Linking binary elements with GCC compiler...",
+        "🚀 Running executable main..."
+      ];
+    } else if (selectedLang === 'c') {
+      compileLogs = [
+        "⚙️ gcc -O3 main.c -o main...",
         "⚡ Linking binary elements with GCC compiler...",
         "🚀 Running executable main..."
       ];
@@ -766,7 +866,7 @@ const ZeroToCoding = () => {
       }`}>
         <div className="flex items-center gap-3">
           <button 
-            onClick={viewMode === 'workspace' ? () => setViewMode('directory') : handleBackToDashboard}
+            onClick={viewMode === 'workspace' ? () => navigate('/zero-to-coding') : handleBackToDashboard}
             className={`flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-bold transition-all ${
               theme === 'dark' ? 'text-zinc-400 hover:text-white hover:bg-zinc-800' : 'text-slate-500 hover:text-slate-800 hover:bg-slate-100'
             }`}
@@ -789,6 +889,23 @@ const ZeroToCoding = () => {
             </>
           )}
         </div>
+        {viewMode === 'workspace' && (
+          <div className="flex items-center gap-2.5 px-3 py-1 rounded-xl bg-slate-100 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 shadow-inner">
+            <span className="text-xs font-black font-mono text-indigo-500 select-all">⏱️ {formatTime(timerSeconds)}</span>
+            <button 
+              onClick={() => setIsTimerRunning(!isTimerRunning)}
+              className="text-[10px] font-black uppercase text-slate-500 hover:text-slate-800 dark:text-zinc-400 dark:hover:text-zinc-200"
+            >
+              {isTimerRunning ? 'Pause' : 'Play'}
+            </button>
+            <button 
+              onClick={() => setTimerSeconds(0)}
+              className="text-[10px] font-black uppercase text-slate-500 hover:text-slate-800 dark:text-zinc-400 dark:hover:text-zinc-200"
+            >
+              Reset
+            </button>
+          </div>
+        )}
 
         {/* CONTROLS: Sound, Mode, Fullscreen */}
         <div className="flex items-center gap-2">
@@ -1030,8 +1147,7 @@ const ZeroToCoding = () => {
                               <button
                                 onClick={() => {
                                   triggerSoundEffect('click');
-                                  setSelectedProblem(p);
-                                  setViewMode('workspace');
+                                  navigate(`/zero-to-coding/problem/${p._id}`);
                                 }}
                                 className="px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider bg-indigo-600 text-white shadow-sm hover:bg-indigo-700 transition-all"
                               >
@@ -1108,11 +1224,12 @@ const ZeroToCoding = () => {
           <div className={`flex items-center px-4 border-b shrink-0 ${
             theme === 'dark' ? 'bg-[#282828] border-[#3e3e3e]' : 'bg-slate-50 border-slate-200'
           }`}>
-            {[
+            [
               { id: 'description', label: 'Problem Description', icon: FileCode },
               { id: 'examples', label: 'Constraints & Examples', icon: Trophy },
-              { id: 'clues', label: 'Hints & Accordion', icon: HelpCircle }
-            ].map(tab => (
+              { id: 'clues', label: 'Hints & Accordion', icon: HelpCircle },
+              selectedProblem ? { id: 'submissions', label: 'Submissions', icon: RefreshCw } : null
+            ].filter(Boolean).map(tab => (
               <button
                 key={tab.id}
                 onClick={() => {
@@ -1285,6 +1402,73 @@ const ZeroToCoding = () => {
               </div>
             )}
 
+            {leftTab === 'submissions' && selectedProblem && (
+              <div className="space-y-4 animate-fade-in">
+                <h3 className={`text-sm font-black uppercase tracking-wider ${theme === 'dark' ? 'text-white' : 'text-slate-800'}`}>
+                  Your Submissions History
+                </h3>
+                {mySubmissions.filter(s => (s.problem?._id === selectedProblem._id || s.problem === selectedProblem._id)).length === 0 ? (
+                  <p className="text-xs font-bold text-gray-400 italic">No submissions found for this problem yet.</p>
+                ) : (
+                  <div className="space-y-3 max-h-[300px] overflow-y-auto pr-1">
+                    {mySubmissions
+                      .filter(s => (s.problem?._id === selectedProblem._id || s.problem === selectedProblem._id))
+                      .sort((a, b) => new Date(b.submittedAt) - new Date(a.submittedAt))
+                      .map((sub, idx) => {
+                        const dateStr = new Date(sub.submittedAt).toLocaleString();
+                        const isAccepted = sub.status === 'Accepted';
+                        return (
+                          <div 
+                            key={sub._id || idx} 
+                            className={`p-4 rounded-xl border flex flex-col gap-2 ${
+                              theme === 'dark' ? 'bg-zinc-900/30 border-zinc-800' : 'bg-slate-50/50 border-slate-200'
+                            }`}
+                          >
+                            <div className="flex items-center justify-between">
+                              <span className={`text-xs font-black uppercase ${
+                                isAccepted ? 'text-emerald-500' : 'text-rose-500'
+                              }`}>
+                                {sub.status}
+                              </span>
+                              <span className={`text-[10px] ${theme === 'dark' ? 'text-zinc-500' : 'text-slate-400'}`}>
+                                {dateStr}
+                              </span>
+                            </div>
+                            <div className="flex items-center justify-between text-xs text-slate-500 dark:text-zinc-400 font-bold">
+                              <span>Lang: {sub.language}</span>
+                              {sub.runtime && <span>Runtime: {sub.runtime}</span>}
+                              {sub.memory && <span>Memory: {sub.memory}</span>}
+                            </div>
+                            <div className="flex gap-2 mt-1">
+                              <button
+                                onClick={() => {
+                                  setEditorCode(sub.code);
+                                  toast.success("Loaded submission code into editor! 🚀");
+                                  triggerSoundEffect('click');
+                                }}
+                                className="px-2.5 py-1 bg-indigo-600 hover:bg-indigo-700 text-white rounded text-[10px] font-black uppercase tracking-wider transition-all"
+                              >
+                                Load Code
+                              </button>
+                              <button
+                                onClick={() => {
+                                  navigator.clipboard.writeText(sub.code);
+                                  toast.success("Copied code to clipboard!");
+                                  triggerSoundEffect('click');
+                                }}
+                                className="px-2.5 py-1 border border-slate-300 hover:bg-slate-100 dark:border-zinc-700 dark:hover:bg-zinc-800 text-[10px] font-black uppercase tracking-wider rounded transition-all"
+                              >
+                                Copy Code
+                              </button>
+                            </div>
+                          </div>
+                        );
+                      })}
+                  </div>
+                )}
+              </div>
+            )}
+
             {/* Profile Level Rank */}
             <div className={`p-5 rounded-2xl border space-y-3 ${
               theme === 'dark' ? 'bg-zinc-900/40 border-zinc-800' : 'bg-slate-50/40 border-slate-200'
@@ -1410,6 +1594,7 @@ const ZeroToCoding = () => {
                   }`}
                 >
                   <option value="cpp">C++</option>
+                  <option value="c">C</option>
                   <option value="java">Java</option>
                   <option value="python">Python 3</option>
                   <option value="javascript">JavaScript</option>
@@ -1420,7 +1605,7 @@ const ZeroToCoding = () => {
                 <div className="flex items-center gap-1.5">
                   <FileCode size={13} className="text-[#ffa116]" />
                   <span className="text-xs font-mono font-bold text-slate-500 dark:text-zinc-400">
-                    {selectedLang === 'cpp' ? 'main.cpp' : selectedLang === 'java' ? 'Main.java' : selectedLang === 'python' ? 'solution.py' : 'index.js'}
+                    {selectedLang === 'cpp' ? 'main.cpp' : selectedLang === 'c' ? 'main.c' : selectedLang === 'java' ? 'Main.java' : selectedLang === 'python' ? 'solution.py' : 'index.js'}
                   </span>
                 </div>
               </div>

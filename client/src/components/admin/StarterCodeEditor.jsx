@@ -4,7 +4,8 @@ const languages = [
   { label: 'JavaScript', key: 'javascript' },
   { label: 'Python', key: 'python' },
   { label: 'Java', key: 'java' },
-  { label: 'C++', key: 'cpp' }
+  { label: 'C++', key: 'cpp' },
+  { label: 'C', key: 'c' }
 ];
 
 const StarterCodeEditor = ({
