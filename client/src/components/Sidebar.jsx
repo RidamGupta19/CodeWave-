@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { NavLink, Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useFeatureFlags } from '../context/FeatureFlagContext';
 import Logo from './Logo';
 import { 
   FiMap, FiList, FiCheckSquare, FiAward, FiMessageSquare, FiTrendingUp,
@@ -11,6 +12,7 @@ import { MdOutlineDashboard, MdOutlineManageAccounts } from "react-icons/md";
 
 export default function Sidebar() {
   const { user, logout } = useAuth();
+  const { isFeatureEnabled } = useFeatureFlags();
   const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
 
@@ -26,16 +28,20 @@ export default function Sidebar() {
     { name: 'Roadmap', path: '/student/roadmap', icon: <FiMap /> },
     { name: 'My Courses', path: '/student/courses', icon: <FiBookOpen /> },
     { name: 'Live Classes', path: '/student/live-classes', icon: <FiVideo /> },
-    { name: 'Video Lectures', path: '/student/video-lectures', icon: <FiPlay /> },
+    isFeatureEnabled('video_streaming') && { name: 'Video Lectures', path: '/student/video-lectures', icon: <FiPlay /> },
     { name: 'Notes & Materials', path: '/student/notes', icon: <FiFolder /> },
     { name: 'Assignments', path: '/student/assignments', icon: <FiFileText /> },
     { name: 'Assessments', path: '/student/assessments', icon: <FiCheckSquare /> },
+    isFeatureEnabled('ai_interview') && { name: 'AI Interview', path: '/student/ai-interview', icon: <FiVideo /> },
+    isFeatureEnabled('ai_resume_builder') && { name: 'AI Resume Builder', path: '/student/ai-resume', icon: <FiFileText /> },
+    isFeatureEnabled('placement_portal') && { name: 'Placement Portal', path: '/student/placement-portal', icon: <FiBriefcase /> },
+    isFeatureEnabled('job_board') && { name: 'Job Board', path: '/student/job-board', icon: <FiBriefcase /> },
     { name: 'Attendance', path: '/student/attendance', icon: <FiClock /> },
     { name: 'Results', path: '/student/results', icon: <FiAward /> },
     { name: 'Leaderboard', path: '/student/leaderboard', icon: <FiTrendingUp /> },
     { name: 'Notifications', path: '/student/notifications', icon: <FiBell /> },
     { name: 'Profile', path: '/student/profile', icon: <FiUsers /> },
-  ];
+  ].filter(Boolean);
 
   const teacherLinks = [
     { name: 'Dashboard', path: '/teacher/dashboard', icon: <MdOutlineDashboard /> },
@@ -43,14 +49,14 @@ export default function Sidebar() {
     { name: 'Students', path: '/teacher/students', icon: <FiUsers /> },
     { name: 'Attendance', path: '/teacher/attendance', icon: <FiClock /> },
     { name: 'Live Classes', path: '/teacher/live-classes', icon: <FiVideo /> },
-    { name: 'Video Lectures', path: '/teacher/video-lectures', icon: <FiPlay /> },
+    isFeatureEnabled('video_streaming') && { name: 'Video Lectures', path: '/teacher/video-lectures', icon: <FiPlay /> },
     { name: 'Notes', path: '/teacher/notes', icon: <FiFolder /> },
     { name: 'Assignments', path: '/teacher/assignments', icon: <FiFileText /> },
     { name: 'Assessments', path: '/teacher/assessments', icon: <FiCheckSquare /> },
     { name: 'Results', path: '/teacher/results', icon: <FiAward /> },
     { name: 'Notifications', path: '/teacher/notifications', icon: <FiBell /> },
     { name: 'Profile', path: '/teacher/profile', icon: <FiSettings /> },
-  ];
+  ].filter(Boolean);
 
   const careerLinks = [
     { name: 'Dashboard', path: '/dashboard', icon: <MdOutlineDashboard /> },
@@ -58,10 +64,14 @@ export default function Sidebar() {
     { name: 'Roadmaps', path: '/roadmap', icon: <FiMap /> },
     { name: 'Assessments', path: '/assessments', icon: <FiCheckSquare /> },
     { name: 'Badges & Stats', path: '/profile', icon: <FiAward /> },
-    { name: 'CodeWave AI', path: '/code-guru', icon: <FiMessageSquare /> },
+    isFeatureEnabled('ai_doubt_solver') && { name: 'CodeWave AI', path: '/code-guru', icon: <FiMessageSquare /> },
     { name: 'Zero to Coding', path: '/zero-to-coding', icon: <FiZap /> },
     { name: 'Cloud Credits', path: '/resources', icon: <FiBriefcase /> },
-  ];
+    isFeatureEnabled('ai_interview') && { name: 'AI Interview', path: '/student/ai-interview', icon: <FiVideo /> },
+    isFeatureEnabled('ai_resume_builder') && { name: 'AI Resume Builder', path: '/student/ai-resume', icon: <FiFileText /> },
+    isFeatureEnabled('placement_portal') && { name: 'Placement Portal', path: '/student/placement-portal', icon: <FiBriefcase /> },
+    isFeatureEnabled('job_board') && { name: 'Job Board', path: '/student/job-board', icon: <FiBriefcase /> },
+  ].filter(Boolean);
 
   const instituteLinks = [
     { name: 'Attendance', path: '/institute/attendance', icon: <FiClock />, roles: ['admin', 'teacher', 'student'] },

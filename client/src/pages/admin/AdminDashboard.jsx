@@ -261,6 +261,79 @@ const AdminDashboard = () => {
   const [isTestingSmtp, setIsTestingSmtp] = useState(false);
   const [isCleaningStorage, setIsCleaningStorage] = useState(false);
 
+  // Feature Flag States & Actions
+  const [featureFlags, setFeatureFlags] = useState([]);
+  const [featureSearch, setFeatureSearch] = useState('');
+  const [featureCategoryFilter, setFeatureCategoryFilter] = useState('All');
+  const [featureEnabledFilter, setFeatureEnabledFilter] = useState('all');
+  const [bulkSelectedKeys, setBulkSelectedKeys] = useState([]);
+  const [featureLogs, setFeatureLogs] = useState([]);
+  const [loadingFeatures, setLoadingFeatures] = useState(false);
+
+  const fetchFeatureFlags = async () => {
+    try {
+      setLoadingFeatures(true);
+      const { data } = await api.get('/feature-flags');
+      setFeatureFlags(data.data || []);
+    } catch (err) {
+      console.error(err);
+      toast.error('Failed to load feature flags.');
+    } finally {
+      setLoadingFeatures(false);
+    }
+  };
+
+  const fetchFeatureLogs = async () => {
+    try {
+      const { data } = await api.get('/admin/feature-flags/logs');
+      setFeatureLogs(data.data || []);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleToggleFeature = async (featureKey, enabled) => {
+    const loadToast = toast.loading(`${enabled ? 'Enabling' : 'Disabling'} feature...`);
+    try {
+      await api.put(`/admin/feature-flags/${featureKey}`, { enabled });
+      toast.success('Feature flag updated!', { id: loadToast });
+      fetchFeatureFlags();
+      fetchFeatureLogs();
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to update feature', { id: loadToast });
+    }
+  };
+
+  const handleBulkToggleFeatures = async (enabled) => {
+    if (bulkSelectedKeys.length === 0) return toast.error('No features selected.');
+    const loadToast = toast.loading(`Bulk updating ${bulkSelectedKeys.length} features...`);
+    try {
+      await api.put('/admin/feature-flags/bulk', { featureKeys: bulkSelectedKeys, enabled });
+      toast.success('Features updated!', { id: loadToast });
+      setBulkSelectedKeys([]);
+      fetchFeatureFlags();
+      fetchFeatureLogs();
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed bulk update', { id: loadToast });
+    }
+  };
+
+  const isUserSuperAdmin = user?.isSuperAdmin || user?.email === 'admin@codewavesolution.com' || user?.email === 'omshivhare666@gmail.com';
+
+  const filteredFeatureFlags = featureFlags.filter(f => {
+    const matchesSearch = f.featureName.toLowerCase().includes(featureSearch.toLowerCase()) || 
+                          f.featureKey.toLowerCase().includes(featureSearch.toLowerCase()) ||
+                          (f.description || '').toLowerCase().includes(featureSearch.toLowerCase());
+    
+    const matchesCategory = featureCategoryFilter === 'All' || f.category === featureCategoryFilter;
+    
+    const matchesEnabled = featureEnabledFilter === 'all' || 
+                           (featureEnabledFilter === 'enabled' && f.enabled) || 
+                           (featureEnabledFilter === 'disabled' && !f.enabled);
+                           
+    return matchesSearch && matchesCategory && matchesEnabled;
+  });
+
   useEffect(() => {
     fetchInitialData();
   }, []);
@@ -1016,6 +1089,10 @@ const AdminDashboard = () => {
       if (settingsSubTab === 'sessions') fetchActiveSessions();
       if (settingsSubTab === 'permissions') fetchPermissions();
       if (settingsSubTab === 'storage') fetchStorageAnalytics();
+      if (settingsSubTab === 'features') {
+        fetchFeatureFlags();
+        fetchFeatureLogs();
+      }
     } else if (activeTab === 'claims') {
       fetchClaims();
     }
@@ -3661,7 +3738,8 @@ const AdminDashboard = () => {
                 { id: 'system', label: '⚙️ System Preferences', desc: 'Maintenance mode & flags' },
                 { id: 'permissions', label: '🛡️ Admin Permissions', desc: 'Configure roles & capabilities' },
                 { id: 'audit', label: '📋 System Audit Logs', desc: 'Trace administrative actions' },
-                { id: 'sessions', label: '💻 Session Management', desc: 'Active logins & terminations' }
+                { id: 'sessions', label: '💻 Session Management', desc: 'Active logins & terminations' },
+                { id: 'features', label: '🔒 Feature Management', desc: 'Lock or enable platform features' }
               ].map((tab) => (
                 <button
                   key={tab.id}
@@ -5066,6 +5144,201 @@ const AdminDashboard = () => {
                     })}
                     {activeSessions.length === 0 && (
                       <div className="text-center py-8 text-slate-400 italic">No active sessions tracked in database.</div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* 11. Feature Management */}
+              {settingsSubTab === 'features' && (
+                <div className="space-y-8 animate-in fade-in duration-200 text-left">
+                  <div className="border-b border-slate-200 dark:border-white/5 pb-3">
+                    <h4 className="text-sm font-black text-slate-800 dark:text-white">Feature Lock & Availability System</h4>
+                    <p className="text-[10px] text-slate-500">Configure platform modules accessibility, audit changes, and toggle feature flag locks.</p>
+                  </div>
+
+                  {/* Warning for non-super admin */}
+                  {!isUserSuperAdmin && (
+                    <div className="p-4 bg-amber-50 dark:bg-amber-950/20 text-amber-600 dark:text-amber-450 border border-amber-250 dark:border-amber-900/30 rounded-2xl text-xs font-bold">
+                      ⚠️ Note: Only the Super Admin can change feature availability. You are currently in viewing-only mode.
+                    </div>
+                  )}
+
+                  {/* Search, filters and bulk actions bar */}
+                  <div className="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center bg-slate-50 dark:bg-slate-900/50 p-4 border dark:border-white/5 rounded-2xl">
+                    <div className="flex flex-wrap gap-3 items-center w-full sm:w-auto">
+                      <input
+                        type="text"
+                        value={featureSearch}
+                        onChange={(e) => setFeatureSearch(e.target.value)}
+                        placeholder="Search features..."
+                        className="px-3 py-1.5 bg-white dark:bg-slate-950 border dark:border-white/5 rounded-xl outline-none text-xs text-slate-800 dark:text-white font-semibold"
+                      />
+                      <select
+                        value={featureCategoryFilter}
+                        onChange={(e) => setFeatureCategoryFilter(e.target.value)}
+                        className="px-3 py-1.5 bg-white dark:bg-slate-950 border dark:border-white/5 rounded-xl outline-none text-xs text-slate-800 dark:text-white font-semibold"
+                      >
+                        <option value="All">All Categories</option>
+                        <option value="Core">Core</option>
+                        <option value="DevOps">DevOps</option>
+                        <option value="AI">AI</option>
+                        <option value="Career">Career</option>
+                      </select>
+                      <select
+                        value={featureEnabledFilter}
+                        onChange={(e) => setFeatureEnabledFilter(e.target.value)}
+                        className="px-3 py-1.5 bg-white dark:bg-slate-950 border dark:border-white/5 rounded-xl outline-none text-xs text-slate-800 dark:text-white font-semibold"
+                      >
+                        <option value="all">All States</option>
+                        <option value="enabled">Enabled</option>
+                        <option value="disabled">Disabled</option>
+                      </select>
+                    </div>
+
+                    {isUserSuperAdmin && bulkSelectedKeys.length > 0 && (
+                      <div className="flex gap-2 items-center w-full sm:w-auto justify-end">
+                        <span className="text-[10px] text-slate-500 font-bold">{bulkSelectedKeys.length} selected</span>
+                        <button
+                          type="button"
+                          onClick={() => handleBulkToggleFeatures(true)}
+                          className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-black transition-all"
+                        >
+                          Bulk Enable
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleBulkToggleFeatures(false)}
+                          className="px-3 py-1.5 bg-red-650 hover:bg-red-700 text-white rounded-lg text-xs font-black transition-all"
+                        >
+                          Bulk Disable
+                        </button>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Feature list table */}
+                  <div className="card bg-white dark:bg-slate-900 border dark:border-white/5 rounded-2xl overflow-hidden shadow-sm">
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-xs font-semibold text-slate-700 dark:text-slate-200">
+                        <thead>
+                          <tr className="border-b border-slate-100 dark:border-white/5 text-[9px] font-black uppercase text-slate-400 dark:text-slate-500 tracking-wider">
+                            {isUserSuperAdmin && <th className="p-4 w-12 text-center"><input type="checkbox" onChange={(e) => {
+                              const filteredKeys = filteredFeatureFlags.map(f => f.featureKey);
+                              setBulkSelectedKeys(e.target.checked ? filteredKeys : []);
+                            }} checked={bulkSelectedKeys.length > 0 && bulkSelectedKeys.length === filteredFeatureFlags.length} /></th>}
+                            <th className="p-4 text-left">Feature Name</th>
+                            <th className="p-4 text-left">Key</th>
+                            <th className="p-4 text-left">Category</th>
+                            <th className="p-4 text-left">Description</th>
+                            <th className="p-4 text-left">Last Modified</th>
+                            <th className="p-4 text-center">Status</th>
+                            {isUserSuperAdmin && <th className="p-4 text-right">Actions</th>}
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100 dark:divide-white/5">
+                          {filteredFeatureFlags.length === 0 ? (
+                            <tr><td colSpan={isUserSuperAdmin ? 8 : 6} className="p-8 text-center text-slate-400">No feature flags found.</td></tr>
+                          ) : (
+                            filteredFeatureFlags.map((feat) => (
+                              <tr key={feat.featureKey} className="hover:bg-slate-50/50 dark:hover:bg-slate-950/20 transition-colors">
+                                {isUserSuperAdmin && (
+                                  <td className="p-4 text-center">
+                                    <input 
+                                      type="checkbox" 
+                                      checked={bulkSelectedKeys.includes(feat.featureKey)} 
+                                      onChange={(e) => {
+                                        setBulkSelectedKeys(prev => 
+                                          e.target.checked 
+                                            ? [...prev, feat.featureKey] 
+                                            : prev.filter(k => k !== feat.featureKey)
+                                        );
+                                      }}
+                                    />
+                                  </td>
+                                )}
+                                <td className="p-4 font-extrabold text-slate-900 dark:text-white">{feat.featureName}</td>
+                                <td className="p-4 text-slate-500 font-mono text-[10px]">{feat.featureKey}</td>
+                                <td className="p-4">
+                                  <span className="px-2 py-0.5 bg-slate-100 dark:bg-slate-800 text-[10px] rounded-full text-slate-650 dark:text-slate-350">{feat.category}</span>
+                                </td>
+                                <td className="p-4 text-[10px] text-slate-500 max-w-xs truncate">{feat.description}</td>
+                                <td className="p-4 text-[10px] text-slate-400">
+                                  {feat.updatedBy ? (
+                                    <>
+                                      <div>{feat.updatedBy.fullName}</div>
+                                      <div>{new Date(feat.updatedAt).toLocaleString()}</div>
+                                    </>
+                                  ) : (
+                                    'System Default'
+                                  )}
+                                </td>
+                                <td className="p-4 text-center">
+                                  <span className={`px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-wider ${
+                                    feat.enabled 
+                                      ? 'bg-emerald-50 dark:bg-emerald-950/25 text-emerald-600 dark:text-emerald-450 border border-emerald-100 dark:border-emerald-900/20' 
+                                      : 'bg-rose-50 dark:bg-rose-950/25 text-rose-600 dark:text-rose-450 border border-rose-100 dark:border-rose-900/20'
+                                  }`}>
+                                    {feat.enabled ? 'Enabled' : 'Disabled'}
+                                  </span>
+                                </td>
+                                {isUserSuperAdmin && (
+                                  <td className="p-4 text-right">
+                                    <button
+                                      type="button"
+                                      onClick={() => handleToggleFeature(feat.featureKey, !feat.enabled)}
+                                      className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase transition-all tracking-wider ${
+                                        feat.enabled
+                                          ? 'bg-rose-50 hover:bg-rose-100 text-rose-650 border border-rose-200'
+                                          : 'bg-emerald-50 hover:bg-emerald-100 text-emerald-650 border border-emerald-200'
+                                      }`}
+                                    >
+                                      {feat.enabled ? 'Disable' : 'Enable'}
+                                    </button>
+                                  </td>
+                                )}
+                              </tr>
+                            ))
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+
+                  {/* Audit Logs Section */}
+                  <div className="card p-6 bg-white dark:bg-slate-900 border dark:border-white/5 rounded-3xl shadow-sm text-left">
+                    <h3 className="text-sm font-black uppercase text-slate-800 dark:text-white tracking-wider mb-6">Feature Change Audit History</h3>
+                    
+                    {featureLogs.length === 0 ? (
+                      <div className="text-center py-8 text-slate-400">No feature log transitions tracked.</div>
+                    ) : (
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-xs font-semibold text-slate-700 dark:text-slate-200">
+                          <thead>
+                            <tr className="border-b border-slate-100 dark:border-white/5 text-[9px] font-black uppercase text-slate-400 dark:text-slate-500 tracking-wider">
+                              <th className="pb-3 text-left">User</th>
+                              <th className="pb-3 text-left">Details</th>
+                              <th className="pb-3 text-left">IP Address</th>
+                              <th className="pb-3 text-left">Browser</th>
+                              <th className="pb-3 text-right">Timestamp</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-slate-150 dark:divide-white/5">
+                            {featureLogs.map((log) => (
+                              <tr key={log._id} className="hover:bg-slate-50/50 dark:hover:bg-slate-950/20 transition-colors">
+                                <td className="py-3 font-extrabold text-slate-900 dark:text-white">
+                                  <div>{log.userId?.fullName || 'Super Admin'}</div>
+                                  <div className="text-[9px] text-slate-450 uppercase">{log.userEmail}</div>
+                                </td>
+                                <td className="py-3 text-[10px] text-slate-500 max-w-sm">{log.details}</td>
+                                <td className="py-3 text-[10px] text-slate-400">{log.ipAddress}</td>
+                                <td className="py-3 text-[10px] text-slate-400 max-w-xs truncate">{log.deviceInfo}</td>
+                                <td className="py-3 text-right text-[10px] text-slate-400">{new Date(log.timestamp).toLocaleString()}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
                     )}
                   </div>
                 </div>

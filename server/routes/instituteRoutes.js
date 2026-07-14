@@ -4,6 +4,7 @@ const c = require('../controllers/instituteController');
 const vc = require('../controllers/videoController');
 const { protect, authorize } = require('../middleware/auth');
 const { uploadSingle, uploadVideoSingle, uploadThumbnailSingle } = require('../middleware/uploadMiddleware');
+const { checkFeature } = require('../middleware/featureFlagMiddleware');
 
 // Unified endpoints protected by JWT authentication
 router.use(protect);
@@ -72,16 +73,16 @@ router.post('/assignments/:id/submit', authorize('student'), c.submitAssignment)
 router.put('/assignments/:id/grade', authorize('admin', 'teacher'), c.gradeAssignment);
 
 // 12. Video Lectures
-router.get('/videos', vc.getVideos);
-router.post('/videos', authorize('admin', 'teacher'), vc.createVideo);
-router.put('/videos/:id', authorize('admin', 'teacher'), vc.updateVideo);
-router.post('/videos/upload-video', authorize('admin', 'teacher'), uploadVideoSingle('video'), vc.uploadVideoFile);
-router.post('/videos/upload-thumbnail', authorize('admin', 'teacher'), uploadThumbnailSingle('thumbnail'), vc.uploadThumbnailFile);
-router.delete('/videos/:id', authorize('admin', 'teacher'), vc.deleteVideo);
-router.get('/videos/progress', vc.getVideoProgress);
-router.post('/videos/:id/progress', vc.saveVideoProgress);
-router.post('/videos/:id/complete', vc.toggleVideoComplete);
-router.get('/videos/:id/stream', vc.streamVideoFile);
+router.get('/videos', checkFeature('video_streaming'), vc.getVideos);
+router.post('/videos', checkFeature('video_streaming'), authorize('admin', 'teacher'), vc.createVideo);
+router.put('/videos/:id', checkFeature('video_streaming'), authorize('admin', 'teacher'), vc.updateVideo);
+router.post('/videos/upload-video', checkFeature('video_streaming'), authorize('admin', 'teacher'), uploadVideoSingle('video'), vc.uploadVideoFile);
+router.post('/videos/upload-thumbnail', checkFeature('video_streaming'), authorize('admin', 'teacher'), uploadThumbnailSingle('thumbnail'), vc.uploadThumbnailFile);
+router.delete('/videos/:id', checkFeature('video_streaming'), authorize('admin', 'teacher'), vc.deleteVideo);
+router.get('/videos/progress', checkFeature('video_streaming'), vc.getVideoProgress);
+router.post('/videos/:id/progress', checkFeature('video_streaming'), vc.saveVideoProgress);
+router.post('/videos/:id/complete', checkFeature('video_streaming'), vc.toggleVideoComplete);
+router.get('/videos/:id/stream', checkFeature('video_streaming'), vc.streamVideoFile);
 
 // 13. Teacher Results
 router.get('/results/teacher', authorize('teacher'), c.getTeacherStudentResults);

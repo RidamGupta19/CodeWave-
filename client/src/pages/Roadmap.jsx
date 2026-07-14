@@ -7,6 +7,7 @@ import {
   FiTrendingUp, FiAward, FiClock, FiCode, FiInfo 
 } from 'react-icons/fi';
 import toast from 'react-hot-toast';
+import { useFeatureFlags } from '../context/FeatureFlagContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import { analyzeDsaProfile, DSA_LEVELS, DSA_LANGUAGE_LABELS, getDsaBadgeForLevel, getStreakRank, normalizeDsaLanguage } from '../utils/dsaPersonalization';
 
@@ -29,6 +30,7 @@ const dsaLevelNames = DSA_LEVELS;
 
 const Roadmap = () => {
   const { user, refreshUser } = useAuth();
+  const { isFeatureEnabled } = useFeatureFlags();
   const navigate = useNavigate();
   const [domainData, setDomainData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -68,6 +70,10 @@ const Roadmap = () => {
           navigate('/domains');
           return;
         }
+        if (freshUser?.selectedDomain?.slug === 'devops' && !isFeatureEnabled('devops_terminal')) {
+          navigate('/domains');
+          return;
+        }
         if (freshUser?.profile?.onboardingAnswers?.dsa_language) {
           setSelectedLang(normalizeDsaLanguage(localStorage.getItem('dsa_lang') || freshUser.profile.onboardingAnswers.dsa_language));
         }
@@ -81,6 +87,10 @@ const Roadmap = () => {
   // Fetch roadmap data
   useEffect(() => {
     if (domainId) {
+      if (activeDomainSlug === 'devops' && !isFeatureEnabled('devops_terminal')) {
+        navigate('/domains');
+        return;
+      }
       fetchRoadmap(domainId);
     }
   }, [domainId]);

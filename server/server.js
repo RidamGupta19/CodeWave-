@@ -89,6 +89,8 @@ app.use('/api', require('./routes/activity'));
 app.use('/api/leaderboard', require('./routes/leaderboard'));
 app.use('/api/admin/leaderboard', require('./routes/gamificationAdmin'));
 app.use('/api/notifications', require('./routes/notifications'));
+app.use('/api', require('./routes/featureRoutes'));
+app.use('/api', require('./routes/stubRoutes'));
 
 // Health check
 app.get('/api/health', (req, res) => {
@@ -129,6 +131,14 @@ const startServer = async () => {
         }
       } catch (err) {
         console.error('❌ Auto-seed failed:', err.message);
+      }
+
+      // Sync Feature Flags
+      try {
+        const seedFeatureFlags = require('./seeds/featureFlagSeed');
+        await seedFeatureFlags();
+      } catch (err) {
+        console.error('❌ Feature flags seeding failed:', err.message);
       }
 
       // Run UserRoadmap migration for existing users

@@ -7,12 +7,14 @@ import {
   FiBook, FiChevronRight, FiZap, FiStar, FiX, FiUsers, FiDollarSign, FiBell, FiFolder
 } from 'react-icons/fi';
 import toast from 'react-hot-toast';
+import { useFeatureFlags } from '../context/FeatureFlagContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import { analyzeDsaProfile, getDsaBadgeForLevel, getStreakRank } from '../utils/dsaPersonalization';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, PieChart, Pie } from 'recharts';
 
 export default function Dashboard() {
   const { user } = useAuth();
+  const { isFeatureEnabled } = useFeatureFlags();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [certificates, setCertificates] = useState([]);
@@ -472,11 +474,12 @@ export default function Dashboard() {
           const domainKeys = {
             dsa: { name: 'Data Structures & Algorithms', slug: 'dsa', icon: '🌳', color: '#6366f1' },
             webdev: { name: 'Web Development Explorer', slug: 'web-development', icon: '🌐', color: '#4361ee' },
-            devops: { name: 'DevOps Expedition', slug: 'devops', icon: '🐳', color: '#10b981' },
+            devops: isFeatureEnabled('devops_terminal') ? { name: 'DevOps Expedition', slug: 'devops', icon: '🐳', color: '#10b981' } : null,
             opensource: { name: 'Open Source Expedition', slug: 'open-source', icon: '🔓', color: '#f59e0b' }
           };
 
           for (const key of Object.keys(domainKeys)) {
+            if (!domainKeys[key]) continue;
             const prog = careerUser.domainsProgress[key];
             if (prog && (prog.overallProgress > 0 || prog.xp > 0)) {
               continueLearningDomains.push({

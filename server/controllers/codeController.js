@@ -50,6 +50,22 @@ exports.run = async (req, res) => {
       return res.status(404).json({ success: false, message: 'Problem not found' });
     }
 
+    // DevOps Terminal feature flag check
+    if (problem.domain) {
+      const Domain = require('../models/Domain');
+      const domainObj = await Domain.findById(problem.domain);
+      if (domainObj && domainObj.slug === 'devops') {
+        const FeatureFlag = require('../models/FeatureFlag');
+        const devopsFeature = await FeatureFlag.findOne({ featureKey: 'devops_terminal' });
+        if (devopsFeature && !devopsFeature.enabled) {
+          return res.status(403).json({
+            success: false,
+            message: 'This feature is currently disabled by the administrator.'
+          });
+        }
+      }
+    }
+
     if (problem.problemType !== 'Coding') {
       return res.status(400).json({
         success: false,
@@ -140,6 +156,22 @@ exports.submit = async (req, res) => {
     const problem = await Problem.findOne(buildProblemFilter(req.user, problemId));
     if (!problem) {
       return res.status(404).json({ success: false, message: 'Problem not found' });
+    }
+
+    // DevOps Terminal feature flag check
+    if (problem.domain) {
+      const Domain = require('../models/Domain');
+      const domainObj = await Domain.findById(problem.domain);
+      if (domainObj && domainObj.slug === 'devops') {
+        const FeatureFlag = require('../models/FeatureFlag');
+        const devopsFeature = await FeatureFlag.findOne({ featureKey: 'devops_terminal' });
+        if (devopsFeature && !devopsFeature.enabled) {
+          return res.status(403).json({
+            success: false,
+            message: 'This feature is currently disabled by the administrator.'
+          });
+        }
+      }
     }
 
     if (problem.problemType !== 'Coding') {

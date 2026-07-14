@@ -17,6 +17,18 @@ exports.getTopic = async (req, res) => {
   try {
     const topic = await Topic.findById(req.params.id).populate('phaseId').populate('domainId');
     if (!topic) return res.status(404).json({ success: false, message: 'Topic not found' });
+
+    // DevOps Terminal feature flag check
+    if (topic.domainId && topic.domainId.slug === 'devops') {
+      const FeatureFlag = require('../models/FeatureFlag');
+      const devopsFeature = await FeatureFlag.findOne({ featureKey: 'devops_terminal' });
+      if (devopsFeature && !devopsFeature.enabled) {
+        return res.status(403).json({
+          success: false,
+          message: 'This feature is currently disabled by the administrator.'
+        });
+      }
+    }
     
     const Badge = require('../models/Badge');
     const badge = await Badge.findOne({ topicId: topic._id });

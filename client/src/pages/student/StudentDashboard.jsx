@@ -7,9 +7,11 @@ import {
   FiArrowRight, FiUser, FiActivity, FiBriefcase, FiExternalLink 
 } from 'react-icons/fi';
 import toast from 'react-hot-toast';
+import { useFeatureFlags } from '../../context/FeatureFlagContext';
 
 export default function StudentDashboard() {
   const { user } = useAuth();
+  const { isFeatureEnabled } = useFeatureFlags();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -149,12 +151,14 @@ export default function StudentDashboard() {
               🔥 {activityData?.learningStreak || 0} <span className="text-[10px] font-bold">days</span>
             </div>
           </div>
-          <div className="bg-slate-50/50 dark:bg-slate-950/20 p-4 rounded-2xl border border-slate-100/60 dark:border-white/5 text-center transition-all hover:scale-[1.02]">
-            <span className="text-[9px] uppercase font-black text-slate-400 dark:text-slate-500 tracking-wider block mb-1">Videos Watched</span>
-            <div className="text-xl font-black text-slate-800 dark:text-white mt-1">
-              {activityData?.videosWatched || 0}
+          {isFeatureEnabled('video_streaming') && (
+            <div className="bg-slate-50/50 dark:bg-slate-950/20 p-4 rounded-2xl border border-slate-100/60 dark:border-white/5 text-center transition-all hover:scale-[1.02]">
+              <span className="text-[9px] uppercase font-black text-slate-400 dark:text-slate-500 tracking-wider block mb-1">Videos Watched</span>
+              <div className="text-xl font-black text-slate-800 dark:text-white mt-1">
+                {activityData?.videosWatched || 0}
+              </div>
             </div>
-          </div>
+          )}
           <div className="bg-slate-50/50 dark:bg-slate-950/20 p-4 rounded-2xl border border-slate-100/60 dark:border-white/5 text-center transition-all hover:scale-[1.02]">
             <span className="text-[9px] uppercase font-black text-slate-400 dark:text-slate-500 tracking-wider block mb-1">Assessments</span>
             <div className="text-xl font-black text-slate-800 dark:text-white mt-1">

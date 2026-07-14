@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import api from '../api/axios';
 import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
+import { useFeatureFlags } from '../context/FeatureFlagContext';
 import { FiChevronRight, FiCheck, FiBook } from 'react-icons/fi';
 
 const Domains = () => {
@@ -11,6 +12,7 @@ const Domains = () => {
   const [selecting, setSelecting] = useState(false);
   const { user, refreshUser } = useAuth();
   const navigate = useNavigate();
+  const { isFeatureEnabled } = useFeatureFlags();
 
   useEffect(() => {
     fetchDomains();
@@ -50,17 +52,20 @@ const Domains = () => {
 
   if (loading) return <div className="flex justify-center py-24"><div className="spinner"></div></div>;
 
-  const activeKeys = ['dsa', 'web-development', 'web development', 'devops', 'open-source', 'open source'];
+  const isDevopsEnabled = isFeatureEnabled('devops_terminal');
+  const activeKeys = ['dsa', 'web-development', 'web development', isDevopsEnabled && 'devops', 'open-source', 'open source'].filter(Boolean);
 
   const activeDomains = domains.filter(d => {
     const name = d.name.toLowerCase();
     const slug = (d.slug || '').toLowerCase();
+    if (slug === 'devops' && !isDevopsEnabled) return false;
     return activeKeys.includes(slug) || name.includes('dsa') || name.includes('web development') || name.includes('devops') || name.includes('open source');
   });
 
   const comingSoonDomains = domains.filter(d => {
     const name = d.name.toLowerCase();
     const slug = (d.slug || '').toLowerCase();
+    if (slug === 'devops') return false;
     return !(activeKeys.includes(slug) || name.includes('dsa') || name.includes('web development') || name.includes('devops') || name.includes('open source'));
   });
 

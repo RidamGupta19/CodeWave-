@@ -62,6 +62,14 @@ import Leaderboard from './pages/student/Leaderboard';
 // Admin / Teacher Roadmap Management
 import AdminRoadmapProgress from './pages/admin/AdminRoadmapProgress';
 
+// Feature Flags & Guards
+import { FeatureFlagProvider } from './context/FeatureFlagContext';
+import FeatureRoute from './components/FeatureRoute';
+import AiInterview from './pages/AiInterview';
+import AiResumeBuilder from './pages/AiResumeBuilder';
+import PlacementPortal from './pages/PlacementPortal';
+import JobBoard from './pages/JobBoard';
+
 // Teacher Pages
 import TeacherDashboard from './pages/teacher/TeacherDashboard';
 import TeacherBatches from './pages/teacher/TeacherBatches';
@@ -79,7 +87,8 @@ import TeacherProfile from './pages/teacher/TeacherProfile';
 function App() {
   return (
     <AuthProvider>
-      <Router>
+      <FeatureFlagProvider>
+        <Router>
         <Toaster position="top-right" toastOptions={{ className: 'premium-toast', style: { background: '#ffffff', color: '#101828', border: '1px solid #eaecf0', borderRadius: '12px', boxShadow: '0 4px 6px -1px rgba(16, 24, 40, 0.1)' } }} />
         <Routes>
           {/* Public Routes */}
@@ -96,7 +105,7 @@ function App() {
               <Route path="/roadmap" element={<Roadmap />} />
               <Route path="/topic/:id" element={<TopicDetail />} />
               <Route path="/assessments" element={<Assessments />} />
-              <Route path="/code-guru" element={<AiChat />} />
+              <Route path="/code-guru" element={<FeatureRoute featureKey="ai_doubt_solver"><AiChat /></FeatureRoute>} />
               <Route path="/resources" element={<Resources />} />
               <Route path="/career-guide" element={<CareerGuide />} />
               <Route path="/zero-to-coding" element={<ZeroToCoding />} />
@@ -110,7 +119,11 @@ function App() {
               <Route path="/student/dashboard" element={<StudentDashboard />} />
               <Route path="/student/courses" element={<StudentCourses />} />
               <Route path="/student/live-classes" element={<StudentLiveClasses />} />
-              <Route path="/student/video-lectures" element={<StudentVideoLectures />} />
+              <Route path="/student/video-lectures" element={<FeatureRoute featureKey="video_streaming"><StudentVideoLectures /></FeatureRoute>} />
+              <Route path="/student/ai-interview" element={<FeatureRoute featureKey="ai_interview"><AiInterview /></FeatureRoute>} />
+              <Route path="/student/ai-resume" element={<FeatureRoute featureKey="ai_resume_builder"><AiResumeBuilder /></FeatureRoute>} />
+              <Route path="/student/placement-portal" element={<FeatureRoute featureKey="placement_portal"><PlacementPortal /></FeatureRoute>} />
+              <Route path="/student/job-board" element={<FeatureRoute featureKey="job_board"><JobBoard /></FeatureRoute>} />
               <Route path="/student/roadmap" element={<StudentRoadmap />} />
               <Route path="/student/notes" element={<StudentNotes />} />
               <Route path="/student/assignments" element={<StudentAssignments />} />
@@ -131,7 +144,7 @@ function App() {
               <Route path="/teacher/students" element={<TeacherStudents />} />
               <Route path="/teacher/attendance" element={<TeacherAttendance />} />
               <Route path="/teacher/live-classes" element={<TeacherLiveClasses />} />
-              <Route path="/teacher/video-lectures" element={<TeacherVideoLectures />} />
+              <Route path="/teacher/video-lectures" element={<FeatureRoute featureKey="video_streaming"><TeacherVideoLectures /></FeatureRoute>} />
               <Route path="/teacher/notes" element={<TeacherNotes />} />
               <Route path="/teacher/assignments" element={<TeacherAssignments />} />
               <Route path="/teacher/assessments" element={<TeacherAssessments />} />
@@ -174,7 +187,8 @@ function App() {
 
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
-      </Router>
+        </Router>
+      </FeatureFlagProvider>
     </AuthProvider>
   );
 }
