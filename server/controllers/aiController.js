@@ -524,7 +524,11 @@ exports.generateRoadmap = async (req, res) => {
     const key = getProgressKey(domainSlug);
 
     const experience = (domainSlug === 'dsa')
-      ? (answers.dsa_problem_experience || 'beginner')
+      ? (answers.dsa_problem_experience === 'regular'
+          ? 'comfortable'
+          : answers.dsa_problem_experience === 'some_leetcode'
+            ? 'some_problems'
+            : (answers.dsa_problem_experience || 'beginner'))
       : (domainSlug === 'web-development' || domainSlug === 'webdev')
         ? (answers.web_page === 'yes' ? 'comfortable' : answers.web_page === 'somewhat' ? 'some_problems' : 'beginner')
         : (domainSlug === 'devops')
