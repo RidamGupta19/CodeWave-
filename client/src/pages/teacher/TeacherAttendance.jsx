@@ -234,6 +234,101 @@ export default function TeacherAttendance() {
     toast.success('Attendance report exported successfully! 📊');
   };
 
+  // Export filtered history as Excel XLS
+  const exportToExcel = () => {
+    if (history.length === 0) {
+      return toast.error('No history records to export');
+    }
+
+    const headers = ['Date', 'Student Name', 'Roll Number', 'Batch', 'Subject/Course', 'Status', 'Marked By'];
+    const rows = history.map(log => [
+      new Date(log.date).toISOString().substring(0, 10),
+      log.studentId?.fullName || 'N/A',
+      log.studentId?.rollNumber || 'N/A',
+      log.batchId?.batchName || 'N/A',
+      log.courseId?.courseName || 'N/A',
+      log.status,
+      log.teacherId?.name || 'N/A'
+    ]);
+
+    let excelContent = 'sep=\t\r\n' + headers.join('\t') + '\r\n';
+    rows.forEach(row => {
+      excelContent += row.join('\t') + '\r\n';
+    });
+
+    const blob = new Blob([excelContent], { type: 'application/vnd.ms-excel;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.setAttribute('href', url);
+    link.setAttribute('download', `Attendance_Report_${new Date().toISOString().substring(0, 10)}.xls`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    toast.success('Attendance report exported to Excel! 📊');
+  };
+
+  // Export filtered history as PDF report
+  const exportToPDF = () => {
+    if (history.length === 0) {
+      return toast.error('No history records to export');
+    }
+
+    const printWindow = window.open('', '_blank');
+    const tableRows = history.map(log => `
+      <tr>
+        <td style="padding: 8px; border-bottom: 1px solid #ddd;">${new Date(log.date).toLocaleDateString()}</td>
+        <td style="padding: 8px; border-bottom: 1px solid #ddd;">${log.studentId?.fullName || 'N/A'}</td>
+        <td style="padding: 8px; border-bottom: 1px solid #ddd;">${log.studentId?.rollNumber || 'N/A'}</td>
+        <td style="padding: 8px; border-bottom: 1px solid #ddd;">${log.batchId?.batchName || 'N/A'}</td>
+        <td style="padding: 8px; border-bottom: 1px solid #ddd;">${log.courseId?.courseName || 'N/A'}</td>
+        <td style="padding: 8px; border-bottom: 1px solid #ddd;">${log.status}</td>
+        <td style="padding: 8px; border-bottom: 1px solid #ddd;">${log.teacherId?.name || 'Admin'}</td>
+      </tr>
+    `).join('');
+
+    printWindow.document.write(`
+      <html>
+        <head>
+          <title>Attendance Report</title>
+          <style>
+            body { font-family: Arial, sans-serif; margin: 30px; color: #333; }
+            h1 { text-align: center; color: #059669; }
+            table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+            th { background-color: #f3f4f6; padding: 10px; text-align: left; border-bottom: 2px solid #ddd; }
+          </style>
+        </head>
+        <body>
+          <h1>CodeWave Academy - Attendance Report</h1>
+          <p>Generated on: ${new Date().toLocaleDateString()}</p>
+          <table>
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Student</th>
+                <th>Roll Number</th>
+                <th>Batch</th>
+                <th>Course</th>
+                <th>Status</th>
+                <th>Marked By</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${tableRows}
+            </tbody>
+          </table>
+          <script>
+            window.onload = function() {
+              window.print();
+              window.close();
+            }
+          </script>
+        </body>
+      </html>
+    `);
+    printWindow.document.close();
+    toast.success('PDF print window opened! 🖨️');
+  };
+
   // Filter history client side by search query
   const filteredHistory = history.filter(log => {
     const term = searchQuery.toLowerCase();
@@ -642,11 +737,26 @@ export default function TeacherAttendance() {
                 >
                   Clear Filters
                 </button>
-                <button
+                 <button
+                  type="button"
                   onClick={exportToCSV}
-                  className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-black uppercase rounded-xl shadow-md transition-all flex items-center gap-1.5"
+                  className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-black uppercase rounded-xl shadow-md transition-all flex items-center gap-1.5 cursor-pointer"
                 >
-                  <FiDownload /> Export CSV Report
+                  <FiDownload /> CSV
+                </button>
+                <button
+                  type="button"
+                  onClick={exportToExcel}
+                  className="px-4 py-2.5 bg-teal-600 hover:bg-teal-700 text-white text-xs font-black uppercase rounded-xl shadow-md transition-all flex items-center gap-1.5 cursor-pointer"
+                >
+                  <FiDownload /> Excel
+                </button>
+                <button
+                  type="button"
+                  onClick={exportToPDF}
+                  className="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-black uppercase rounded-xl shadow-md transition-all flex items-center gap-1.5 cursor-pointer"
+                >
+                  <FiDownload /> PDF
                 </button>
               </div>
             </div>

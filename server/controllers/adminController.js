@@ -110,13 +110,36 @@ exports.getAdminStats = async (req, res) => {
     const totalNotes = await StudyMaterial.countDocuments({ materialType: 'Notes' });
     const totalAssignments = await Assignment.countDocuments({});
 
-    const startOfToday = new Date(); startOfToday.setHours(0, 0, 0, 0);
-    const endOfToday = new Date(); endOfToday.setHours(23, 59, 59, 999);
+    const todayUTC = new Date();
+    const startOfToday = new Date(Date.UTC(todayUTC.getUTCFullYear(), todayUTC.getUTCMonth(), todayUTC.getUTCDate()));
+    const endOfToday = new Date(Date.UTC(todayUTC.getUTCFullYear(), todayUTC.getUTCMonth(), todayUTC.getUTCDate(), 23, 59, 59, 999));
     const activeLiveClasses = await Schedule.countDocuments({ date: { $gte: startOfToday, $lte: endOfToday } });
 
     const todayAttendance = await Attendance.find({ date: { $gte: startOfToday, $lte: endOfToday } });
     const presentsCount = todayAttendance.filter(a => a.status === 'Present').length;
-    const attendanceToday = todayAttendance.length > 0 ? Math.round((presentsCount / todayAttendance.length) * 100) : 94; // fallback
+    const absentsCount = todayAttendance.filter(a => a.status === 'Absent').length;
+    const leavesCount = todayAttendance.filter(a => a.status === 'Leave').length;
+    const holidaysCount = todayAttendance.filter(a => a.status === 'Holiday').length;
+    const attendanceToday = todayAttendance.length > 0 
+      ? Math.round(((presentsCount + leavesCount + holidaysCount) / todayAttendance.length) * 100) 
+      : 100;
+
+    const todayStats = {
+      total: todayAttendance.length,
+      present: presentsCount,
+      absent: absentsCount,
+      leave: leavesCount,
+      holiday: holidaysCount,
+      percentage: attendanceToday
+    };
+
+    const recentAttendanceLogs = await Attendance.find({})
+      .populate('studentId')
+      .populate('batchId')
+      .populate('courseId')
+      .populate('teacherId')
+      .sort({ date: -1, createdAt: -1 })
+      .limit(5);
 
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
@@ -291,6 +314,7 @@ exports.getAdminStats = async (req, res) => {
         totalNotes,
         totalAssignments,
         attendanceToday,
+        todayStats,
         newAdmissions,
         platformActivity,
 
@@ -310,7 +334,8 @@ exports.getAdminStats = async (req, res) => {
           teacherUploads,
           liveClasses,
           submissions: recentSubmissions,
-          notifications: recentNotifications
+          notifications: recentNotifications,
+          attendance: recentAttendanceLogs
         }
       }
     });

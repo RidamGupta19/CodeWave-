@@ -1224,7 +1224,7 @@ const ZeroToCoding = () => {
           <div className={`flex items-center px-4 border-b shrink-0 ${
             theme === 'dark' ? 'bg-[#282828] border-[#3e3e3e]' : 'bg-slate-50 border-slate-200'
           }`}>
-            [
+            {[
               { id: 'description', label: 'Problem Description', icon: FileCode },
               { id: 'examples', label: 'Constraints & Examples', icon: Trophy },
               { id: 'clues', label: 'Hints & Accordion', icon: HelpCircle },

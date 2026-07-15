@@ -82,6 +82,7 @@ app.use('/api/problems', require('./routes/problemRoutes'));
 app.use('/api/code', require('./routes/codeRoutes'));
 app.use('/api/submissions', require('./routes/submissionRoutes'));
 app.use('/api/institute', require('./routes/instituteRoutes'));
+app.use('/api/attendance', require('./routes/attendanceRoutes'));
 app.use('/api/roadmap-progress', require('./routes/roadmapProgress'));
 app.use('/api/admin/roadmap', require('./routes/adminRoadmap'));
 app.use('/api/roadmap', require('./routes/roadmap'));

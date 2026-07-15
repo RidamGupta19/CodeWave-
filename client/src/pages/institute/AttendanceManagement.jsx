@@ -121,8 +121,12 @@ export default function AttendanceManagement() {
         status: records[id]
       }));
 
+      const batchObj = batches.find(b => b._id === selectedBatch);
+      const courseId = batchObj?.course;
+
       await api.post('/institute/attendance', {
         batchId: selectedBatch,
+        courseId,
         date,
         records: formattedRecords
       });

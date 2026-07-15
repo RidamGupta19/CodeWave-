@@ -46,6 +46,32 @@ export default function StudentProfile() {
   const [allocatedSchedule, setAllocatedSchedule] = useState(null);
   const [loadingAllocation, setLoadingAllocation] = useState(false);
 
+  // Attendance tab states
+  const [attendanceReport, setAttendanceReport] = useState(null);
+  const [loadingAttendance, setLoadingAttendance] = useState(false);
+  const [currentDate, setCurrentDate] = useState(new Date());
+
+  const fetchProfileAttendance = async (dateObj) => {
+    try {
+      setLoadingAttendance(true);
+      const month = dateObj.getMonth() + 1;
+      const year = dateObj.getFullYear();
+      const res = await api.get(`/institute/attendance/report?month=${month}&year=${year}`);
+      setAttendanceReport(res.data.data);
+    } catch (err) {
+      console.error('Failed to load profile attendance', err);
+      toast.error('Failed to load attendance report');
+    } finally {
+      setLoadingAttendance(false);
+    }
+  };
+
+  useEffect(() => {
+    if (activeTab === 'attendance') {
+      fetchProfileAttendance(currentDate);
+    }
+  }, [activeTab, currentDate]);
+
   useEffect(() => {
     fetchStudentProfile();
   }, []);
@@ -279,6 +305,7 @@ export default function StudentProfile() {
     { id: 'personal', name: 'Personal Details', icon: <FiUser /> },
     { id: 'parent', name: 'Parent Details', icon: <FiUser /> },
     { id: 'academic', name: 'Batch & Course', icon: <FiBriefcase /> },
+    { id: 'attendance', name: 'Attendance Summary', icon: <FiClock /> },
     { id: 'security', name: 'Security & Password', icon: <FiShield /> }
   ];
 
@@ -631,6 +658,161 @@ export default function StudentProfile() {
                   </div>
                 )}
 
+              </div>
+            )}
+
+            {/* Attendance tab contents */}
+            {activeTab === 'attendance' && (
+              <div className="space-y-8">
+                <div>
+                  <h3 className="text-sm font-black uppercase text-[var(--text-main)] tracking-wider mb-1">My Classroom Attendance Hub</h3>
+                  <p className="text-[10px] text-[var(--text-muted)] font-bold">Review subject-wise performance, monthly attendance grids, and detailed presence logs.</p>
+                </div>
+
+                {loadingAttendance || !attendanceReport ? (
+                  <div className="flex justify-center items-center py-20">
+                    <div className="animate-spin rounded-full h-8 w-8 border-3 border-[var(--primary)] border-t-transparent"></div>
+                  </div>
+                ) : (
+                  <>
+                    {/* Summary Cards */}
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                      <div className="card p-4 bg-[var(--bg-sub)]/35 border border-[var(--border)] rounded-2xl text-center">
+                        <div className="text-[9px] uppercase font-black tracking-widest text-[var(--text-light)]">Attendance Rate</div>
+                        <div className="text-3xl font-black text-[var(--primary)] mt-2">{attendanceReport.statistics?.percentage || 0}%</div>
+                      </div>
+                      <div className="card p-4 bg-[var(--bg-sub)]/35 border border-[var(--border)] rounded-2xl text-center">
+                        <div className="text-[9px] uppercase font-black tracking-widest text-[var(--text-light)]">Present Days</div>
+                        <div className="text-3xl font-black text-[var(--text-main)] mt-2">{attendanceReport.statistics?.present || 0}</div>
+                      </div>
+                      <div className="card p-4 bg-[var(--bg-sub)]/35 border border-[var(--border)] rounded-2xl text-center">
+                        <div className="text-[9px] uppercase font-black tracking-widest text-[var(--text-light)]">Absent Days</div>
+                        <div className="text-3xl font-black text-rose-500 mt-2">{attendanceReport.statistics?.absent || 0}</div>
+                      </div>
+                      <div className="card p-4 bg-[var(--bg-sub)]/35 border border-[var(--border)] rounded-2xl text-center">
+                        <div className="text-[9px] uppercase font-black tracking-widest text-[var(--text-light)]">Leaves Approved</div>
+                        <div className="text-3xl font-black text-amber-500 mt-2">{attendanceReport.statistics?.leave || 0}</div>
+                      </div>
+                    </div>
+
+                    {/* Calendar Grid View */}
+                    <div className="card p-5 bg-[var(--bg-card)] border border-[var(--border)] rounded-2xl">
+                      <div className="flex justify-between items-center mb-4">
+                        <h4 className="text-xs font-black uppercase text-[var(--text-light)] tracking-widest flex items-center gap-1.5">
+                          <FiClock /> Monthly Attendance Calendar
+                        </h4>
+                        <div className="flex items-center gap-2">
+                          <button
+                            type="button"
+                            onClick={() => setCurrentDate(prev => new Date(prev.getFullYear(), prev.getMonth() - 1, 1))}
+                            className="p-1.5 hover:bg-[var(--bg-sub)] rounded-lg text-slate-500 hover:text-[var(--text-main)] transition-colors border border-[var(--border-light)] cursor-pointer"
+                          >
+                            &larr;
+                          </button>
+                          <span className="text-xs font-black uppercase tracking-wider text-[var(--text-main)]">
+                            {currentDate.toLocaleString('default', { month: 'long', year: 'numeric' })}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => setCurrentDate(prev => new Date(prev.getFullYear(), prev.getMonth() + 1, 1))}
+                            className="p-1.5 hover:bg-[var(--bg-sub)] rounded-lg text-slate-500 hover:text-[var(--text-main)] transition-colors border border-[var(--border-light)] cursor-pointer"
+                          >
+                            &rarr;
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Day headers */}
+                      <div className="grid grid-cols-7 gap-1 text-center font-black uppercase text-[9px] text-[var(--text-light)] tracking-widest mb-2">
+                        {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(d => <div key={d} className="py-1">{d}</div>)}
+                      </div>
+
+                      {/* Days grid */}
+                      <div className="grid grid-cols-7 gap-1.5">
+                        {(() => {
+                          const year = currentDate.getFullYear();
+                          const month = currentDate.getMonth();
+                          const firstDayIndex = new Date(year, month, 1).getDay();
+                          const totalDays = new Date(year, month + 1, 0).getDate();
+                          const calendarDays = [];
+                          for (let i = 0; i < firstDayIndex; i++) {
+                            calendarDays.push(<div key={`empty-${i}`} className="aspect-square bg-transparent rounded-lg" />);
+                          }
+                          for (let d = 1; d <= totalDays; d++) {
+                            const dayStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+                            const log = attendanceReport.calendarData?.find(c => c.date === dayStr);
+                            let bgClass = 'bg-[var(--bg-sub)]/30 text-[var(--text-light)] border border-[var(--border-light)]';
+                            if (log) {
+                              if (log.status === 'Present') bgClass = 'bg-green-50 text-green-700 border border-green-200';
+                              else if (log.status === 'Absent') bgClass = 'bg-red-50 text-red-700 border border-red-200';
+                              else if (log.status === 'Leave') bgClass = 'bg-yellow-50 text-yellow-700 border border-yellow-200';
+                              else if (log.status === 'Holiday') bgClass = 'bg-blue-50 text-blue-700 border border-blue-200';
+                            }
+                            calendarDays.push(
+                              <div
+                                key={`day-${d}`}
+                                className={`aspect-square flex flex-col items-center justify-center rounded-lg text-xs font-black relative transition-all hover:scale-105 ${bgClass}`}
+                                title={log ? `${log.status}: ${log.topic || 'Classroom session'}` : 'No records'}
+                              >
+                                <span>{d}</span>
+                              </div>
+                            );
+                          }
+                          return calendarDays;
+                        })()}
+                      </div>
+                    </div>
+
+                    {/* Detailed History Table */}
+                    <div className="card p-5 bg-[var(--bg-card)] border border-[var(--border)] rounded-2xl space-y-4">
+                      <h4 className="text-xs font-black uppercase text-[var(--text-light)] tracking-widest flex items-center gap-1.5 pb-2 border-b border-[var(--border-light)]">
+                        <FiClock /> Detailed History Records
+                      </h4>
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-left text-xs">
+                          <thead>
+                            <tr className="border-b border-[var(--border)] font-black uppercase text-[10px] text-[var(--text-light)] tracking-wider">
+                              <th className="pb-3">Date</th>
+                              <th className="pb-3">Status</th>
+                              <th className="pb-3">Course</th>
+                              <th className="pb-3">Batch</th>
+                              <th className="pb-3 text-right">Instructor</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {attendanceReport.history?.records && attendanceReport.history.records.length > 0 ? (
+                              attendanceReport.history.records.map((log, idx) => (
+                                <tr key={idx} className="border-b border-[var(--border)]/50 hover:bg-[var(--bg-sub)]/10 font-semibold text-[var(--text-main)]">
+                                  <td className="py-3">{new Date(log.date).toLocaleDateString()}</td>
+                                  <td className="py-3">
+                                    <span className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider ${
+                                      log.status === 'Present' 
+                                        ? 'bg-green-50 text-green-700 border border-green-200' 
+                                        : log.status === 'Absent' 
+                                          ? 'bg-red-50 text-red-700 border border-red-200' 
+                                          : log.status === 'Leave'
+                                            ? 'bg-yellow-50 text-yellow-700 border border-yellow-200'
+                                            : 'bg-blue-50 text-blue-700 border border-blue-200'
+                                    }`}>
+                                      {log.status}
+                                    </span>
+                                  </td>
+                                  <td className="py-3">{log.courseId?.courseName || 'N/A'}</td>
+                                  <td className="py-3">{log.batchId?.batchName || 'N/A'}</td>
+                                  <td className="py-3 text-right">{log.teacherId?.name || 'Admin'}</td>
+                                </tr>
+                              ))
+                            ) : (
+                              <tr>
+                                <td colSpan="5" className="text-center py-6 text-[var(--text-muted)] font-bold">No historical attendance marks logged.</td>
+                              </tr>
+                            )}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  </>
+                )}
               </div>
             )}
 

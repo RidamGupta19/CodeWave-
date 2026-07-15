@@ -97,7 +97,7 @@ export default function StudentDashboard() {
     );
   }
 
-  const { student, attPercentage, fees, upcomingClasses, pendingAssignments, recentNotes, notices, upcomingAssessments } = data;
+  const { student, attPercentage, todayStatus = 'Not Marked', monthlyPercentage = 100, attendanceTrend = '0%', fees, upcomingClasses, pendingAssignments, recentNotes, notices, upcomingAssessments } = data;
   const greeting = () => {
     const hrs = new Date().getHours();
     if (hrs < 12) return 'Good Morning';
@@ -207,28 +207,52 @@ export default function StudentDashboard() {
         </div>
 
         {/* Attendance Card */}
-        <div className="card p-6 bg-[var(--bg-card)] border border-[var(--border)] rounded-2xl shadow-sm flex flex-col justify-between items-center text-center">
-          <div className="w-full text-left flex items-center gap-2 text-xs font-black uppercase text-[var(--text-light)] tracking-widest">
-            <FiClock /> Attendance Rate
-          </div>
-          <div className="relative my-4 flex items-center justify-center">
-            <svg className="w-28 h-28 transform -rotate-90">
-              <circle cx="56" cy="56" r="46" stroke="var(--border-light)" strokeWidth="8" fill="transparent" className="dark:stroke-zinc-800" />
-              <circle cx="56" cy="56" r="46" stroke="var(--primary)" strokeWidth="8" fill="transparent" 
-                strokeDasharray="289"
-                strokeDashoffset={289 - (289 * Math.min(attPercentage, 100)) / 100}
-                strokeLinecap="round"
-                className="transition-all duration-1000 ease-out"
-              />
-            </svg>
-            <div className="absolute text-2xl font-black text-[var(--text-main)]">
-              {attPercentage}%
+        <div className="card p-6 bg-[var(--bg-card)] border border-[var(--border)] rounded-2xl shadow-sm flex flex-col justify-between">
+          <div>
+            <div className="flex items-center justify-between text-xs font-black uppercase text-[var(--text-light)] tracking-widest mb-4">
+              <span className="flex items-center gap-2"><FiClock /> Attendance</span>
+              <span className="text-[10px] bg-emerald-50 text-[var(--primary)] px-2 py-0.5 rounded-full border border-emerald-100 font-extrabold">{attendanceTrend}</span>
+            </div>
+            <div className="flex items-center justify-around my-3">
+              <div className="relative flex items-center justify-center shrink-0">
+                <svg className="w-20 h-20 transform -rotate-90">
+                  <circle cx="40" cy="40" r="34" stroke="var(--border-light)" strokeWidth="6" fill="transparent" className="dark:stroke-zinc-800" />
+                  <circle cx="40" cy="40" r="34" stroke="var(--primary)" strokeWidth="6" fill="transparent" 
+                    strokeDasharray="213"
+                    strokeDashoffset={213 - (213 * Math.min(attPercentage, 100)) / 100}
+                    strokeLinecap="round"
+                    className="transition-all duration-1000 ease-out"
+                  />
+                </svg>
+                <div className="absolute text-sm font-black text-[var(--text-main)]">
+                  {attPercentage}%
+                </div>
+              </div>
+              <div className="text-left space-y-2">
+                <div>
+                  <span className="text-[9px] uppercase tracking-wider text-[var(--text-light)] block">Today's Status</span>
+                  <span className={`px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-wider inline-block mt-0.5 ${
+                    todayStatus === 'Present' 
+                      ? 'bg-green-50 text-green-700 border border-green-200' 
+                      : todayStatus === 'Absent' 
+                        ? 'bg-red-50 text-red-700 border border-red-200' 
+                        : todayStatus === 'Leave'
+                          ? 'bg-yellow-50 text-yellow-700 border border-yellow-200'
+                          : todayStatus === 'Holiday'
+                            ? 'bg-blue-50 text-blue-700 border border-blue-200'
+                            : 'bg-slate-50 text-slate-500 border border-slate-200'
+                  }`}>
+                    {todayStatus}
+                  </span>
+                </div>
+                <div>
+                  <span className="text-[9px] uppercase tracking-wider text-[var(--text-light)] block">Monthly Rate</span>
+                  <span className="text-xs font-black text-[var(--text-main)] mt-0.5">{monthlyPercentage}%</span>
+                </div>
+              </div>
             </div>
           </div>
-          <p className="text-[10px] text-[var(--text-muted)] font-semibold px-2 mb-2 leading-relaxed">
-            Aim for above 85% to retain placement assistance.
-          </p>
-          <Link to="/student/attendance" className="w-full btn-secondary py-2 text-xs font-black uppercase">
+          <Link to="/student/attendance" className="w-full btn-secondary py-2 text-xs font-black uppercase text-center mt-3 block">
             Logs
           </Link>
         </div>

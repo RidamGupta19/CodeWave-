@@ -474,17 +474,16 @@ exports.markAttendance = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Records array is required and cannot be empty' });
     }
 
-    // Find teacher
+    // Find teacher profile if role is teacher
     const teacher = await Teacher.findOne({ userId: req.user._id });
     if (!teacher && req.user.role !== 'admin') {
       return res.status(403).json({ success: false, message: 'Only instructors or admins can log attendance.' });
     }
-    const teacherId = teacher ? teacher._id : req.user._id;
 
-    const formattedDate = new Date(parsedDate);
-    formattedDate.setHours(0,0,0,0);
+    // Normalize date to UTC midnight (00:00:00.000Z) to avoid timezone shifts
+    const formattedDate = new Date(Date.UTC(parsedDate.getUTCFullYear(), parsedDate.getUTCMonth(), parsedDate.getUTCDate()));
 
-    // Deduplicate records by studentId to prevent duplicate processing/race conditions
+    // Deduplicate records by studentId to prevent duplicate processing
     const uniqueRecords = [];
     const seenStudents = new Set();
     for (const record of records) {
@@ -502,8 +501,8 @@ exports.markAttendance = async (req, res) => {
       if (!mongoose.Types.ObjectId.isValid(record.studentId)) {
         return res.status(400).json({ success: false, message: `Invalid studentId format: ${record.studentId}` });
       }
-      if (!['Present', 'Absent', 'Leave'].includes(record.status)) {
-        return res.status(400).json({ success: false, message: `Invalid status '${record.status}'. Must be Present, Absent, or Leave` });
+      if (!['Present', 'Absent', 'Leave', 'Holiday'].includes(record.status)) {
+        return res.status(400).json({ success: false, message: `Invalid status '${record.status}'. Must be Present, Absent, Leave, or Holiday` });
       }
 
       // Fetch student to get default course if not supplied
@@ -513,17 +512,19 @@ exports.markAttendance = async (req, res) => {
       }
       const finalCourseId = courseId || studentObj.course;
 
-      // Match strictly on unique index properties { studentId, date } to prevent duplicate entries
+      // Match strictly on unique compound index properties { studentId, courseId, batchId, date }
       const query = { 
         studentId: record.studentId, 
+        courseId: finalCourseId,
+        batchId: batchId,
         date: formattedDate
       };
       
       const update = { 
         status: record.status,
-        teacherId,
-        batchId,
-        courseId: finalCourseId
+        teacherId: teacher ? teacher._id : undefined,
+        markedBy: req.user._id,
+        markedAt: new Date()
       };
       
       const attendance = await Attendance.findOneAndUpdate(query, update, { upsert: true, new: true });
@@ -537,7 +538,7 @@ exports.markAttendance = async (req, res) => {
         userId: req.user._id,
         userEmail: req.user.email,
         action: 'MARK_ATTENDANCE',
-        details: `Saved attendance for batch ${batchId} on ${formattedDate.toDateString()}. Total records: ${uniqueRecords.length}`,
+        details: `Saved attendance for batch ${batchId} on ${formattedDate.toUTCString()}. Total records: ${uniqueRecords.length}`,
         ipAddress: req.ip || '127.0.0.1',
         deviceInfo: req.headers['user-agent'] || 'Unknown'
       });
@@ -563,19 +564,17 @@ exports.getAttendance = async (req, res) => {
     
     if (date) {
       const searchDate = new Date(date);
-      searchDate.setHours(0,0,0,0);
-      query.date = searchDate;
+      const utcSearchDate = new Date(Date.UTC(searchDate.getUTCFullYear(), searchDate.getUTCMonth(), searchDate.getUTCDate()));
+      query.date = utcSearchDate;
     } else if (startDate || endDate) {
       query.date = {};
       if (startDate) {
         const start = new Date(startDate);
-        start.setHours(0,0,0,0);
-        query.date.$gte = start;
+        query.date.$gte = new Date(Date.UTC(start.getUTCFullYear(), start.getUTCMonth(), start.getUTCDate()));
       }
       if (endDate) {
         const end = new Date(endDate);
-        end.setHours(23,59,59,999);
-        query.date.$lte = end;
+        query.date.$lte = new Date(Date.UTC(end.getUTCFullYear(), end.getUTCMonth(), end.getUTCDate(), 23, 59, 59, 999));
       }
     }
 
@@ -587,6 +586,146 @@ exports.getAttendance = async (req, res) => {
       .sort({ date: -1 });
 
     res.json({ success: true, data: attendanceRecords });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+exports.updateAttendanceById = async (req, res) => {
+  try {
+    const { status, date } = req.body;
+    const attendance = await Attendance.findById(req.params.id);
+    if (!attendance) {
+      return res.status(404).json({ success: false, message: 'Attendance record not found' });
+    }
+
+    if (status) {
+      if (!['Present', 'Absent', 'Leave', 'Holiday'].includes(status)) {
+        return res.status(400).json({ success: false, message: 'Invalid status. Must be Present, Absent, Leave, or Holiday' });
+      }
+      attendance.status = status;
+    }
+
+    if (date) {
+      const parsedDate = new Date(date);
+      if (isNaN(parsedDate.getTime())) {
+        return res.status(400).json({ success: false, message: 'Invalid date format' });
+      }
+      const utcDate = new Date(Date.UTC(parsedDate.getUTCFullYear(), parsedDate.getUTCMonth(), parsedDate.getUTCDate()));
+      attendance.date = utcDate;
+    }
+
+    await attendance.save();
+    res.json({ success: true, message: 'Attendance record updated successfully', data: attendance });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+exports.getAttendanceByStudent = async (req, res) => {
+  try {
+    const { studentId } = req.params;
+    if (!mongoose.Types.ObjectId.isValid(studentId)) {
+      return res.status(400).json({ success: false, message: 'Invalid student ID format' });
+    }
+    const records = await Attendance.find({ studentId })
+      .populate('studentId')
+      .populate('batchId')
+      .populate('teacherId')
+      .populate('courseId')
+      .sort({ date: -1 });
+    res.json({ success: true, data: records });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+exports.getAttendanceByBatch = async (req, res) => {
+  try {
+    const { batchId } = req.params;
+    if (!mongoose.Types.ObjectId.isValid(batchId)) {
+      return res.status(400).json({ success: false, message: 'Invalid batch ID format' });
+    }
+    const records = await Attendance.find({ batchId })
+      .populate('studentId')
+      .populate('batchId')
+      .populate('teacherId')
+      .populate('courseId')
+      .sort({ date: -1 });
+    res.json({ success: true, data: records });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+exports.getAttendanceByCourse = async (req, res) => {
+  try {
+    const { courseId } = req.params;
+    if (!mongoose.Types.ObjectId.isValid(courseId)) {
+      return res.status(400).json({ success: false, message: 'Invalid course ID format' });
+    }
+    const records = await Attendance.find({ courseId })
+      .populate('studentId')
+      .populate('batchId')
+      .populate('teacherId')
+      .populate('courseId')
+      .sort({ date: -1 });
+    res.json({ success: true, data: records });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+exports.getGeneralAttendanceReport = async (req, res) => {
+  try {
+    const { batchId, studentId, courseId, startDate, endDate } = req.query;
+    let query = {};
+    
+    if (batchId) query.batchId = batchId;
+    if (studentId) query.studentId = studentId;
+    if (courseId) query.courseId = courseId;
+    
+    if (startDate || endDate) {
+      query.date = {};
+      if (startDate) {
+        const start = new Date(startDate);
+        query.date.$gte = new Date(Date.UTC(start.getUTCFullYear(), start.getUTCMonth(), start.getUTCDate()));
+      }
+      if (endDate) {
+        const end = new Date(endDate);
+        query.date.$lte = new Date(Date.UTC(end.getUTCFullYear(), end.getUTCMonth(), end.getUTCDate(), 23, 59, 59, 999));
+      }
+    }
+
+    const records = await Attendance.find(query)
+      .populate('studentId')
+      .populate('batchId')
+      .populate('teacherId')
+      .populate('courseId')
+      .sort({ date: -1 });
+
+    const total = records.length;
+    const present = records.filter(r => r.status === 'Present').length;
+    const absent = records.filter(r => r.status === 'Absent').length;
+    const leave = records.filter(r => r.status === 'Leave').length;
+    const holiday = records.filter(r => r.status === 'Holiday').length;
+    
+    const percentage = total > 0 ? Math.round(((present + leave + holiday) / total) * 100) : 100;
+
+    res.json({
+      success: true,
+      data: {
+        statistics: {
+          total,
+          present,
+          absent,
+          leave,
+          holiday,
+          percentage
+        },
+        records
+      }
+    });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }
@@ -673,8 +812,8 @@ exports.getStudentAttendanceReport = async (req, res) => {
     const filterMonth = parseInt(month);
     const filterYear = parseInt(year);
     if (!isNaN(filterMonth) && !isNaN(filterYear)) {
-      const start = new Date(filterYear, filterMonth - 1, 1);
-      const end = new Date(filterYear, filterMonth, 0, 23, 59, 59);
+      const start = new Date(Date.UTC(filterYear, filterMonth - 1, 1));
+      const end = new Date(Date.UTC(filterYear, filterMonth, 0, 23, 59, 59, 999));
       filterQuery.date = { $gte: start, $lte: end };
     }
 
@@ -1336,7 +1475,36 @@ exports.getStudentDashboard = async (req, res) => {
     const totalAtt = attendance.length;
     const presentAtt = attendance.filter(a => a.status === 'Present').length;
     const leaveAtt = attendance.filter(a => a.status === 'Leave').length;
-    const attPercentage = totalAtt > 0 ? Math.round(((presentAtt + leaveAtt) / totalAtt) * 100) : 100;
+    const holidayAtt = attendance.filter(a => a.status === 'Holiday').length;
+    const attPercentage = totalAtt > 0 ? Math.round(((presentAtt + leaveAtt + holidayAtt) / totalAtt) * 100) : 100;
+
+    // 1. Today's status
+    const todayUTC = new Date();
+    const todayFormatted = new Date(Date.UTC(todayUTC.getUTCFullYear(), todayUTC.getUTCMonth(), todayUTC.getUTCDate()));
+    const todayRecord = attendance.find(a => new Date(a.date).getTime() === todayFormatted.getTime());
+    const todayStatus = todayRecord ? todayRecord.status : 'Not Marked';
+
+    // 2. Monthly percentage
+    const currentMonth = todayUTC.getUTCMonth();
+    const currentYear = todayUTC.getUTCFullYear();
+    const monthlyRecords = attendance.filter(a => {
+      const d = new Date(a.date);
+      return d.getUTCMonth() === currentMonth && d.getUTCFullYear() === currentYear;
+    });
+    const monthlyTotal = monthlyRecords.length;
+    const monthlyPresent = monthlyRecords.filter(a => a.status === 'Present').length;
+    const monthlyLeave = monthlyRecords.filter(a => a.status === 'Leave').length;
+    const monthlyHoliday = monthlyRecords.filter(a => a.status === 'Holiday').length;
+    const monthlyPercentage = monthlyTotal > 0 ? Math.round(((monthlyPresent + monthlyLeave + monthlyHoliday) / monthlyTotal) * 100) : 100;
+
+    // 3. Attendance trend
+    const sortedAttendance = [...attendance].sort((a,b) => new Date(b.date) - new Date(a.date));
+    const last5 = sortedAttendance.slice(0, 5);
+    const prev5 = sortedAttendance.slice(5, 10);
+    const last5Rate = last5.length > 0 ? (last5.filter(a => ['Present', 'Leave', 'Holiday'].includes(a.status)).length / last5.length) * 100 : 100;
+    const prev5Rate = prev5.length > 0 ? (prev5.filter(a => ['Present', 'Leave', 'Holiday'].includes(a.status)).length / prev5.length) * 100 : 100;
+    const trendDiff = Math.round(last5Rate - prev5Rate);
+    const attendanceTrend = trendDiff >= 0 ? `+${trendDiff}%` : `${trendDiff}%`;
 
     const fees = await Fee.findOne({ student: student._id });
 
@@ -1373,6 +1541,9 @@ exports.getStudentDashboard = async (req, res) => {
           activeDomain: user?.activeDomain
         },
         attPercentage,
+        todayStatus,
+        monthlyPercentage,
+        attendanceTrend,
         fees,
         upcomingClasses: classes,
         pendingAssignments,

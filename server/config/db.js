@@ -34,6 +34,12 @@ const connectDB = async () => {
     } catch (e) {
       // ignore safely
     }
+    try {
+      await conn.connection.db.collection('attendances').dropIndex('studentId_1_date_1');
+      console.log('Successfully dropped old unique index studentId_1_date_1');
+    } catch (e) {
+      // ignore safely
+    }
 
     return { conn, isMemory: !!mongoServer };
   } catch (error) {
